@@ -1,0 +1,612 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"pop",
+				"populatedTestUser"
+			],
+			[
+				"test",
+				"testUser"
+			],
+			[
+				"makeT",
+				"makeTestDelegations"
+			],
+			[
+				"user",
+				"userSchema"
+			],
+			[
+				"del",
+				"delegations"
+			],
+			[
+				"dele",
+				"delegations"
+			],
+			[
+				"pas",
+				"passwordInput"
+			],
+			[
+				"us",
+				"userPassword"
+			],
+			[
+				"sub",
+				"submitVoteButton"
+			],
+			[
+				"castV",
+				"castVoteButton"
+			],
+			[
+				"cast",
+				"castVoteButton1"
+			],
+			[
+				"delegation",
+				"delegationSchmea"
+			],
+			[
+				"de",
+				"delegatingId"
+			],
+			[
+				"area",
+				"areaNumber"
+			],
+			[
+				"get",
+				"getAllDelegations"
+			],
+			[
+				"ar",
+				"areaNumber"
+			],
+			[
+				"meth",
+				"methods"
+			],
+			[
+				"vote",
+				"voteOrder"
+			],
+			[
+				"vo",
+				"voteOrder"
+			],
+			[
+				"drag",
+				"dragulaContainerLeft"
+			],
+			[
+				"ini",
+				"initialLawId"
+			],
+			[
+				"tr",
+				"translation"
+			],
+			[
+				"file",
+				"filePath"
+			],
+			[
+				"trans",
+				"translations"
+			],
+			[
+				"transl",
+				"translationController"
+			],
+			[
+				"fil",
+				"filePath"
+			],
+			[
+				"debug",
+				"debugTranslations"
+			],
+			[
+				"Liqu",
+				"LiquidDemocracy"
+			],
+			[
+				"sel",
+				"selectedVal"
+			],
+			[
+				"enu",
+				"enumValues"
+			],
+			[
+				"le",
+				"length"
+			],
+			[
+				"undef",
+				"undefined"
+			],
+			[
+				"are",
+				"areaSchema"
+			],
+			[
+				"form-",
+				"form-control"
+			],
+			[
+				"data",
+				"datatable"
+			],
+			[
+				"init",
+				"initDeleteIcons"
+			],
+			[
+				"han",
+				"handleMongooseValidationError"
+			],
+			[
+				"New",
+				"newArea"
+			],
+			[
+				"err",
+				"errorLoc"
+			],
+			[
+				"erro",
+				"errorMessage"
+			],
+			[
+				"fiel",
+				"fieldName"
+			],
+			[
+				"in",
+				"instance"
+			],
+			[
+				"formF",
+				"formField"
+			],
+			[
+				"req",
+				"required"
+			],
+			[
+				"form",
+				"formField"
+			],
+			[
+				"requ",
+				"required"
+			],
+			[
+				"from",
+				"fromNow"
+			],
+			[
+				"fro",
+				"fromNow"
+			],
+			[
+				"for",
+				"format"
+			],
+			[
+				"date",
+				"dateVal"
+			],
+			[
+				"make",
+				"makeColEditable"
+			],
+			[
+				"yaml",
+				"yamlLocalize"
+			],
+			[
+				"new",
+				"newArea"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"schem",
+				"schemaType"
+			],
+			[
+				"defaul",
+				"defaultValue"
+			],
+			[
+				"sch",
+				"schemaType"
+			],
+			[
+				"path",
+				"pathName"
+			],
+			[
+				"Are",
+				"AreaModel"
+			],
+			[
+				"prop",
+				"propertyName"
+			],
+			[
+				"pro",
+				"propertyName"
+			],
+			[
+				"create",
+				"CreateNewArea"
+			],
+			[
+				"c",
+				"console"
+			],
+			[
+				"error",
+				"errors"
+			],
+			[
+				"va",
+				"value"
+			],
+			[
+				"edi",
+				"editableElemId"
+			],
+			[
+				"gly",
+				"glyphicon-edit"
+			],
+			[
+				"edit",
+				"editIcon"
+			],
+			[
+				"gl",
+				"glyphicon-edit"
+			],
+			[
+				"bootst",
+				"bootstrap3-editable"
+			],
+			[
+				"display",
+				"displayDateValue"
+			],
+			[
+				"btn",
+				"btn-primary"
+			],
+			[
+				"col-sm",
+				"col-sm-4"
+			],
+			[
+				"Cre",
+				"CreateNewDiv"
+			],
+			[
+				"all",
+				"allAreas"
+			],
+			[
+				"default",
+				"defaultFormat"
+			],
+			[
+				"tran",
+				"translations_EN"
+			],
+			[
+				"i18n",
+				"i18nextOptions"
+			],
+			[
+				"i18",
+				"i18nBackend"
+			],
+			[
+				"la",
+				"lawController"
+			],
+			[
+				"card",
+				"cardstack"
+			],
+			[
+				"car",
+				"card_name_EN"
+			],
+			[
+				"v",
+				"value"
+			],
+			[
+				"pl",
+				"player"
+			],
+			[
+				"play",
+				"players"
+			],
+			[
+				"pla",
+				"players"
+			],
+			[
+				"app",
+				"append"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/App.vue",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/userHome/userHome.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/vote/voteController.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/userHome/userHomeController.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/startup.sh",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/doc/Liquido REST Backend in Java + Groovy.md",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/vote/ballotModel.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/law/lawModel.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/app.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/models/User.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/vote/votePage.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/testDataCreator.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/models.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/cucumber/features/support/world.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/app.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/ideaTest.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/js/main.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/locales/english.yml",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/js/validator.min.js",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/css/doogie.css",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/views/home.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/law/editLaw.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/.env.example",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LiquidDemocracy.md",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/userHome.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/account/profile.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/locales/english.yml",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/controllers/translationController.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/layout.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/partials/footer.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/public/js/debugTranslations.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/area/listAreas.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/locales/english.yml",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LQ_NodeJS/views/home.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/models/areaModel.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/app.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/area/createNewArea.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/controllers/areaController.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/area/listAreas.jade",
+		"/Volumes/Data1TB/Coding/git_repos/hackathon-starter/views/layout.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/controllers/home.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/controllers/contact.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/controllers/user.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/node_modules/express-flash/node_modules/connect-flash/lib/flash.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/layout.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/js/validator.min.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/js/main.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/css/main.scss",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/css/doogie.scss",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/css/main.css",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/partials/header.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/home.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/package.json",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/locales/en/translation.yml",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/locales/en/translation.missing.yml",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/controllers/lawController.js",
+		"/Users/Doogie/Documents/Readings_2016/Late Night Coding",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/law/listLaws.jade",
+		"/Volumes/Data1TB/Temp/_dailyDeleted/test.js",
+		"/Users/Doogie/Documents/Readings_2016/Wahrscheinlichkeit Anderer Spieler hat Karte X",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/models/lawModel.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/locales/en-US/translation.yml",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/law/createNewProposal.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/locales/en-US/translation.json",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/README.md",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/css/lib/bootstrap/bootstrap.scss",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/contact.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/account/login.jade",
+		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/models/User.js",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/.env.example",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/law/listLaws",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/partials/flash.jade",
+		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/startMongoDB.sh",
+		"/Volumes/Data1TB/Coding/WebDevelopment/webPlayground/Bootstrap 4 Dashboard/Bootstrap 4 Dashboard.html",
+		"/Volumes/Data1TB/Coding/local_htdocs/LiquidDemocracy/views/home.jade",
+		"/Volumes/Data1TB/Coding/local_htdocs/LiquidDemocracy/views/layout.jade",
+		"/Volumes/Data1TB/Coding/WebDevelopment/webPlayground/quicktestapp_nodejs_coffeescript/test/public/index.html",
+		"/Volumes/Data1TB/Projects Geek/LiquidDemocracy.md",
+		"/Users/Doogie/Documents/DoogieEli_Share/Babytagebuch Lena Marie Rackl 2016.txt",
+		"/Volumes/Data1TB/Coding/JavaPlayground/LoveLetter/src/org/loveletter/Card.java",
+		"/Volumes/Data1TB/Coding/JavaPlayground/LoveLetter/src/org/loveletter/Board.java",
+		"/Volumes/Data1TB/Coding/JavaPlayground/LoveLetter/src/org/loveletter/LoveLetterGame.java",
+		"/Volumes/Data1TB/Coding/WebDevelopment/node_modules/coffee-script/README",
+		"/Users/Doogie/Dropbox/PlainText/Projekte/MeshNetwork.md",
+		"/Volumes/Data1TB/Coding/git_repos/FacebookAPIExample/tranceMP3s/tranceMP3s.html"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"*.js",
+			"*"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"update",
+			"csrf",
+			"IP",
+			"port",
+			"isAuthenticated",
+			"returnTo",
+			"postLogin",
+			"locale",
+			"Banana",
+			"TODO",
+			"====",
+			"areasT",
+			"editableElem",
+			"style",
+			"session",
+			"returnTo",
+			";\n",
+			"returnTo",
+			"session",
+			"validator",
+			"sass",
+			"i18n",
+			"contact",
+			"th t('thead.",
+			"CSRF",
+			"hover",
+			"url",
+			"i18n",
+			"moment",
+			"translation",
+			"locals",
+			"dev",
+			"table-container",
+			"flash",
+			"collapse",
+			"\"//",
+			"rotate",
+			"hold.it",
+			"//place"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"Proposal",
+			"",
+			"placehold.it",
+			"http://"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": false
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 219.0,
+	"status_bar_visible": true
+}
