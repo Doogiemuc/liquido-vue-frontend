@@ -1,0 +1,32 @@
+<div class="container">
+  <h1>Liquido</h1>
+  <p class="lead">A modern aproach to interactive representative direct democracy.</p>
+  <hr>
+  <div class="row">
+    <div class="col-sm-6">
+      <h2>Dev Links</h2>
+      <p>Some quick links for development:</p>
+      <a v-link="{ path: '/ideas' }">List Ideas</a>
+      <a v-link="{ path: '/userHome' }">UserHome</a>
+      <h4>Laws</h3>
+      <ul>
+        <li v-for="law in laws">{{ law.title }} ({{ law.id}})<br>
+          <a href="/showLaw?lawId={{law.id}}">Show</a> |
+          <a href="/editLaw?lawId={{law.id}}">Edit</a> |
+          <a href="/showVote?lawId={{law.id}}">Vote</a>
+        </li>
+      </ul>
+      <h2>Heading</h2>
+      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
+      <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
+    </div>
+    <div class="col-sm-6">
+      <h2>Heading</h2>
+      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
+      <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
+      <h2>Heading</h2>
+      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
+      <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
+    </div>
+  </div>
+</div>
