@@ -29,6 +29,8 @@ Based on the awesome [VueJs WebPack Template](http://vuejs-templates.github.io/w
 
 ### Mongo Database as mlab.com
 
+[Node.js Mongo Driver Reference Documentation](http://mongodb.github.io/node-mongodb-native/2.1/api/)
+
 http://mlab.com   "Doogie" - new pwd
 
 connect to DB  (wiht lion pwd)

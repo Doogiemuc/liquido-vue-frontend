@@ -1,31 +1,39 @@
 /**
  * Main entry class for Liquido
  * 
- * Here we initialize Vue, setup our URL-routing and connect to the mongoDB backend.
+ * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 import Vue from 'vue'
+import VueRouter from 'vue-router'
+import VueResource from 'vue-resource'
+
+// Vue components
+//TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/
 import LiquidoHeader from './components/LiquidoHeader'
-import DataTable from './components/DataTable'
 import LiquidoHome from './components/LiquidoHome'
+import EditableCell from './components/EditableCell'
 import Ideas from './components/Ideas'
 
-// register custom components
-Vue.component('liquido-header', LiquidoHeader)
-Vue.component('data-table', DataTable)
-
-// Vue-resource for making HTTP requests
-var VueResource = require('vue-resource');
 Vue.use(VueResource);
-
-// Vue-router for navigation
-var VueRouter = require("vue-router")
 Vue.use(VueRouter)
-var App = Vue.extend({})                  // App is our main vue component. (Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!)
+
+// Register custom components
+Vue.component('liquido-header', LiquidoHeader)
+Vue.component('editable-cell', EditableCell)
+//Vue.component('data-table', DataTable)   // not used anymore, replaced with vue-tables
+
+// Setup Vue-router for navigation
+var App = Vue.extend({})    // Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!
 var router = new VueRouter()
 router.map({
     '/': {
         component: LiquidoHome
     },
+    /*
+    '/login': {
+        component: Login
+    }
+    */
     '/ideas': {
         component: Ideas
     },
@@ -35,11 +43,6 @@ router.map({
         }
     }
 })
-router.start(App, '#app')
 
-/* eslint-disable no-new 
-new Vue({
-  el: 'body',
-  components: { App, LiquidoHeader }
-})
-*/
+// Start Vue app
+router.start(App, '#app')
