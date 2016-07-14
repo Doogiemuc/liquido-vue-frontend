@@ -26,9 +26,50 @@ var editableCell = function(rowId, colName, value) {
 
 export default {
   methods: {
-    deleteMe: function(evt) {
-      console.log("evt=", evt);
+    loadData: function() {
+      this.loading = true
+      var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
+      this.resource = this.$resource(
+        'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas', 
+        { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
+      );
+      
+      this.resource.get(params).then((response) => {
+        console.log(response.json())
+        this.ideaData = response.json();
+        this.loading = false
+      }, (err) => {
+        //TODO: show error message to user  (reload button?)
+        console.error(err)
+      })
     },
+    deleteRow: function(evt) {
+      console.log("deleteRow=", evt);
+    }
+  },
+
+  events: {
+    'saveNewValue': function(rowId, key, value) {
+      console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
+
+      var apiKey = '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU'
+      var data = { "$set" : {} }
+      data["$set"][key] = value
+      console.log("data", data)
+
+      $.ajax( { 
+        url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas/'+rowId+'?apiKey='+apiKey,
+        data: JSON.stringify(data),
+        type: "PUT",
+        contentType: "application/json" 
+      } )
+      .fail(function( jqXHR, textStatus, errorThrown ) {
+        console.error("Could not update value: ", textStatus, errorThrown)
+      })
+      .done(function( data, textStatus, jqXHR ) {
+        console.log("successfully updated value:", data, textStatus)
+      });
+    } 
   },
 
   data () {
@@ -49,13 +90,18 @@ export default {
         },
         compileTemplates: true,  // compile vue.js logic on templates.
         templates: {
-          description: function(row) {
+          title: function(row) {
             // A lot of vue magic is happening here:
-            // - These values are passed as literal strings and not as dynamic JS values with leading ":" see https://vuejs.org/guide/components.html#Literal-vs-Dynamic
-            // - 
+            // - Cells in this column are editable-cells, a Vue component
+            // - Propety values are passed to this child component as literal strings and not as dynamic JS values with leading ":" see https://vuejs.org/guide/components.html#Literal-vs-Dynamic
+            // - The editable cell will fire a 'saveNewValue' event when the value was changed.
+            return '<editable-cell row-id="'+row._id.$oid+'" key="title" value="'+row.title+'"></editable-cell>'
+          },
+          description: function(row) {
             return '<editable-cell row-id="'+row._id.$oid+'" key="description" value="'+row.description+'"></editable-cell>'
           },
           createdBy: function(row) {
+            //TODO: fetch username from DB (via User Service that returns a model)
             return row.createdBy.$oid
           },
           createdAt: function(row) {
@@ -65,36 +111,23 @@ export default {
             return fromNow(row.updatedAt.$date)
           },
           del: function(row) {
-            return "<a href='javascript:void(0);' @click='$parent.deleteMe(\""+row._id.$oid+"\")'><i class='glyphicon glyphicon-remove'></i></a>"
+            return "<a href='javascript:void(0);' @click='$parent.deleteRow(\""+row._id.$oid+"\")'><i class='glyphicon glyphicon-remove'></i></a>"
           }
         },
         skin: 'table-bordered table-condensed table-hover',
-        //TODO: onRowClick: function(row) { editIdea(row._id.$oid }
       }
     }
   },
 
-  
+  // load data when table component is ready
   ready () {
-    this.loading = true
-    var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-    
-    this.resource = this.$resource(
-      'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas', 
-      { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
-    );
-    
-    this.resource.get(params).then((response) => {
-      console.log(response.json())
-      this.ideaData = response.json();
-      this.loading = false
-      this.$watch('page', function() {
-        console.log("page has changed")
-      })
-    }, (err) => {
-      //TODO: show error message to user  (reload button?)
-      console.error(err)
+    this.loadData()
+    //TODO
+    /*
+    this.$watch('page', function() {
+      console.log("page has changed")
     })
+    */
   }
   
 }
