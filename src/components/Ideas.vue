@@ -29,12 +29,7 @@ export default {
     loadData: function() {
       this.loading = true
       var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-      this.resource = this.$resource(
-        'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas', 
-        { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
-      );
-      
-      this.resource.get(params).then((response) => {
+      this.ideasRes.get(params).then((response) => {
         console.log(response.json())
         this.ideaData = response.json();
         this.loading = false
@@ -52,11 +47,13 @@ export default {
     'saveNewValue': function(rowId, key, value) {
       console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
 
-      var apiKey = '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU'
       var data = { "$set" : {} }
       data["$set"][key] = value
-      console.log("data", data)
+      this.ideasRes.update({id: rowId}, data)
+      .then((response) => { console.log(response) })
 
+      /*  or in plain JQuery
+      var apiKey = '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU'
       $.ajax( { 
         url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas/'+rowId+'?apiKey='+apiKey,
         data: JSON.stringify(data),
@@ -69,6 +66,7 @@ export default {
       .done(function( data, textStatus, jqXHR ) {
         console.log("successfully updated value:", data, textStatus)
       });
+      */
     } 
   },
 
@@ -121,6 +119,11 @@ export default {
 
   // load data when table component is ready
   ready () {
+    // create vue-resource for Ideas
+    this.ideasRes = this.$resource(
+      'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas/{id}', 
+      { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
+    );
     this.loadData()
     //TODO
     /*
