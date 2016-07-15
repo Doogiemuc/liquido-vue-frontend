@@ -26,12 +26,11 @@ var unwindRefs = function (db, item) {
     return db.collection(value.$ref.collection)
       .findOne(value.$ref.query)
       .then((doc) => {
-        console.log("  $ref to '"+value.$ref.collection+"'", value.$ref.query, "is ID="+doc._id);
-        console.log("=====================");
-        console.log("before", value);
-        value = new ObjectID(doc._id);  // replace $ref with found _id
-        console.log("after", value);
-        console.log("item", item);
+        console.log("   unwindRefValue: key "+key+" in", item.query, "was a $ref to '"+value.$ref.collection+"'", value.$ref.query, "and is ID="+doc._id);
+        item.update[key] = new ObjectID(doc._id);  // replace item.update.key.$ref: {...} with found MongoDB ObjectId
+
+        //TODO: cache already resolved refs and cache their IDs for later. This will especially speed up the frequent refs to 'users'
+
         return doc._id;
       });
   };
@@ -41,7 +40,7 @@ var unwindRefs = function (db, item) {
     _.forOwn(item.update, function(value, key) {
       //console.log("checking "+key+"="+value);
       if (_.isPlainObject(value) && _.has(value, '$ref')) {
-        console.log("  found ref to '"+value.$ref.collection+"' with query ", value.$ref.query);
+        //console.log("checkForRefs: key "+key+" in ", item.query, " is ref to '"+value.$ref.collection+"' with query ", value.$ref.query);
         refsToResolve.push(unwindRefValue(item, key, value));
       } /*else
       if (_.isArray(value)) {
@@ -77,7 +76,8 @@ var upsertCollection = function(db, upsertOps) {
 
       // upsert item in DB
       .then(function() {
-        //console.log("updateOne", item.update);
+        console.log("== updateOne", item.query);
+        //console.log("item.update=", item.update);
         return collection.updateOne(item.query, item.update, {upsert: true});
       })
 
