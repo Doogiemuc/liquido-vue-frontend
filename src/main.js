@@ -14,6 +14,7 @@ import LiquidoHeader from './components/LiquidoHeader'
 import EditableCell from './components/EditableCell'
 Vue.component('liquido-header', LiquidoHeader)
 Vue.component('editable-cell', EditableCell)
+Vue.component('doogie-table', require("./components/DoogieTable"))
 
 // Vue plugins
 Vue.use(VueResource);
@@ -45,7 +46,7 @@ router.map({
     },
     '/proxies': {
         component: function(resolve) {    // asyncronously require component for lazy loading
-          require(['./controllers/proxies.vue'], resolve)
+          require(['./controllers/Proxies.vue'], resolve)
         }
     }
 })

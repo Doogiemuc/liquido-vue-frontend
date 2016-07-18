@@ -4,11 +4,18 @@
 export default {
   data () {
     return {
-      laws: [
-        { title: "Law Title 1", id: "12311" },
-        { title: "Law Title 2", id: "12322" },
-        { title: "Law Title 3", id: "12333" }
-      ]
+      ideaRest: this.$resource(
+        'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas/{id}', 
+        { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
+      ),
+      ideaColumns: [
+        { title: "Title", path: "title", editable: true },
+        { title: "Description", path: "description", editable: true  },
+        { title: "Created By", path: "createdBy.$oid" },
+        { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
+        { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' }
+      ],
+      ideaKey: "_id.$oid"
     }
   }
 }

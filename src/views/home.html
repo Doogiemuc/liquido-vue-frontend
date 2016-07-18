@@ -2,6 +2,14 @@
   <h1>Liquido</h1>
   <p class="lead">A modern aproach to interactive representative direct democracy.</p>
   <hr>
+  
+  <doogie-table
+    :resource="ideaRest"
+    :columns="ideaColumns"
+    :primary-key-for-row="ideaKey">
+  </doogie-table>
+  
+  <hr>
   <div class="row">
     <div class="col-sm-6">
       <h2>Dev Links</h2>

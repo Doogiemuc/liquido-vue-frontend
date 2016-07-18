@@ -1,22 +1,18 @@
-<div class="container-fluid">
+<div class="container">
   <h1>Liquido - Ideas</h1>
   <p class="lead">Spontaneous suggestions for improvement</p>
-  <div v-if="loading">Loading idea data ...</div>
   
-  <div class="panel panel-default">
-    <div class="panel-body">
-
-      <div id="ideaTable" v-else="loading">
-        <v-client-table
-          :data="ideaData"
-          :columns="ideaColumns"
-          :options="ideaOptions">
-        </v-client-table>
-      </div>
-
-      <button type="button" class="pull-right btn btn-default btn-sm">
-        <i class="fa fa-plus-square" aria-hidden="true"></i> Add Idea
-      </button>
-    </div>
+  <div v-if="loading">Loading data ...</div>
+  
+  <div id="ideaTable" v-else="loading">
+    <v-client-table
+      :data="ideaData"
+      :columns="ideaColumns"
+      :options="ideaOptions">
+    </v-client-table>
   </div>
+
+  <button type="button" class="pull-right btn btn-default btn-sm">
+    <i class="fa fa-plus-square" aria-hidden="true"></i> Add Idea
+  </button>
 </div>
