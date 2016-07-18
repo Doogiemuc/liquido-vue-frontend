@@ -17,6 +17,7 @@
     "moment": "^2.14.1",
     "mongodb": "^2.1.18",
     "vue": "^1.0.21",
+    "vue-model": "0.0.3",
     "vue-resource": "^0.9.1",
     "vue-router": "^0.7.13",
     "vue-tables": "^1.4.5"

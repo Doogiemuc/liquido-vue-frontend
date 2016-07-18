@@ -42,7 +42,7 @@ var unwindRefs = function (db, item) {
       if (_.isPlainObject(value) && _.has(value, '$ref')) {
         //console.log("checkForRefs: key "+key+" in ", item.query, " is ref to '"+value.$ref.collection+"' with query ", value.$ref.query);
         refsToResolve.push(unwindRefValue(item, key, value));
-      } /*else
+      } /*else   //TODO: unwind an array of refs
       if (_.isArray(value)) {
         value.forEach((elem) => {
           if (_.isPlainObject(value) && _.has(value, '$ref')) {

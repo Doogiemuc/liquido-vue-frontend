@@ -1,3 +1,12 @@
+<!-- 
+  Editable cell that can be used  vue-tables component
+  
+  <editable-cell row-id="'+row._id.$oid+'" key="title" value="'+row.title+'"></editable-cell>'
+
+-->
+
+
+
 <template>
   <span id="{{cellId}}">{{value}}</span>
   <span class="glyphicon glyphicon-edit pull-right" style="cursor:pointer; visibility: hidden;" @click="startEdit"></span>
@@ -19,14 +28,14 @@ export default {
   },
 
   props: {
-    rowId: String,
-    key: String,
-    value: String
+    rowId: String,  // primary key for this document
+    key: String,    // attribute name for this column
+    value: String   // current value 
   },
 
   computed: {
-    cellId: function() {
-      return this.rowId + '_' + this.key;
+    cellId: function() {                    // unique ID for this cell
+      return this.rowId + '_' + this.key;  
     }
   },
 
