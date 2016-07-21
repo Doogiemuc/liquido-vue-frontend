@@ -2,11 +2,11 @@
   Localizable boostrap table with sorting, filtering.  TODO: paging
 
   Usage:  
-  <data-table
-    :resource="ideasRest"
-    :columns="ideaColumns"
-    :primary-key-for-row="ideaKey">
-  </data-table>
+  <doogie-table
+    :resource="vue-resource-rest-service"
+    :columns="columnsArray"
+    :primary-key-for-row="nameOrPathOfprimaryKeyAttribute">
+  </doogie-table>
 
  */
 
@@ -34,17 +34,19 @@
       </tr>
       <tr v-else="loading"
           v-for="row in rowData
-        | orderBy comparator sortOrder
-        | filterBy searchQuery
-        | paginationFilter">
+                  | orderBy comparator sortOrder
+                  | filterBy searchQuery
+                  | paginationFilter">
         <th v-if="showRowNumbers">
           {{page*rowsPerPage + $index + 1}}
         </td>
         <td v-for="col in columns">
-          <span v-if="col.editable" id="{{ getPath(row, primaryKeyForRow) + '_' + col.path }}">
-            {{ getPath(row, col.path) | localizeVal col.filter }}
-          </span>
-          <span v-if="col.editable" v-on:click="editValue" data-editableid="{{ getPath(row, primaryKeyForRow) + '_' + col.path }}" class="glyphicon glyphicon-edit pull-right invisible" style="cursor:pointer; visible:hidden"></span>
+          <editable-cell v-if="col.editable"
+            :row="row"
+            :row-id="getPath(row, primaryKeyForRow)"
+            :path="col.path"
+            :value="getPath(row, col.path)" >
+          </editable-cell>
           <span v-else="col.editable">
             {{ getPath(row, col.path) | localizeVal col.filter }}
           </span>
@@ -60,19 +62,19 @@
     <div class="col-sm-8 text-center">
       <nav v-if="lastPageIndex > 0">
         <ul class="pagination">
-          <li v-if="page-adjacentPages > 1">
+          <li v-if="page-adjacentPages >= 1">
             <a href="#" @click="page = 0">1</a>
           </li>
-          <li v-if="page-adjacentPages > 1">
+          <li class="disabled" v-if="page-adjacentPages > 1">
             <a href="#">...</a>
           </li>
           <li 
             v-for="pageIndex in currentPages" 
             v-if="pageIndex <= lastPageIndex"
-            v-bind:class="isActive(pageIndex)?'active':''">
+            v-bind:class="isActivePage(pageIndex)?'active':''">
             <a href="#" @click="page = pageIndex">{{pageIndex+1}}</a>
           </li>
-          <li v-if="page+adjacentPages < lastPageIndex">
+          <li class="disabled" v-if="page+adjacentPages < lastPageIndex-1">
             <a href="#">...</a>
           </li>
           <li v-if="page+adjacentPages < lastPageIndex">
@@ -111,20 +113,23 @@ export default {
   },
 
   data () {
-    var sortOrder = 1
     return {
       rowData: [],
       searchQuery: '',
-      sortByCol: null,
-      sortOrder: -1,
+      sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
+      sortOrder: 1,
       page: 0,                    // currently shown page. 0 is first page!
       rowsPerPage: 5,             // how many rows per page shall be shown in the table?
-      adjacentPages: 3,           // number of li elements to left and right (plus first/last page)
+      adjacentPages: 2,           // number of li elements to left and right (plus first/last page)
       showRowNumbers: true,       // show rowNumbers (of filtered result)
       loading: true,
     }
   },
-  
+
+  components: {
+    'editable-cell' : require("./EditableCell")
+  },
+
   computed: {
     // array of current page indexes that are shown in the pagination component
     currentPages() {
@@ -155,31 +160,11 @@ export default {
       return _.get(row1, this.sortByCol.path) < _.get(row2, this.sortByCol.path) ? -1 : 1
              
     },
-    isActive(index) {         // return true for pagination li elem in the middle that shows the current page
-      return index == this.page
-    },
     // pick the Vue utility function 'getPath' and make it available in our template above
     getPath: Vue.parsers.path.getPath,
-    editValue(event) {
-      event.stopPropagation();
-      //$(event.target).addClass("invisible");
-      $("#"+event.target.dataset.editableid).editable('toggle');
-    },
-    initEditable(elem) {
-      console.log("initializing editable")
-      elem.editable( {          
-        send: 'never',  //TODO: update via this.resource.save({mongoDB.$set operation})
-        toggle: 'manual',
-        type: 'text',
-        name: fieldname,
-        url: url,
-        pk: rowID,  
-        title: '',
-        error: function(errors) {
-          console.log(errors);
-          return "Cannot save";  //TODO: localize (on the client!)
-        }
-      } )
+    // get length of filtered data (needed in pagination child component)
+    getFilteredData() {
+      return Vue.filter('filterBy')(this.rowData, this.searchQuery)
     }
   },
   
@@ -187,7 +172,7 @@ export default {
     paginationFilter(data) {
       return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
     },
-    // values can be localized with these filters
+    // cell values can be localized with these filters
     localizeVal(val, filterName) {
       if (!filterName) return val;
       var filterFunc = this.$options.filters[filterName] || Vue.options.filters[filterName];
@@ -204,11 +189,29 @@ export default {
     },
   },
   
+  events: {
+    // This event is fired by editable-table when a cell's value has been edited.
+    // The value in rowData has already been synced.
+    // Here we update the value in the remote DB.
+    'saveNewValue': function(rowId, key, value) {
+      console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
+      var updateOp = { "$set" : {} }
+      updateOp["$set"][key] = value
+      this.resource.update({id: rowId}, updateOp)
+      .then((response) => { 
+        if (response.status == 200) { 
+          console.log("New value saved successfully to DB: '"+value+"'")
+        } else {
+          console.error("Could not save new value: ", response)
+        }
+      })
+    }
+  },
+  
   ready () {
     // Load rowData from restEndpoint
     this.loading = true
     var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-    
     this.resource.get(params).then((response) => {
       console.log("Data from resource: ", response.json())
       this.rowData = response.json();
@@ -218,7 +221,6 @@ export default {
       console.error(err)
     })
   }
-  
   
 }
 </script>
@@ -257,10 +259,6 @@ th.active .arrow {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid #000;
-}
-
-.doogie-table td:hover span.glyphicon-edit {
-  visibility: visible;
 }
 
 nav ul.pagination {

@@ -11,9 +11,9 @@ import Ideas from './controllers/Ideas'
 
 // Register custom components
 import LiquidoHeader from './components/LiquidoHeader'
-import EditableCell from './components/EditableCell'
+//import EditableCell from './components/EditableCell'
 Vue.component('liquido-header', LiquidoHeader)
-Vue.component('editable-cell', EditableCell)
+//Vue.component('editable-cell', EditableCell)
 Vue.component('doogie-table', require("./components/DoogieTable"))
 
 // Vue plugins
