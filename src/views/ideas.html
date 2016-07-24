@@ -1,18 +1,14 @@
-<div class="container">
+<div class="container-fluid">
   <h1>Liquido - Ideas</h1>
   <p class="lead">Spontaneous suggestions for improvement</p>
   
-  <div v-if="loading">Loading data ...</div>
-  
-  <div id="ideaTable" v-else="loading">
-    <v-client-table
-      :data="ideaData"
-      :columns="ideaColumns"
-      :options="ideaOptions">
-    </v-client-table>
-  </div>
+  <doogie-table
+    :resource="ideaResource"
+    :columns="ideaColumns"
+    :primary-key-for-row="ideaKey"
+    :localized-texts="ideaTexts"
+    v-ref:ideatable
+  >
+  </doogie-table>
 
-  <button type="button" class="pull-right btn btn-default btn-sm">
-    <i class="fa fa-plus-square" aria-hidden="true"></i> Add Idea
-  </button>
 </div>

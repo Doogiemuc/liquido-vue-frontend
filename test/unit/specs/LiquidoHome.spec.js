@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import LiquidoHome from 'src/components/LiquidoHome'
+import LiquidoHome from 'src/controllers/LiquidoHome'
 
 /* global expect */
 describe('LiquidoHome.vue', () => {

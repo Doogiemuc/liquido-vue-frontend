@@ -11,15 +11,13 @@ import Ideas from './controllers/Ideas'
 
 // Register custom components
 import LiquidoHeader from './components/LiquidoHeader'
-//import EditableCell from './components/EditableCell'
 Vue.component('liquido-header', LiquidoHeader)
-//Vue.component('editable-cell', EditableCell)
 Vue.component('doogie-table', require("./components/DoogieTable"))
 
 // Vue plugins
 Vue.use(VueResource);
 Vue.use(VueRouter)
-Vue.use(require('vue-model'))
+//TODO: Vue.use(require('vue-model'))
 
 // Vue components
 //TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/

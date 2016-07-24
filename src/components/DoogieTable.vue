@@ -1,11 +1,14 @@
 /**
-  Localizable boostrap table with sorting, filtering.  TODO: paging
+  Localizable boostrap table with sorting, filtering and paging.
+  You can pass in data directly as an array of rows or pass a vue-resource.
 
   Usage:  
   <doogie-table
     :resource="vue-resource-rest-service"
     :columns="columnsArray"
-    :primary-key-for-row="nameOrPathOfprimaryKeyAttribute">
+    :primary-key-for-row="nameOrPathOfprimaryKeyAttribute"
+    :localized-texts="yourTranslations"  
+  >
   </doogie-table>
 
  */
@@ -29,8 +32,11 @@
       </tr>
     </thead>
     <tbody>
+      <tr v-if="!loading && rowData.length == 0">
+        <td colspan="{{columns.length}}">(Empty data)</td>
+      </tr>
       <tr v-if="loading">
-        <td colspan="{{columns.length}}">Loading table data ...</td>
+        <td colspan="{{columns.length}}">Loading table data ... {{resourceError}}</td>
       </tr>
       <tr v-else="loading"
           v-for="row in rowData
@@ -47,45 +53,43 @@
             :path="col.path"
             :value="getPath(row, col.path)" >
           </editable-cell>
-          <span v-else="col.editable">
-            {{ getPath(row, col.path) | localizeVal col.filter }}
-          </span>
+          <span v-else="col.editable">{{ getPath(row, col.path) | localizeVal col.filter }}</span>
         </td>
       </tr>
     </tbody>
   </table>
   <div class="row">
     <div class="col-sm-2 text-left">
-      <input name="query" v-model="searchQuery" placeholder="Search/Filter"/>
+      <input name="query" v-model="searchQuery" placeholder="{{localizedTexts.searchFilter}}"/>
     </div>
     <!-- pager for doogie table -->
     <div class="col-sm-8 text-center">
       <nav v-if="lastPageIndex > 0">
         <ul class="pagination">
           <li v-if="page-adjacentPages >= 1">
-            <a href="#" @click="page = 0">1</a>
+            <a href="#" @click.prevent="page = 0">1</a>
           </li>
           <li class="disabled" v-if="page-adjacentPages > 1">
-            <a href="#">...</a>
+            <a href="#" class="narrowEllipsis">...</a>
           </li>
           <li 
             v-for="pageIndex in currentPages" 
             v-if="pageIndex <= lastPageIndex"
             v-bind:class="isActivePage(pageIndex)?'active':''">
-            <a href="#" @click="page = pageIndex">{{pageIndex+1}}</a>
+            <a href="#" @click.prevent="page = pageIndex">{{pageIndex+1}}</a>
           </li>
           <li class="disabled" v-if="page+adjacentPages < lastPageIndex-1">
-            <a href="#">...</a>
+            <a href="#" class="narrowEllipsis">...</a>
           </li>
           <li v-if="page+adjacentPages < lastPageIndex">
-            <a href="#" @click="page = lastPageIndex">{{lastPageIndex+1}}</a>
+            <a href="#" @click.prevent="page = lastPageIndex">{{lastPageIndex+1}}</a>
           </li>
         </ul>
       </nav>
     </div>
     <div class="col-sm-2 text-right">
-      <button type="button" class="btn btn-default btn-sm">
-        <i class="fa fa-plus-square" aria-hidden="true"></i> Add Idea
+      <button type="button" class="btn btn-default btn-sm" @click="addRow()">
+        <i class="fa fa-plus-square" aria-hidden="true"></i> {{localizedTexts.addButton}}
       </button>
     </div>
   </div>
@@ -106,23 +110,44 @@ export default {
     columns: { type: Array, required: true },
     
     // vue-resource for fetching data. columns.path  must match the returned Object structure
-    resource: { type: Object, required: true },
+    resource: { type: Object, required: false },
+    
+    // raw rowData for client only table
+    // You MUST either path resource or rowData !!!
+    rowData: { type: Array, required: false, default: function(){return null} },
     
     // which path in resource data is the primary key for each row (rowID)
     primaryKeyForRow: { type: String, required: true },
+    
+    localizedTexts: { 
+      type: Object, 
+      required: false, 
+      default: function() {
+        return {
+          searchFilter: 'Search/Filter',
+          addButton: 'Add'
+        }
+      }
+    },
+    
+    // how many rows per page shall be shown in the table?
+    rowsPerPage:    { type: Number, required: false, default: 10 },
+    
+    // number of li elements to left and right (plus first/last page)
+    adjacentPages:  { type: Number, required: false, default:  2 },
+    
+    // show rowNumbers (of filtered result) in first column
+    showRowNumbers: { type: Boolean, required: false, default: true },
   },
 
   data () {
     return {
-      rowData: [],
-      searchQuery: '',
+      searchQuery: '',                 // filter by searching every cell's content by partial text match
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,
-      page: 0,                    // currently shown page. 0 is first page!
-      rowsPerPage: 5,             // how many rows per page shall be shown in the table?
-      adjacentPages: 2,           // number of li elements to left and right (plus first/last page)
-      showRowNumbers: true,       // show rowNumbers (of filtered result)
+      page: 0,                         // currently shown page. 0 is first page!
       loading: true,
+      resourceError: '',
     }
   },
 
@@ -165,10 +190,19 @@ export default {
     // get length of filtered data (needed in pagination child component)
     getFilteredData() {
       return Vue.filter('filterBy')(this.rowData, this.searchQuery)
+    },
+    // highlights current page in pagination
+    isActivePage(index) {         
+      return index == this.page
+    },
+    addRow() {
+      //TODO: DoogieTable.addRow():  $dispatch addRow event
+      console.log("Add Row")
     }
   },
   
   filters: {
+    // this filter returns only the data for the current page
     paginationFilter(data) {
       return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
     },
@@ -190,36 +224,56 @@ export default {
   },
   
   events: {
-    // This event is fired by editable-table when a cell's value has been edited.
+    // This event is fired by editable-cell when a cell's value has been edited.
     // The value in rowData has already been synced.
-    // Here we update the value in the remote DB.
+    // Here we update the value in the remote DB (if there is any remote resource).
     'saveNewValue': function(rowId, key, value) {
-      console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
-      var updateOp = { "$set" : {} }
-      updateOp["$set"][key] = value
-      this.resource.update({id: rowId}, updateOp)
-      .then((response) => { 
-        if (response.status == 200) { 
-          console.log("New value saved successfully to DB: '"+value+"'")
-        } else {
-          console.error("Could not save new value: ", response)
-        }
-      })
+      //console.log("saveNewValue event in DoogieTable:", rowId, "#"+key+"#", value);
+      if (this.resource && _.isFunction(this.resource.get)) {
+        var updateOp = { "$set" : {} }
+        updateOp["$set"][key] = value
+        this.resource.update({id: rowId}, updateOp)
+        .then((response) => { 
+          if (response.status == 200) { 
+            console.log("saved new value '"+value+"' successfully to DB in rowId="+rowId)
+          } else {
+            console.error("Could not save new value: ", response)
+          }
+        })
+      }
+      return true  // let the event bubble further up
     }
   },
   
   ready () {
-    // Load rowData from restEndpoint
-    this.loading = true
-    var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-    this.resource.get(params).then((response) => {
-      console.log("Data from resource: ", response.json())
-      this.rowData = response.json();
-      this.loading = false
-    }, (err) => {
-      //TODO: show error message in table
-      console.error(err)
-    })
+    if (this.resource === undefined && this.rowData == null) {
+      console.warn("You did not pass any data into DoogieTable. You must either set the 'resource' or the 'rowData' property.")
+      this.rowData = [];
+    }
+    if (this.resource && _.isFunction(this.resource.get)) {
+      // Load rowData from restEndpoint
+      this.loading = true
+      this.resourceError = ''
+      var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
+      console.log("DoogieTable: sending request to resource")
+      this.resource.get(params).then((response) => {
+        console.log("DoogieTable: got data from resource: ", response.json())
+        this.rowData = response.json();
+        this.loading = false
+        this.$nextTick(function() {
+          this.$dispatch('DoogieTable:dataLoaded')
+        })
+      }, (err) => {
+        console.log("########## ERROR", err)
+        console.error(err)
+        this.resourceError = 'ERROR while loading'
+      })
+    } else {
+      this.loading = false;
+      this.$nextTick(function() {                  // http://vuejs.org/guide/reactivity.html#Async-Update-Queue
+        this.$dispatch('DoogieTabe:dataLoaded')
+      })
+    }
   }
   
 }
@@ -264,5 +318,18 @@ th.active .arrow {
 nav ul.pagination {
   padding: 0;
   margin: 0;
+}
+
+.pagination > li > a.narrowEllipsis {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.pagination > li.disabled > a:hover {
+  cursor: default;
+}
+
+.pagination > li > a:hover {
+  cursor: pointer;
 }
 </style>
