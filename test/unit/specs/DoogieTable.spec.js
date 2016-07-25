@@ -19,7 +19,7 @@ describe('DoogieTable.vue', () => {
   })
   
   
-  xit('should render a table with correct content in its cells', () => {
+  it('should render a table with correct content in its cells', () => {
     const vm = new Vue({
       data () {
         return {

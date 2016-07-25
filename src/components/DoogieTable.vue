@@ -255,9 +255,9 @@ export default {
       this.loading = true
       this.resourceError = ''
       var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-      console.log("DoogieTable: sending request to resource")
+      //console.log("DoogieTable: sending request to resource")
       this.resource.get(params).then((response) => {
-        console.log("DoogieTable: got data from resource: ", response.json())
+        //console.log("DoogieTable: got data from resource: ", response.json())
         this.rowData = response.json();
         this.loading = false
         this.$nextTick(function() {
