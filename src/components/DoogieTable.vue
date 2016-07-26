@@ -181,9 +181,7 @@ export default {
     // compare two rows of data when sorting
     comparator(row1,row2) {
       if (!this.sortByCol) return 0;
-      //console.log("getSortOrder sortByCol=", this.sortByCol.path, row1.title, row2.title)
       return _.get(row1, this.sortByCol.path) < _.get(row2, this.sortByCol.path) ? -1 : 1
-             
     },
     // pick the Vue utility function 'getPath' and make it available in our template above
     getPath: Vue.parsers.path.getPath,
@@ -196,8 +194,29 @@ export default {
       return index == this.page
     },
     addRow() {
-      //TODO: DoogieTable.addRow():  $dispatch addRow event
-      console.log("Add Row")
+      //dispatch an event so that the parent component can for example show a popup where the new entry can be created.
+      this.$dispatch('addButtonClicked')
+    },
+    hasRemoteData() {
+      return this.resource && _.isFunction(this.resource.get)
+    },
+    // Load rowData from restEndpoint
+    reload() {
+      this.loading = true
+      this.resourceError = ''
+      var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
+      //console.log("DoogieTable: sending request to resource")
+      this.resource.get(params).then((response) => {
+        //console.log("DoogieTable: got data from resource: ", response.json())
+        this.rowData = response.json();
+        this.loading = false
+        this.$nextTick(function() {
+          this.$dispatch('DoogieTable:dataLoaded')
+        })
+      }, (err) => {
+        console.error(err)
+        this.resourceError = 'ERROR while loading'
+      })
     }
   },
   
@@ -206,7 +225,7 @@ export default {
     paginationFilter(data) {
       return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
     },
-    // cell values can be localized with these filters
+    // cell values can be piped through any filter registered globally on in this DoogieTable class
     localizeVal(val, filterName) {
       if (!filterName) return val;
       var filterFunc = this.$options.filters[filterName] || Vue.options.filters[filterName];
@@ -229,7 +248,7 @@ export default {
     // Here we update the value in the remote DB (if there is any remote resource).
     'saveNewValue': function(rowId, key, value) {
       //console.log("saveNewValue event in DoogieTable:", rowId, "#"+key+"#", value);
-      if (this.resource && _.isFunction(this.resource.get)) {
+      if (this.hasRemoteData()) {
         var updateOp = { "$set" : {} }
         updateOp["$set"][key] = value
         this.resource.update({id: rowId}, updateOp)
@@ -250,24 +269,8 @@ export default {
       console.warn("You did not pass any data into DoogieTable. You must either set the 'resource' or the 'rowData' property.")
       this.rowData = [];
     }
-    if (this.resource && _.isFunction(this.resource.get)) {
-      // Load rowData from restEndpoint
-      this.loading = true
-      this.resourceError = ''
-      var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-      //console.log("DoogieTable: sending request to resource")
-      this.resource.get(params).then((response) => {
-        //console.log("DoogieTable: got data from resource: ", response.json())
-        this.rowData = response.json();
-        this.loading = false
-        this.$nextTick(function() {
-          this.$dispatch('DoogieTable:dataLoaded')
-        })
-      }, (err) => {
-        console.log("########## ERROR", err)
-        console.error(err)
-        this.resourceError = 'ERROR while loading'
-      })
+    if (this.hasRemoteData()) {
+      this.reload()
     } else {
       this.loading = false;
       this.$nextTick(function() {                  // http://vuejs.org/guide/reactivity.html#Async-Update-Queue

@@ -10,16 +10,16 @@ describe('DoogieTable.vue', () => {
   
   before(function() {
     //console.log("Setting up fakeServer")
-    fakeServer = sinon.fakeServer.create()
+    //fakeServer = sinon.fakeServer.create()
   })
   
   after(function() {
     //console.log("restoring original XHR")
-    fakeServer.restore()
+    //fakeServer.restore()
   })
   
   
-  it('should render a table with correct content in its cells', () => {
+  xit('should render a table with correct content in its cells', () => {
     const vm = new Vue({
       data () {
         return {
@@ -53,24 +53,44 @@ describe('DoogieTable.vue', () => {
       //console.log("=======> testtable.nextTick ", vm.$el.querySelector('.doogie-table tr td'))
       expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 1')
     })
-
+    
   })
 
-  it('should load data from remote resource', (done) => {
+  it('can load data from remote vue-resource', (done) => {
     var testData = JSON.stringify([
       { id: '4711', title: "Title 1", description: "Remote 1" },
       { id: '4712', title: "Title 2", description: "Remote 2" },
       { id: '4713', title: "Title 3", description: "Remote 3" },
     ])
-    fakeServer.respondWith("GET", "/tabletestdata",
-      [200, { "Content-Type": "application/json" }, testData ]
-    )
-    //Uncomment for debugging: 
-    //sinon.log = function (message) {  console.log("SINON: ", message); };
-    fakeServer.autoRespond = true;   // I couldn't get it working with calling fakeServer.respond() mamually.
-    //fakeServer.respondImmediately = true;  
     
     Vue.use(require('vue-resource'));
+    Vue.http.interceptors.push((request, next) => {
+      if (request.url == '/tabletestdata') {
+        console.log('Intercepting request to '+request.url+ '. Sending reply with canned testdata.')
+        // stop and return response
+        next(request.respondWith(testData, { status: 200, statusText: 'Ok' }))
+      } else {
+        next()
+      }
+    });
+    
+    /*  
+    // I tried to get this running with sinon.fakeServer. 
+    // It works when setting fakeServer.autoRespond = true. But according to the sinson docs, this should not be used for production ready tests.
+    // It I didn't get it working with manually callign fakeServer.respond() anywhere.
+    fakeServer.respondWith("GET", "/tabletestdata",
+      function(xhr) {
+        console.log("********** responding to GET /tabletestdata")
+        console.log("###### requests=", JSON.stringify(fakeServer.requests, ' ', 2))
+        xhr.respond(200, { "Content-Type": "application/json" }, testData)
+      }
+    )
+    //for debugging: 
+    sinon.log = function (message) {  console.log("SINON: ", message); };
+    fakeServer.autoRespond = true;   // I couldn't get it working with calling fakeServer.respond() mamually.
+    //There would also be a   fakeServer.respondImmediately = true;  
+    */
+    
     const vm = new Vue({
       data () {
         return {
@@ -91,15 +111,20 @@ describe('DoogieTable.vue', () => {
       components: { DoogieTable },
       events: {
         'DoogieTable:dataLoaded': function() {
-          //console.log("=========> DoogieTabe:dataLoaded222", JSON.stringify(fakeServer.requests, ' ', 4))
-          //console.log("=========> TableData is now ", vm.$el.querySelector('.doogie-table tbody tr:nth-child(1)').textContent)
+          console.log("DoogieTabe:dataLoaded event received."); //, JSON.stringify(fakeServer.requests[0].responseText, ' ', 4))
           expect(vm.$el.querySelector('.doogie-table tbody tr:nth-child(1)').textContent).to.contain('Remote 1')
           done()
         }
       },
     }).$mount().$appendTo(document.body)
 
+    /*
     //This does not work. Only the workaround with fakeServer.autoResond=true above works.
-    //fakeServer.respond()
+    console.log("###### requests=", JSON.stringify(fakeServer.requests, ' ', 2))
+    vm.$nextTick(function() {
+      console.log("###### $nextTick requests=", JSON.stringify(fakeServer.requests, ' ', 2))
+      fakeServer.respond()  
+    })
+    */
   })
 })
