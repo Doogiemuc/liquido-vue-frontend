@@ -2,18 +2,8 @@
 
 <script>
 
-import Vue from 'vue'
-import VueTables from 'vue-tables'
-import moment from 'moment'
 
 export default {
-  events: {
-    // called when a value was changed (DoogieTable already handled saving to DB)
-    'saveNewValue': function(rowId, key, value) {
-      console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
-    } 
-  },
-
   data () {
     return {
       // Data for DoogieTable.vue
@@ -33,6 +23,34 @@ export default {
         addButton: "Add Idea",
         searchFilter: "Search/Filter"
       },  
+    }
+  },
+
+  events: {
+    // called when a value was changed (DoogieTable already handled saving to DB)
+    'saveNewValue': function(rowId, key, value) {
+      console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
+    }, 
+    'addButtonClicked': function() {
+      console.log('addButtonClicked in Ideas.vue')
+      //TODO: open create new Idea page (or popup?)
+    },
+    'DoogieTable:dataLoaded': function(ideas) {
+      // load user for each Id in ideas
+      var userService = this.$root.$services.userService
+      ideas.forEach((idea) => {
+        userService.getById(idea.createdBy.$oid).then(function(user) {
+          console.log("got user=", user)
+          //TODO: update rowData for this idea
+          //idea.createdBy.name      = user.name
+          //idea.createdBy.avatarURL = user.profile.avatarURL
+        })  
+      })
+      
+      
+      
+      
+      
     }
   },
 

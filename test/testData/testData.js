@@ -81,9 +81,9 @@ testData = testData.concat([
 testData = testData.concat([
   {
     collection: 'ideas',
-    query:  { title:"Idea 01" },
+    query:  { title:"Idea 1" },
     update: {
-      title:"Idea 01",
+      title:"Idea 1",
       description:"This is a rather long description for this idea",
       createdBy: { 
         "$ref": {
@@ -97,9 +97,9 @@ testData = testData.concat([
   },
   {
     collection: 'ideas',
-    query:  { title:"Idea 02" },
+    query:  { title:"Idea 2" },
     update: {
-      title:"Idea 02",
+      title:"Idea 2",
       description:"Second idea We need to do this",
       createdBy: { 
         "$ref": {
@@ -113,9 +113,9 @@ testData = testData.concat([
   },
   {
     collection: 'ideas',
-    query:  { title:"Idea 03" },
+    query:  { title:"Idea 3" },
     update: {
-      title:"Idea 03",
+      title:"Idea 3",
       description:"Third idea that may be related to another idea but is even better",
       createdBy: { 
         "$ref": {

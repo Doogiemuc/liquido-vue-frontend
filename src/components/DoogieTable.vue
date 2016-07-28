@@ -178,10 +178,12 @@ export default {
       this.sortByCol = col
       this.sortOrder = this.sortOrder * -1
     },
-    // compare two rows of data when sorting
+    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
     comparator(row1,row2) {
       if (!this.sortByCol) return 0;
-      return _.get(row1, this.sortByCol.path) < _.get(row2, this.sortByCol.path) ? -1 : 1
+      var val1 = _.get(row1, this.sortByCol.path)
+      var val2 = _.get(row2, this.sortByCol.path)
+      return val1.localeCompare(val2, 'lookup', { numeric: true } )  // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
     },
     // pick the Vue utility function 'getPath' and make it available in our template above
     getPath: Vue.parsers.path.getPath,
@@ -211,7 +213,7 @@ export default {
         this.rowData = response.json();
         this.loading = false
         this.$nextTick(function() {
-          this.$dispatch('DoogieTable:dataLoaded')
+          this.$dispatch('DoogieTable:dataLoaded', this.rowData)    // dispatch event to parent component
         })
       }, (err) => {
         console.error(err)
@@ -273,9 +275,6 @@ export default {
       this.reload()
     } else {
       this.loading = false;
-      this.$nextTick(function() {                  // http://vuejs.org/guide/reactivity.html#Async-Update-Queue
-        this.$dispatch('DoogieTabe:dataLoaded')
-      })
     }
   }
   

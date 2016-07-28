@@ -10,8 +10,7 @@ import LiquidoHome from './controllers/LiquidoHome'
 import Ideas from './controllers/Ideas'
 
 // Register custom components
-import LiquidoHeader from './components/LiquidoHeader'
-Vue.component('liquido-header', LiquidoHeader)
+Vue.component('liquido-header', require('./components/LiquidoHeader'))
 Vue.component('doogie-table', require("./components/DoogieTable"))
 
 // Vue plugins
@@ -26,28 +25,37 @@ Vue.use(VueRouter)
 var App = Vue.extend({})    // Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!
 var router = new VueRouter()
 router.map({
-    '/': {
-        component: LiquidoHome
-    },
-    /*
-    '/login': {
-        component: Login
+  '/': {
+    component: LiquidoHome
+  },
+  /*
+  '/login': {
+    component: Login
+  }
+  */
+  '/ideas': {
+    component: Ideas
+  },
+  '/userHome': {
+    component: function(resolve) {    // asyncronously require component for lazy loading
+      require(['./controllers/UserHome.vue'], resolve)
     }
-    */
-    '/ideas': {
-        component: Ideas
-    },
-    '/userHome': {
-        component: function(resolve) {    // asyncronously require component for lazy loading
-          require(['./controllers/UserHome.vue'], resolve)
-        }
-    },
-    '/proxies': {
-        component: function(resolve) {    // asyncronously require component for lazy loading
-          require(['./controllers/Proxies.vue'], resolve)
-        }
+  },
+  '/proxies': {
+    component: function(resolve) {    // asyncronously require component for lazy loading
+      require(['./controllers/Proxies.vue'], resolve)
     }
+  }
 })
 
+// register API services
+import UserService from './services/UserService.js'
+
 // Start Vue app
-router.start(App, '#app')
+router.start(App, '#app', function() {
+  router.app.$services = {
+    userService : new UserService(),
+    // ideaServcie: 
+  }   
+})
+

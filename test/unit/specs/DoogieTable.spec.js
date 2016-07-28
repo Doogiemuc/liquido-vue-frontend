@@ -2,8 +2,47 @@
 import Vue from 'vue'
 import DoogieTable from 'src/components/DoogieTable'
 
+/** 
+ * returns a Vue instance that contains a DoogieTable
+ * filled with some default dummy data for testing
+ */
+var getTestee = function() {
+  return new Vue({
+    data () {
+      return {
+        testColumns: [
+          { title: "Column 1", path: "title" },
+          { title: "Column 2", path: "description" },
+         // { title: "Date Column", path: "updatedAt.$date", filter: 'fromNow' },
+        ],
+        testKey: "id",
+        testData: [           // Two digit title numbers are necessary for correct sorting.
+          { id: '4711', title: "Title 01", description: "Desc 1" },
+          { id: '4712', title: "Title 02", description: "Desc 2" },
+          { id: '4713', title: "Title 03", description: "Desc 3" },
+          { id: '4713', title: "Title 04", description: "Desc 4" },
+          { id: '4713', title: "Title 05", description: "Desc 5" },
+          { id: '4713', title: "Title 06", description: "Desc 6" },
+          { id: '4713', title: "Title 07", description: "Desc 7" },
+          { id: '4713', title: "Title 08", description: "Desc 8" },
+          { id: '4713', title: "Title 09", description: "Desc 9" },
+          { id: '4713', title: "Title 10", description: "Desc 10" },
+          { id: '4713', title: "Title 11", description: "Desc 11" },
+        ]
+      }
+    },
+    template: '<div><doogie-table ' +
+        ':row-data="testData" ' +
+        ':columns="testColumns" ' +
+        ':primary-key-for-row="testKey" ' +
+        'v-ref:testtable >' +
+        '</doogie-table></div>',
+    components: { DoogieTable },
+  }).$mount().$appendTo(document.body)   // Appending the component to document.body will trigger the 'ready' hock on the doogie-table component
+}
+
 /**
- * Tests for doogies vue table component
+ * Mocha unit tests for doogies vue table component
  */
 describe('DoogieTable.vue', () => {
   var fakeServer
@@ -19,39 +58,15 @@ describe('DoogieTable.vue', () => {
   })
   
   
-  xit('should render a table with correct content in its cells', () => {
-    const vm = new Vue({
-      data () {
-        return {
-          testColumns: [
-            { title: "Column 1", path: "title" },
-            { title: "Column 2", path: "description" },
-           // { title: "Date Column", path: "updatedAt.$date", filter: 'fromNow' },
-          ],
-          testKey: "id",
-          testData: [
-            { id: '4711', title: "Title 1", description: "Desc 1" },
-            { id: '4712', title: "Title 2", description: "Desc 2" },
-            { id: '4713', title: "Title 3", description: "Desc 3" },
-          ]
-        }
-      },
-      template: '<div><doogie-table ' +
-          ':row-data="testData" ' +
-          ':columns="testColumns" ' +
-          ':primary-key-for-row="testKey" ' +
-          'v-ref:testtable >' +
-          '</doogie-table></div>',
-      components: { DoogieTable },
-    }).$mount()
-    
+  it('should render a table with correct content in its cells', () => {
+    const vm = getTestee()
     const testtable = vm.$refs.testtable
     // This will trigger the 'ready' hock on the doogie-table component
     vm.$appendTo(document.body)
     // nextTick callback will be called, when the testtables DOM has been updated
     testtable.$nextTick(() => {
       //console.log("=======> testtable.nextTick ", vm.$el.querySelector('.doogie-table tr td'))
-      expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 1')
+      expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 01')
     })
     
   })
@@ -111,7 +126,7 @@ describe('DoogieTable.vue', () => {
       components: { DoogieTable },
       events: {
         'DoogieTable:dataLoaded': function() {
-          console.log("DoogieTabe:dataLoaded event received."); //, JSON.stringify(fakeServer.requests[0].responseText, ' ', 4))
+          console.log("DoogieTable:dataLoaded event received."); //, JSON.stringify(fakeServer.requests[0].responseText, ' ', 4))
           expect(vm.$el.querySelector('.doogie-table tbody tr:nth-child(1)').textContent).to.contain('Remote 1')
           done()
         }
@@ -127,4 +142,31 @@ describe('DoogieTable.vue', () => {
     })
     */
   })
+  
+  
+  it('can filter rows by search query', () => {
+    const vm = getTestee()
+    vm.$refs.testtable.searchQuery = "Title 02"
+    // nextTick callback will be called, when the DOM has been updated
+    vm.$nextTick(() => {
+      expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 02')
+    })
+  })
+  
+  it('handles paging and sorting correctly', () => {
+    const vm = getTestee()
+    const testtable = vm.$refs.testtable
+    testtable.rowsPerPage = 5
+    expect(testtable.lastPageIndex).to.equal(2)
+    testtable.page = 2
+    vm.$nextTick(() => {
+      // last (and only) row on third page (index==2) is the eleventh data item
+      //console.log(vm.$el.querySelector('.doogie-table').innerHTML)
+      expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 11')
+    })
+  })
+  
+  
+  
+  
 })
