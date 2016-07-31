@@ -1,10 +1,10 @@
-<template src="../views/home.html"></template>
+<template src="../views/liquidoHome.html"></template>
 
 <script>
 export default {
   data () {
     return {
-      //TODO: return laws
+      laws: []
     }
   }
 }

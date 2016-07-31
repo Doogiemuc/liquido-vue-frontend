@@ -14,6 +14,9 @@
           <a href="/editLaw?lawId={{law.id}}">Edit</a> |
           <a href="/showVote?lawId={{law.id}}">Vote</a>
         </li>
+        <li v-if="laws.length == 0">
+          No laws yet ...
+        </li>
       </ul>
     </div>
     <div class="col-sm-6">

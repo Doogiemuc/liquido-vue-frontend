@@ -33,10 +33,10 @@
     </thead>
     <tbody>
       <tr v-if="!loading && rowData.length == 0">
-        <td colspan="{{columns.length}}">(Empty data)</td>
+        <td colspan="{{columns.length}}">{{localizedTexts.emptyData}}</td>
       </tr>
       <tr v-if="loading">
-        <td colspan="{{columns.length}}">Loading table data ... {{resourceError}}</td>
+        <td colspan="{{columns.length}}">{{localizedTexts.loadingText}} {{resourceError}}</td>
       </tr>
       <tr v-else="loading"
           v-for="row in rowData
@@ -53,7 +53,7 @@
             :path="col.path"
             :value="getPath(row, col.path)" >
           </editable-cell>
-          <span v-else="col.editable">{{ getPath(row, col.path) | localizeVal col.filter }}</span>
+          <span v-else="col.editable">{{ getPath(row, col.path) | applyFilter col.filter }}</span>
         </td>
       </tr>
     </tbody>
@@ -119,11 +119,16 @@ export default {
     // which path in resource data is the primary key for each row (rowID)
     primaryKeyForRow: { type: String, required: true },
     
+    // shows a loading text 
+    loading: false,
+    
     localizedTexts: { 
       type: Object, 
       required: false, 
-      default: function() {
+      default: function() {    //TODO: merge with what has been passed
         return {
+          loadingText: 'Loading data ...', 
+          emptyData: 'Empty data',
           searchFilter: 'Search/Filter',
           addButton: 'Add'
         }
@@ -146,7 +151,6 @@ export default {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,
       page: 0,                         // currently shown page. 0 is first page!
-      loading: true,
       resourceError: '',
     }
   },
@@ -227,12 +231,19 @@ export default {
     paginationFilter(data) {
       return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
     },
-    // cell values can be piped through any filter registered globally on in this DoogieTable class
-    localizeVal(val, filterName) {
+    // applies a filter given by filterName from this component or any of its parents
+    applyFilter(val, filterName) {
       if (!filterName) return val;
-      var filterFunc = this.$options.filters[filterName] || Vue.options.filters[filterName];
-      if (!_.isFunction(filterFunc)) return val;
-      return filterFunc(val)
+      var filterFunc = undefined, vueComp = this
+      //walk up the chain of $parent components and try to find filter by filterName
+      while (filterFunc === undefined && vueComp != null && vueComp != vueComp.$parent) {
+        filterFunc = vueComp.$options.filters[filterName]
+        if (_.isFunction(filterFunc)) {
+          return filterFunc(val)
+        }
+        vueComp = vueComp.$parent
+      }
+      return val
     },
     // returns a localized version of dateValue, e.g. 15.03.2016 for DE-DE
     localizeDate(dateVal) {
@@ -274,7 +285,7 @@ export default {
     if (this.hasRemoteData()) {
       this.reload()
     } else {
-      this.loading = false;
+      //this.loading = false;
     }
   }
   

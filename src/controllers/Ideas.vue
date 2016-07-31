@@ -1,31 +1,38 @@
 <template src="../views/ideas.html"></template>
 
 <script>
-
+import DoogieTable from '../components/DoogieTable'
 
 export default {
   data () {
     return {
       // Data for DoogieTable.vue
-      ideaResource: this.$resource(
-        'https://api.mlab.com/api/1/databases/liquido-test/collections/ideas/{id}', 
-        { 'apiKey' : '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' }
-      ),
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: true  },
-        { title: "Created By", path: "createdBy.$oid" },
+        { title: "Created By", path: "createdBy" ,filter: 'userAvatar' },
         { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
         { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' }
       ],
       ideaKey: "_id.$oid",
-      ideaTexts: {
+      /*
+      ideaTexts: {                //TODO: localize
         addButton: "Add Idea",
         searchFilter: "Search/Filter"
-      },  
+      },
+      */
+      ideasLoading: true,
+      ideas: [],
     }
   },
-
+  components: {
+    DoogieTable
+  },
+  filters: {
+    userAvatar(user) {
+      return /*'<img src="'+user.profile.avatarURL+'" />&nbsp;' + */  user.profile.name
+    }
+  },
   events: {
     // called when a value was changed (DoogieTable already handled saving to DB)
     'saveNewValue': function(rowId, key, value) {
@@ -35,28 +42,39 @@ export default {
       console.log('addButtonClicked in Ideas.vue')
       //TODO: open create new Idea page (or popup?)
     },
-    'DoogieTable:dataLoaded': function(ideas) {
-      // load user for each Id in ideas
-      var userService = this.$root.$services.userService
-      ideas.forEach((idea) => {
-        userService.getById(idea.createdBy.$oid).then(function(user) {
-          console.log("got user=", user)
-          //TODO: update rowData for this idea
-          //idea.createdBy.name      = user.name
-          //idea.createdBy.avatarURL = user.profile.avatarURL
-        })  
-      })
-      
-      
-      
-      
-      
-    }
   },
-
+  
+  created () {
+    //load remote data and replace users
+    var that = this
+    var ideaService = this.$router.$services.ideaService
+    var userService = this.$router.$services.userService
+    that.ideasLoading = true
+    ideaService.getAll().then((ideas) => {
+      var userIds = ideas.map((idea) => {
+        return idea.createdBy.$oid
+      })
+      //console.log("find users for Ids=", userIds)
+      userService.getByIdsAsMap(userIds).then(function(userMap) {
+        //console.log("got referenced users", userMap)
+        //replace createdBy with the actual user object
+        ideas.forEach((idea) => {
+          idea.createdBy = userMap[idea.createdBy.$oid]
+        })
+        that.ideas = ideas
+        that.ideasLoading = false
+      })  
+    })
+    .catch(function(err) {
+      console.log("ERROR loading Ideas: ", err)
+      that.ideasLoading = false
+    })
+  },
+  
   ready () {
-    
+    //console.log("Ideas.ready()")
   }
+  
   
 }
 </script>

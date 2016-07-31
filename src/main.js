@@ -7,11 +7,9 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import VueResource from 'vue-resource'
 import LiquidoHome from './controllers/LiquidoHome'
-import Ideas from './controllers/Ideas'
 
 // Register custom components
 Vue.component('liquido-header', require('./components/LiquidoHeader'))
-Vue.component('doogie-table', require("./components/DoogieTable"))
 
 // Vue plugins
 Vue.use(VueResource);
@@ -23,7 +21,19 @@ Vue.use(VueRouter)
 
 // Setup Vue-router for navigation
 var App = Vue.extend({})    // Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!
+
 var router = new VueRouter()
+
+// register API service clients
+import UserService from './services/UserService.js'
+import IdeaService from './services/IdeaService.js'
+
+router.$services = {
+  userService : new UserService(),
+  ideaService : new IdeaService(),
+}
+
+
 router.map({
   '/': {
     component: LiquidoHome
@@ -34,7 +44,10 @@ router.map({
   }
   */
   '/ideas': {
-    component: Ideas
+    component: function(resolve) {
+      //console.log("async loadin Ideas.vue")
+      require(['./controllers/Ideas.vue'], resolve)
+    }
   },
   '/userHome': {
     component: function(resolve) {    // asyncronously require component for lazy loading
@@ -48,14 +61,9 @@ router.map({
   }
 })
 
-// register API services
-import UserService from './services/UserService.js'
 
 // Start Vue app
 router.start(App, '#app', function() {
-  router.app.$services = {
-    userService : new UserService(),
-    // ideaServcie: 
-  }   
+  //console.log("App is started.") 
 })
 

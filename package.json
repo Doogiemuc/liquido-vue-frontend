@@ -13,16 +13,12 @@
   },
   "dependencies": {
     "babel-runtime": "^6.0.0",
-    "jasmine": "^2.4.1",
     "lodash": "^4.13.1",
     "moment": "^2.14.1",
-    "mongodb": "^2.1.18",
     "node-rest-client": "^2.0.1",
     "vue": "^1.0.21",
-    "vue-model": "0.0.3",
     "vue-resource": "^0.9.1",
     "vue-router": "^0.7.13",
-    "vue-tables": "^1.4.5"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",

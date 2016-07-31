@@ -3,10 +3,10 @@
   <p class="lead">Spontaneous suggestions for improvement</p>
   
   <doogie-table
-    :resource="ideaResource"
+    :row-data="ideas"
     :columns="ideaColumns"
     :primary-key-for-row="ideaKey"
-    :localized-texts="ideaTexts"
+    :loading="ideasLoading"
     v-ref:ideatable
   >
   </doogie-table>
