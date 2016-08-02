@@ -51,11 +51,9 @@ export default {
     var userService = this.$router.$services.userService
     that.ideasLoading = true
     ideaService.getAll().then((ideas) => {
-      var userIds = ideas.map((idea) => {
-        return idea.createdBy.$oid
-      })
+      var createdByIds = ideas.map(idea => idea.createdBy.$oid)
       //console.log("find users for Ids=", userIds)
-      userService.getByIdsAsMap(userIds).then(function(userMap) {
+      userService.getByIdsAsMap(createdByIds).then(function(userMap) {
         //console.log("got referenced users", userMap)
         //replace createdBy with the actual user object
         ideas.forEach((idea) => {
@@ -67,7 +65,7 @@ export default {
     })
     .catch(function(err) {
       console.log("ERROR loading Ideas: ", err)
-      that.ideasLoading = false
+      //TODO: show error to user, e.g. in ideatable
     })
   },
   

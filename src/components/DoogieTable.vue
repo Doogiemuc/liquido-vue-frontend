@@ -284,8 +284,6 @@ export default {
     }
     if (this.hasRemoteData()) {
       this.reload()
-    } else {
-      //this.loading = false;
     }
   }
   
