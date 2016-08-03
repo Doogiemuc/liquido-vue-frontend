@@ -25,7 +25,7 @@ module.exports = class BaseRestClient {
   constructor(url, urlParams, nameOfIdAttr) {
     this.url          = url
     this.urlParams    = urlParams
-    this.nameOfIdAttr = nameOfIdAttr || 'id'  // mongoDB has  '_id.$oid'
+    this.nameOfIdAttr = nameOfIdAttr || '_id'  // mongoDB has  '_id.$oid' in returned JSON
     this.cache  = {}
   }
   
@@ -72,6 +72,7 @@ module.exports = class BaseRestClient {
         that.cachePut(data)
         resolve(data)
       }).on('error', function (err) {
+        console.log("ERROR in getAll()", err)
         reject('ERROR in BaseRestClient.getAll():', err)
       })
     })
@@ -86,8 +87,9 @@ module.exports = class BaseRestClient {
    * @return a Promise that will resolve with the fetched item
    */
   getById(id, params, nocache) {
-    
+    console.log("getById(id="+id+") => "+this.url)
     if (!nocache && this.cacheGet(id) !== undefined) {
+      console.log("getById(id="+id+") <= FROM CACHE ", this.cacheGet(id))
       return Promise.resolve(this.cacheGet(id))
     }
     var that = this
@@ -96,7 +98,6 @@ module.exports = class BaseRestClient {
       path: { id: id }
     }
     return new Promise(function(resolve, reject) {
-      console.log("getById(id="+id+") => "+that.url, args)
       client.get(that.url, args, function(item, response) {
         console.log("getById(id="+id+") <= ", item)
         that.cachePut(item)  // remember item in cache
@@ -138,6 +139,7 @@ module.exports = class BaseRestClient {
       }
     })
     if (notInCacheIds.length == 0) {
+      console.log("getByIds(): Found all in cache")
       return Promise.resolve(result)  // Found all in cache    
     }
     //----- query DB for the rest of the ids that were not found in the cache
@@ -155,11 +157,11 @@ module.exports = class BaseRestClient {
    * @param ids array of IDs
    * @return map from IDs to items
    */
-  getByIdsAsMap(ids, params) {
+  getByIdsAsMap(ids, params, nocache) {
     var result = {}
     var that = this
     return new Promise(function(resolve, reject) {
-      that.getByIds(ids, params).then((items) => {
+      that.getByIds(ids, params, nocache).then((items) => {
         items.forEach((item) => {
           result[that.getId(item)] = item
         })
@@ -184,12 +186,12 @@ module.exports = class BaseRestClient {
     }
     args.parameters.q = query
     return new Promise(function(resolve, reject) {
-      console.log("findByQuery(query="+query+") => "+that.url, args)
+      console.log("findByQuery() => "+that.url, args)
       client.get(that.url, args, function(data, response) {
         if (data.length < 5)
-          console.log("findByQuery(q=...) <= ", data)
-        else 
-          console.log("findByQuery(q=...) <= Array("+data.length+")")
+          console.log("findByQuery() <= ", that.url, JSON.stringify(data, ' ', 2))
+        else
+          console.log("findByQuery() <= Array("+data.length+")")
         that.cachePut(data)   //put results of query into cache
         resolve(data)
       }).on('error', function (err) {
@@ -199,22 +201,46 @@ module.exports = class BaseRestClient {
   }
 
   /**
-   * Load the given item(from the cache if it is in there)
-   * and then populate its attribute given by path. 
-   * That attribute must be a foreign key, ie. the ID of a child document.
-   * @param idOrItem If you pass a string, then the item will be fetched with getById(). Otherwise you can pass an item directly.
+   * Populate the given path: replace its value with the child doc.
+   * 
+   * Item in the DB may have references to other child items. Those references have
+   * an mongo ObjectId as their value. When populated, then this reference is replaced
+   * with the actual child doc. 
+   * 
+   * opulate its attribute given by path. 
+   * That path must lead to a foreign key, ie. the ID of a child document:
+   * 
+   *     // before population
+   *     parentDoc = {
+   *       _id: { $oid: 'ID_OF_PARENT'},
+   *       attr1: 'value1',
+   *       refToChild: { $oid: 'ID_OF_CHILD_DOC' }
+   *       [...]
+   *     }
+   * 
+   *     populate(parentDoc, 'refToChild', childService).then((populatedChild) => { ... })
+   * 
+   *     // after population 
+   *     populatedChild == {
+   *       _id: { $oid: 'ID_OF_PARENT'},
+   *       attr1: 'value1',
+   *       refToChild: {
+   *         _id: { $oid: 'ID_OF_CHILD'}
+   *         childAttr1: 'val1'
+   *         childAttr2: 'val2'
+   *         [...]
+   *       }
+   *       [...]
+   *     }
+   * 
+   *  Remark: Since parentDoc is only a reference, it will also point to the populated instance!
+   * 
+   * @param item item with child doc under path
    * @param path name (or path) of attribute in parent document that points to id of child document
-   * @return A Promise that will resolve to the parent document that has the the given path replaced/populated with the child document
+   * @return (A Promise that will resolve to) the parent document that has the the given path replaced/populated with the child document
    */
-  populate(idOrItem, path, childService) {
-    var that = this
-    if (_.isString(idOrItem)) {   // if we got an ID, then fetch item and recoursively call populate
-      return that.getById(idOrItem).then(function(item) { 
-        return that.populate(item, path, childService) 
-      })
-    }
-    var item = idOrItem   // now we have an item
-    if (_.has(item, path+'._id')) { 
+  populate(item, path, childService) {
+    if (_.has(item, path+'.'+childService.nameOfIdAttr)) { 
       console.log("=====> Already populated")
       return Promise.resolve(item)   // already populated
     }
@@ -226,17 +252,48 @@ module.exports = class BaseRestClient {
   }
   
   /**
-   * Populate the given path in all items
+   * Populate the given path in all items.
+   * 
+   * This is highly optimized:
+   *  1. collect a list of childIds (that are not yet populated)
+   *  2. receive all child items for those childIds (will use cache in childService)
+   *  3. replace all references with child items
+   * 
+   * @param itemArray array of items (need items. No ids!)
+   * @param path path to child id that will be replaced/populated
+   * @param childServie where to receive child items from
+   * @return (A promise that will resolve to) a list of populated items
    */
-  populateAll(idsOrItemArray, path, childService) {
-    if (!_.isArray(idsOrItemArray)) throw new Error("Need array in populateAll()")
-    if (idsOrItemArray.length == 0) return []
-    for (var i = idsOrItemArray.length; i--; ) {
-      if (_.isString(idsOrItemArray[i])) {
-        idsOrItemArray[i] = this.getById(idsOrItemArray[i])
+  populateAll(itemArray, path, childService) {
+    //console.log("ENTER populateAll")
+    if (!_.isArray(itemArray)) throw new Error("Need array in populateAll()")
+    //collect ids of not yet populated child items
+    var childIds = [] 
+    for (var i = itemArray.length; i--; ) {
+      var alreadyPopulated = _.get(itemArray[i], path+"."+childService.nameOfIdAttr)  // When path._id exists, then the child object is already populated
+      if (alreadyPopulated !== undefined) {
+        //console.log("populateAll(path='+path+'): Found already populated item childId=", alreadyPopulated)
+      } else {
+        var childId = _.get(itemArray[i], path+'.$oid')        // path.$oid  is the not yet populated child id "reference"
+        //console.log("will populate childId="+childId)
+        childIds.push(childId)
       }
     }
-    
+    return childService.getByIds(childIds).then(function(result) {
+      itemArray.forEach(function(item) {
+        var childId = _.get(item, path+'.$oid')
+        _.set(item, path, childService.cacheGet(childId))
+      })
+      return itemArray
+    })
+
+    /*  Shorter but unoptimized. Since we send all tasks at once, the childServcie's cache would not be used (if not already filled)
+    var tasks = []
+    idsOrItemArray.forEach(idOrItem => {
+      tasks.push(this.populate(idOrItem, path, childService))
+    })
+    return Promise.all(tasks)
+    */
   }
 
 }
