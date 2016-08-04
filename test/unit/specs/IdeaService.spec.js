@@ -1,18 +1,19 @@
-/* global expect */
-//You can run single tests with   it.only(...)
+/**
+ * Mocha unit tests for IdeaService (and also for BaseRestClient)
+ * This test cases will run inside PhantomJS, a headleas browser.
+ */
 
+/* global expect */
 import IdeaService from 'src/services/IdeaService'
 import UserService from 'src/services/UserService'
 
-/**
- * Mocha unit tests for IdeaService (and also for BaseRestClient)
- */
 describe('IdeaService', () => {
   var ideaService
   var userService
   var numTestIdeas = 10
   var ideas
   
+  //You can run single tests with   it.only(...)
 
   before(function(done) {
     this.timeout(5000)
@@ -31,6 +32,30 @@ describe('IdeaService', () => {
   it('should have gotten list of 10 ideas', () => {
     expect(ideas).to.be.instanceof(Array)
     expect(ideas).to.have.length(numTestIdeas)
+  })
+  
+  it.only('should create a newItem and delete it', () => {
+    var createNewIdea = function() {
+      console.log("ENTER createNewIdea testStep")
+      var newIdea = {
+        title: 'Idea from test case',
+        description: 'Some dummy description timestamp='+new Date().getTime(),
+        //TOOD: createdBy: { $oid: '....'},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      return ideaService.postItem(newIdea).then(function(createdIdea) {
+        console.log("createdIdea\n", createNewIdea)
+      })
+    }
+    var deleteIdea = function(idea) {
+      console.log("ENTER deleteIdea testStep")
+      return ideaService.deleteIdea(idea._id.$oid).then(function(deletedIdea) {
+        console.log("deletedIdea:\n", deletedIdea)
+      })
+    }
+    return createNewIdea().then(deleteIdea)
+
   })
   
   it('should get idea by ID and cache it', () => {

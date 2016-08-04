@@ -3,6 +3,8 @@
  * Lazy loading into cache.
  * It is a Javascript abstraction for the interface to the DB.
  */
+"use strict"
+ 
 var BaseRestClient = require ('./BaseRestClient')
 
 module.exports = class UserService extends BaseRestClient {

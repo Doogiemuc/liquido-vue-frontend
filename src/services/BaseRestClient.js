@@ -6,7 +6,10 @@
  * - Caching
  * - and error handling
  * It is a Javascript abstraction for the interface to the DB.
+ * This implementation corresponds to the mLab Data API http://docs.mlab.com/data-api/
  */
+"use strict"
+ 
 var _ = require('lodash'),
     Client = require('node-rest-client').Client,
     client = new Client()
@@ -296,5 +299,60 @@ module.exports = class BaseRestClient {
     */
   }
 
+
+  /*
+   ================= WRITE (POST/PUT/UPDATE) operations  ==================
+   */
+
+  //POST will save over the old document; PUT will modify it (when passed the ID matches)
+  /**
+   * insert a new item
+   * @param newItem data for new item (without _id)
+   * @return (A Promise that will resolve to) the newly created item (with _id)
+   */
+  postItem(newItem, params) {
+    //console.log("ENTER: postItem")
+    var that = this
+    return new Promise(function(resolve, reject) {
+      var args = {
+        parameters: _.merge(params, that.urlParams),
+        data: JSON.stringify(newItem),
+        headers: { "Content-Type": "application/json" },
+        path: { id: '' }
+      }
+      console.log("postItem() => "+that.url, args)
+      client.post(that.url, args, function(data, response) {
+        console.log("postItem() <= ", data)
+        resolve(data)
+      }).on('error', function(err) {
+        console.log("ERROR in postItem(", newItem, "):", err)
+        reject(err)
+      })
+    })
+  }
+  
+  /**
+   * Delete one item given by its ID.
+   * @param id the primary key for the item to delete
+   * @return the deleted item
+   */
+  deleteById(id, params) {
+    var that = this
+    return new Promise(function(resolve, reject) {
+      var args = {
+        parameters: _.merge(params, that.urlParams),
+        path: { id: id }
+      }
+      console.log("deleteById(id='+id+') => "+that.url, args)
+      client.delete(that.url, args, function(deletedItem, response) {
+        console.log("deleteById(id='+id+') <= ", deletedItem)
+        delete that.cache[that.getId(deletedItem)]   // remove item from cache
+        resolve(deletedItem)
+      }).on('error', function(err) {
+        console.log("ERROR in deleteItem(id="+id+"):", err)
+        reject(err)
+      })
+    })
+  }
 }
 
