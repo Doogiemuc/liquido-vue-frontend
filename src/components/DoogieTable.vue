@@ -32,7 +32,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-if="!loading && rowData.length == 0">
+      <tr v-if="!loading && (rowData == undefined || rowData.length == 0)">
         <td colspan="{{columns.length}}">{{localizedTexts.emptyData}}</td>
       </tr>
       <tr v-if="loading">

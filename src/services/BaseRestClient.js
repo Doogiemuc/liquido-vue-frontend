@@ -10,38 +10,94 @@
  */
 "use strict"
  
-var _ = require('lodash'),
-    Client = require('node-rest-client').Client,
-    client = new Client()
+var _ = require('lodash')
 
+// JsonSchmea Validator
+var Validator = require('jsonschema').Validator;
+// custom Format for validating a MongoDB ObjectID (as 24 character long HEX value)
+Validator.prototype.customFormats.ObjectID = function(input) {
+  return input !== undefined && input.match(/[0-9a-f]{24}/)
+}
+var validator = new Validator();
+
+var Client = require('node-rest-client').Client   
+var client = new Client()
 client.on('error', function(err) {
   console.error('ERROR in node-rest-client', err)
 })
 
+// default properties for timestamps (createdAt and updatedAt)
+var jsonSchemaForTimestamps = {
+  properties: {
+    createdAt: { 
+      type: "object", 
+      properties: {
+        $date : { type: "string", format: "date-time", required: true }
+      }
+      //TODO: required: true    is that necessary here too?
+    },
+    updatedAt: { 
+      type: "object", 
+      properties: {
+        $date : { type: "string", format: "date-time", required: true }
+      }
+    }
+  }
+}
 
 module.exports = class BaseRestClient {
   /**
    * Create a new instance of a RestClient
-   * @param url may contain path variables in the form ${var}
-   * @param urlParams URL query parameters that will be sent with <b>every</b> request. This can for example be used for apiKeys
+   * @param opitons configuration for this client:
+   *   options.modelName    name of model, used in log messages
+   *   options.url          may contain path variables in the form ${var}
+   *   options.urlParams    (optional) global URL params, for example apiKey
+   *   options.nameOfIdAttr (optional) name of id field. By default '_id' will be used as used by mongoDB. (Keep in mind that JSON replies have the id in  '_id.$oid')
+   *   options.timestamps   (optional) if "true", then createdAt and (last) updatedAt date fields will be added and updated automatically
+   *   options.jsonSchema   (optional) jsonSchmea to validate documents after loading and before storing them to the DB.
    */
-  constructor(url, urlParams, nameOfIdAttr) {
-    this.url          = url
-    this.urlParams    = urlParams
-    this.nameOfIdAttr = nameOfIdAttr || '_id'  // mongoDB has  '_id.$oid' in returned JSON
+  constructor(options) {
+    if (options.url == undefined) throw new Error("BaseRestClient needs an options.URL")
+    this.options = options
+    this.options.nameOfIdAttr = options.nameOfIdAttr || '_id'
+    this.options.modelName    = options.modelName || this.constructor.name
     this.cache  = {}
+    if (options.timestamps) {
+      _.defaultsDeep(this.options.jsonSchema, jsonSchemaForTimestamps)
+    }
   }
   
   /** 
    * Retreive the ID of a given item.
-   * This ID is used for the cache.
-   * You must overwrite this if your id attribute is not called "id".
+   * This ID is used as key in the cache.
+   * You must overwrite this if your id attribute is not called "_id".
    */
   getId(item) {
     if (item === undefined) throw new Error("BaseRestClient: Cannot get Id of undefined!")
-    return _.get(item, this.nameOfIdAttr)
+    return _.get(item, this.options.nameOfIdAttr+'.$oid')
   }
   
+  /*
+   ================= SCHEMA VALIDATION  ==================
+   */
+
+  /**
+   * Validate the given item against this.options.jsonSchmea
+   * using https://github.com/tdegrunt/jsonschema
+   * @return true if item is valid
+   */
+  validate(item) {
+    var result = validator.validate(item, this.options.jsonSchema)
+    for (var i = result.errors.length; i--; ) {
+      console.error(result.errors[i])
+    }
+    return result.errors.length == 0
+  }
+  
+  /*
+   ================= CACHE operations  ==================
+   */
+
   /** put one item (or all items in an array) into the cache */
   cachePut(itemOrItems) {
     if (_.isArray(itemOrItems)) {
@@ -55,23 +111,27 @@ module.exports = class BaseRestClient {
   
   /** 
    * Get an item from the cache by its ID. 
-   * This Might return undefined if item is not in the cache! Use getById() if you need to query for an item
+   * This might return undefined if item is not in the cache! Use getById() if you need to query for an item
    */
   cacheGet(id) {
     return this.cache[id]
   }
   
+  /*
+   ================= READ (GET) operations  ==================
+   */
+  
   /** Get all items from the server. Without using the cache! */
   getAll(params) {
     var that = this
     var args = {
-      parameters: _.merge(params, this.urlParams),
+      parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }   
     }
     return new Promise(function(resolve, reject) {
-      console.log("getAll() => "+that.url, args)
-      client.get(that.url, args, function(data, response) {
-        console.log("getAll() <= Array("+data.length+")")
+      console.log(that.options.modelName+".getAll() => ", args)
+      client.get(that.options.url, args, function(data, response) {
+        console.log(that.options.modelName+".getAll() <= Array("+data.length+")")
         that.cachePut(data)
         resolve(data)
       }).on('error', function (err) {
@@ -90,19 +150,19 @@ module.exports = class BaseRestClient {
    * @return a Promise that will resolve with the fetched item
    */
   getById(id, params, nocache) {
-    console.log("getById(id="+id+") => "+this.url)
+    console.log(this.options.modelName+"getById(id="+id+") => ")
     if (!nocache && this.cacheGet(id) !== undefined) {
-      console.log("getById(id="+id+") <= FROM CACHE ", this.cacheGet(id))
+      console.log(this.options.modelName+".getById(id="+id+") <= FROM CACHE ", this.cacheGet(id))
       return Promise.resolve(this.cacheGet(id))
     }
     var that = this
     var args = {
-      parameters: _.merge(params, this.urlParams),
+      parameters: _.merge(params, that.options.urlParams),
       path: { id: id }
     }
     return new Promise(function(resolve, reject) {
-      client.get(that.url, args, function(item, response) {
-        console.log("getById(id="+id+") <= ", item)
+      client.get(that.options.url, args, function(item, response) {
+        console.log(that.options.modelName+".getById(id="+id+") <= ", item)
         that.cachePut(item)  // remember item in cache
         resolve(item)
       }).on('error', function (err) {
@@ -142,11 +202,11 @@ module.exports = class BaseRestClient {
       }
     })
     if (notInCacheIds.length == 0) {
-      console.log("getByIds(): Found all in cache")
+      console.log(this.options.modelName+".getByIds(): Found all in cache")
       return Promise.resolve(result)  // Found all in cache    
     }
     //----- query DB for the rest of the ids that were not found in the cache
-    var query = '{'+this.nameOfIdAttr+' : { $in: ['+notInCacheIds.join(',')+'] } }'
+    var query = '{'+this.options.nameOfIdAttr+' : { $in: ['+notInCacheIds.join(',')+'] } }'
     return new Promise(function(resolve, reject) {
       that.findByQuery(query, params).then((dbResult) => {
         resolve(result.concat(dbResult))
@@ -174,8 +234,10 @@ module.exports = class BaseRestClient {
   }
   
   /**
-   * find one or more items that match the given mongoDB query
+   * Find one or more items that match the given mongoDB query.
+   * Will cache the results.
    * @param query  e.g. { email: "user@host.com" }
+   * @param params (optional) further URL parameters
    * @return a Promise that will resolve to the array of matched items
    */
   findByQuery(query, params) {
@@ -184,21 +246,43 @@ module.exports = class BaseRestClient {
       query = JSON.stringify(query)
     }
     var args = {
-      parameters: _.merge(params, this.urlParams),
+      parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }
     }
     args.parameters.q = query
     return new Promise(function(resolve, reject) {
-      console.log("findByQuery() => "+that.url, args)
-      client.get(that.url, args, function(data, response) {
+      console.log(that.options.modelName+".findByQuery() => ", args)
+      client.get(that.options.url, args, function(data, response) {
         if (data.length < 5)
-          console.log("findByQuery() <= ", that.url, JSON.stringify(data, ' ', 2))
+          console.log(that.options.modelName+".findByQuery() <= ", JSON.stringify(data, ' ', 2))
         else
-          console.log("findByQuery() <= Array("+data.length+")")
+          console.log(that.options.modelName+".findByQuery() <= Array("+data.length+")")
         that.cachePut(data)   //put results of query into cache
         resolve(data)
       }).on('error', function (err) {
         reject('ERROR in BaseRestClient.findByQuery(query='+query+'):', err)
+      })
+    })
+  }
+  
+  /**
+   * count the number of documents that match the given query
+   */
+  count(query, params) {
+    var that = this
+    var args = {
+      parameters: _.merge(params, that.options.urlParams),
+      path: { id: '' }   
+    }
+    args.parameters.c = true
+    return new Promise(function(resolve, reject) {
+      console.log(that.options.modelName+".count() => ", args)
+      client.get(that.options.url, args, function(data, response) {
+        console.log(that.options.modelName+".count() <= "+data)
+        resolve(data)
+      }).on('error', function (err) {
+        console.log("ERROR in count()", err)
+        reject('ERROR in BaseRestClient.count():', err)
       })
     })
   }
@@ -315,41 +399,42 @@ module.exports = class BaseRestClient {
     var that = this
     return new Promise(function(resolve, reject) {
       var args = {
-        parameters: _.merge(params, that.urlParams),
+        parameters: _.merge(params, that.options.urlParams),
         data: JSON.stringify(newItem),
         headers: { "Content-Type": "application/json" },
         path: { id: '' }
       }
-      console.log("postItem() => "+that.url, args)
-      client.post(that.url, args, function(data, response) {
-        console.log("postItem() <= ", data)
+      console.log(that.options.modelName+".postItem() => ", args)
+      client.post(that.options.url, args, function(data, response) {
+        console.log(that.options.modelName+".postItem() <= ", data)
         resolve(data)
       }).on('error', function(err) {
-        console.log("ERROR in postItem(", newItem, "):", err)
+        console.log("ERROR in BaseRestClient.postItem(", newItem, "):", err)
         reject(err)
       })
     })
   }
   
   /**
-   * Delete one item given by its ID.
+   * Delete one item given by its ID
+   * and also remove it from cache.
    * @param id the primary key for the item to delete
-   * @return the deleted item
+   * @return (A Promise that will resolve with) the deleted item
    */
   deleteById(id, params) {
     var that = this
     return new Promise(function(resolve, reject) {
       var args = {
-        parameters: _.merge(params, that.urlParams),
+        parameters: _.merge(params, that.options.urlParams),
         path: { id: id }
       }
-      console.log("deleteById(id='+id+') => "+that.url, args)
-      client.delete(that.url, args, function(deletedItem, response) {
-        console.log("deleteById(id='+id+') <= ", deletedItem)
+      console.log(that.options.modelName+".deleteById(id="+id+") => ", args)
+      client.delete(that.options.url, args, function(deletedItem, response) {
+        console.log(that.options.modelName+".deleteById(id="+id+") <= successfully deleted")
         delete that.cache[that.getId(deletedItem)]   // remove item from cache
         resolve(deletedItem)
       }).on('error', function(err) {
-        console.log("ERROR in deleteItem(id="+id+"):", err)
+        console.log("ERROR in BaseRestClient.deleteItem(id="+id+"):", err)
         reject(err)
       })
     })

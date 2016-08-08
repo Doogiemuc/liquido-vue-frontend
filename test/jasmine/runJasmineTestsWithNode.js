@@ -2,9 +2,10 @@
  * I love jasmine because its so nice and fast
  * Ok, no browser involved here. These are just some very quick SMOKE tests.
  */
+console.log("======= Running JASMINE tests in projectBaseDir: "+ __dirname)
 
 var Jasmine = require('jasmine');
-var jasmine = new Jasmine();
+var jasmine = new Jasmine({projectBaseDir: __dirname});
 
 /*  // jasmine-console-reporter is much better than jasmine-terminal-reporter :-)
 // https://www.npmjs.com/package/jasmine-terminal-reporter
@@ -28,5 +29,4 @@ var reporter = new JasmineConsoleReporter({
 jasmine.addReporter(reporter);
 
 jasmine.loadConfigFile(__dirname+'/jasmineConf.json');
-
 jasmine.execute();

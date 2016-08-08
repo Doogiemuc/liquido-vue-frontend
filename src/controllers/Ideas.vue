@@ -50,7 +50,15 @@ export default {
     var ideaService = this.$router.$services.ideaService
     var userService = this.$router.$services.userService
     that.ideasLoading = true
-    ideaService.getAll().then((ideas) => {
+    ideaService.getAll()
+    .then((ideas) => {
+      return ideaService.populateAll(ideas, 'createdBy', userService)
+    })
+    .then((populatedIdeas) => {
+      that.ideas = populatedIdeas
+      that.ideasLoading = false
+    })
+    /*
       var createdByIds = ideas.map(idea => idea.createdBy.$oid)
       //console.log("find users for Ids=", userIds)
       userService.getByIdsAsMap(createdByIds).then(function(userMap) {
@@ -63,6 +71,7 @@ export default {
         that.ideasLoading = false
       })  
     })
+    */
     .catch(function(err) {
       console.log("ERROR loading Ideas: ", err)
       //TODO: show error to user, e.g. in ideatable
