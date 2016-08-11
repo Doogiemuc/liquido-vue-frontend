@@ -12,7 +12,7 @@
  
 var _ = require('lodash')
 
-// JsonSchmea Validator
+// JsonSchmea Validator  https://github.com/tdegrunt/jsonschema
 var Validator = require('jsonschema').Validator;
 // custom Format for validating a MongoDB ObjectID (as 24 character long HEX value)
 Validator.prototype.customFormats.ObjectID = function(input) {
@@ -46,6 +46,19 @@ var jsonSchemaForTimestamps = {
 }
 
 module.exports = class BaseRestClient {
+  
+  /**
+   * This method will lazily create a 'singleton' instance of this class and return it.
+   * In all furhter calls, exactly that same instance will be returne
+   */
+  static getInstance(options) {
+    if (this._instance == null) {
+      console.log("Creating new "+this.name)
+      this._instance = new this(options)      // this is very Java OOP like line :-)
+    }
+    return this._instance
+  }
+  
   /**
    * Create a new instance of a RestClient
    * @param opitons configuration for this client:

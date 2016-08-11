@@ -11,6 +11,8 @@
  * make sure that the referenced document was already insereted before.
  */
 var ObjectID = require('mongodb').ObjectID;
+var bcrypt = require('bcrypt-nodejs');
+
 var testData = [];
 
 //based on http://stackoverflow.com/questions/13838441/javascript-how-to-calculate-the-date-that-is-2-days-ago#13838662
@@ -22,12 +24,13 @@ var daysAgo = function(nDays) {
 
 // test users
 for(var i = 0; i<=5; i++) {
+  var hashedPwd = bcrypt.hashSync("nopass");
   testData.push({
     collection: 'users',
     query:  {email: 'testuser'+i+'@liquido.de'},
     update: {
       email: 'testuser'+i+'@liquido.de',
-      password: 'nopass',  // hashed password
+      passwordHash: hashedPwd,
       profile: {
         name: 'Test User'+i,
         website: 'http://www.liquido.de',

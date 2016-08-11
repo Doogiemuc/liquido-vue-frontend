@@ -29,4 +29,6 @@ var reporter = new JasmineConsoleReporter({
 jasmine.addReporter(reporter);
 
 jasmine.loadConfigFile(__dirname+'/jasmineConf.json');
+
+//jasmine.execute(['spec/IdeaService.jasmine.spec.js']);
 jasmine.execute();

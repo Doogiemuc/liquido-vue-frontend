@@ -23,17 +23,6 @@ Vue.use(VueRouter)
 var App = Vue.extend({})    // Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!
 
 var router = new VueRouter()
-
-// register API service clients
-import UserService from './services/UserService.js'
-import IdeaService from './services/IdeaService.js'
-
-router.$services = {
-  userService : new UserService(),
-  ideaService : new IdeaService(),
-}
-
-
 router.map({
   '/': {
     component: LiquidoHome
@@ -64,6 +53,6 @@ router.map({
 
 // Start Vue app
 router.start(App, '#app', function() {
-  //console.log("App is started.") 
+  console.log("App is started.") 
 })
 
