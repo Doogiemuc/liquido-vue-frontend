@@ -47,6 +47,16 @@ describe("IdeaService", function() {
     })
   })
   
+  it('should find one specific idea by title', function(done) {
+    var query = { title: 'Idea 1' }
+    console.log("send query")
+    ideaService.findOne(query).then((idea) => {
+      console.log("found idea")
+      expect(idea.title).toEqual('Idea 1')
+      done()
+    })
+  })
+  
   
   it('should post a new idea and then delete it', (done) => {
     var createNewIdea = function() {

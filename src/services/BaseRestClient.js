@@ -267,14 +267,28 @@ module.exports = class BaseRestClient {
       console.log(that.options.modelName+".findByQuery() => ", args)
       client.get(that.options.url, args, function(data, response) {
         if (data.length < 5)
-          console.log(that.options.modelName+".findByQuery() <= ", JSON.stringify(data, ' ', 2))
+          console.log(that.options.modelName+".findByQuery("+query+") <= ", JSON.stringify(data, ' ', 2))
         else
-          console.log(that.options.modelName+".findByQuery() <= Array("+data.length+")")
+          console.log(that.options.modelName+".findByQuery("+query+") <= Array("+data.length+")")
         that.cachePut(data)   //put results of query into cache
         resolve(data)
       }).on('error', function (err) {
         reject('ERROR in BaseRestClient.findByQuery(query='+query+'):', err)
       })
+    })
+  }
+  
+  /**
+   * find one doc with a query
+   * @query a query that matches exactly one doc
+   * @return that one doc from the DB
+   */
+  findOne(query, params) {
+    var that = this
+    return this.findByQuery(query, params).then(function(matches) {
+      if (matches.length > 1) console.warn('findOne found more than one match')
+      that.cachePut(matches[0])
+      return matches[0]
     })
   }
   
@@ -287,7 +301,7 @@ module.exports = class BaseRestClient {
       parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }   
     }
-    args.parameters.c = true
+    args.parameters.c = true  // only return the count
     return new Promise(function(resolve, reject) {
       console.log(that.options.modelName+".count() => ", args)
       client.get(that.options.url, args, function(data, response) {

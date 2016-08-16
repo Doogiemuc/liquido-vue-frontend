@@ -30,5 +30,6 @@ jasmine.addReporter(reporter);
 
 jasmine.loadConfigFile(__dirname+'/jasmineConf.json');
 
-//jasmine.execute(['spec/IdeaService.jasmine.spec.js']);
-jasmine.execute();
+// run everything, or the tests that contain the string passed as argument to this script
+jasmine.execute(null, process.argv[2]);
+//jasmine.execute();

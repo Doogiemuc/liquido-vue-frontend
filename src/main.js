@@ -52,7 +52,15 @@ router.map({
 
 
 // Start Vue app
+
+var userService = require('./services/UserService.js')
+
 router.start(App, '#app', function() {
   console.log("App is started.") 
+  userService.getAll({l:1}).then((users)=> {
+    console.log("currentUser: "+users[0].email)
+    router.$currentUser = users[0]
+  })
+  
 })
 

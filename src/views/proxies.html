@@ -3,20 +3,12 @@
   <p class="lead">Here you can delegate your vote to someone you trust.</p>
   <hr>
   <div v-for="area in areas" class="row">
-    <div class="col-sm-6">
-      <h3>{{area.title}} - {{area.description}}</h3>
-      <p>{{proxy[area].name}}</p>
-    </div>
-    <div class="col-sm-6">
-      Proxy User 1
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-6">
-      Area 2
-    </div>
-    <div class="col-sm-6">
-      <i>none</i>
-    </div>
+    <h3>{{area.title}} - {{area.description}}</h3>
+    <p v-if="proxy[area]">
+      No proxy => Choose one.
+    </p>
+    <p v-else>
+      {{proxy[area].profile.name}}
+    </p>
   </div>
 </div>
