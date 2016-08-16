@@ -61,10 +61,11 @@ for (var i = 0; i < 5; i++) {
  * Delegations between users (from delegee to proxy)
  * Since the delegations collection only consists of foreign key references this is a bit more complicated
  */
+// be careful not to create any circular delegations :-)
 var delegations = {
-  "Area 1": [[0,1], [0,2], [0,3],
-             [1,4], [1,5]],
-  "Area 2": [[0,1], [0,2]]
+  "Area 1": [[1,0], [2,0], [3,0],   //user0 is proxy for 1,2 and 3
+             [0,4] ],               //user0 delegated to (transitive) proxy user4
+  "Area 2": [[1,0], [2,0]]
 }
 
 for(var area in delegations) {

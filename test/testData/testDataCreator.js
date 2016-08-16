@@ -13,61 +13,6 @@ var handleError = function(err) {
 }
 
 /**
- * iterate over the values of item.update,
- * look for references marked with "$ref"
- * and resolve them by executing $ref.query
- * and replace the value with the found ID.
- * //TODO: or array of IDs.
- * @param db MongoClient
- * @param item update operation from seedData that may contain $ref values
- * @return a Promise.all() that will unwind all refs
- */
-var unwindRefs = function (db, item) {
-  var refsToResolve = [];
-
-  // replace a value.$ref with the referenced ObjectID
-  var unwindRefValue = function(item, key, value) {
-    return db.collection(value.$ref.collection)
-      .findOne(value.$ref.query)
-      .then((doc) => {
-        console.log("   unwindRefValue: key '"+key+"' in", item.query, "was a $ref to '"+value.$ref.collection+"'", value.$ref.query, "and is ID="+doc._id);
-        item.update[key] = new ObjectID(doc._id);  // replace item.update.key.$ref: {...} with found MongoDB ObjectId
-
-        //TODO: cache already resolved refs and cache their IDs for later. This will especially speed up the frequent refs to 'users'
-
-        return doc._id;
-      });
-  };
-
-  // loop over the keys of item.update and look for $ref values
-  var checkForRefs = function(item) {
-    _.forOwn(item.update, function(value, key) {
-      //console.log("checking "+key+"="+value);
-      if (_.isPlainObject(value) && _.has(value, '$ref')) {
-        //console.log("checkForRefs: key "+key+" in ", item.query, " is ref to '"+value.$ref.collection+"' with query ", value.$ref.query);
-        refsToResolve.push(unwindRefValue(item, key, value));
-      } /*else   //TODO: unwind an array of refs
-      if (_.isArray(value)) {
-        value.forEach((elem) => {
-          if (_.isPlainObject(value) && _.has(value, '$ref')) {
-            console.log("  found ref to '"+value.$ref.collection+"' with query ", value.$ref.query, "in array elem");
-            refsToResolve.push(unwindRefValue(db, key, value));
-          }
-        });
-      }*/
-    });
-  };
-
-  checkForRefs(item);
-
-  // return a promise that will unwind all $ref values
-  return Promise.all(refsToResolve)
-    .catch(function(err) {
-      console.error("ERROR in unwindRefs", err);
-    });
-};
-
-/**
  * check if the upsertOp has any references in its query or update field
  * @param upsertOp  and mongo update operation
  * @return true if upsertOp.query or upsertOp.update contains a $ref value
@@ -89,6 +34,13 @@ var hasRef = function(upsertOp) {
   return hasRef
 }
 
+/**
+ * unwind one reference obj[key].$ref
+ * @param db db connection
+ * @param obj object that contains the ref
+ * @param key key that contains $ref
+ * @return (A promise that will resolve, when) obj[key] is replaced with the ObjectId of the referenced doc
+ */
 var unwindOneRef = function(db, obj, key) {
    var ref = obj[key].$ref
    //console.log("unwindOneRef ", ref.collection, ref.query)
@@ -106,6 +58,12 @@ var unwindOneRef = function(db, obj, key) {
    })
 }
 
+/**
+ * Unwind all references in all updateOps
+ * @param db db connection
+ * @param upsertOps ARRAY of upsert operations
+ * @return (A promise that will resolve to the) unwound upsertOps array
+ */
 var unwindAllRefs = function(db, upsertOps) {
   var tasks = []
   upsertOps.forEach((upsertOp) => {
@@ -179,34 +137,6 @@ var seedDB = function(db, upsertOps) {
     return executeUpserts(db, resolvedUpsertOps)
   })
 
-/*
-  return Promise.all(
-    upsertOps.map( (item) => {
-      //TODO: allow other operations in item.  not just upserts
-      //  for example:  empty a collection
-
-
-      console.log("Upserting "+item.collection+": query=", item.query);
-      var collection = db.collection(item.collection);
-
-      // check for referencs in the update operations (item.update)
-      return unwindRefs(db, item)
-
-      // upsert item in DB
-      .then(function() {
-        console.log("== upsertOne", item.query);
-        //console.log("item.update=", item.update);
-        return collection.updateOne(item.query, item.update, {upsert: true});
-      })
-
-      // log error, if any
-      .catch(function(err) {
-        console.error("ERROR in upsertCollection", err);
-        throw err;
-      });
-    })
-  );
-*/
 
 };
 

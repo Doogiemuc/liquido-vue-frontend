@@ -5,7 +5,36 @@
 console.log("======= Running JASMINE tests in projectBaseDir: "+ __dirname)
 
 var Jasmine = require('jasmine');
-var jasmine = new Jasmine({projectBaseDir: __dirname});
+var log = require('loglevel');
+var chalk = require('chalk')
+
+// very simple quick'n'dirty hash function
+var getColorFromStr = function(str) {
+  if (str === undefined || str.length == 0) return chalk.white
+  var hash = 0;
+  for (var i = str.length; i--; ) {
+    hash += str.charCodeAt(i);
+  }
+  var chalkColors = [ chalk.red, chalk.green, chalk.yellow, chalk.blue, chalk.magenta, chalk.cyan]
+  return chalkColors[ hash % chalkColors.length ]
+};
+
+// loglevel Plugin to create colorfull log output using 'chalk'
+var originalFactory = log.methodFactory;
+log.methodFactory = function (methodName, logLevel, loggerName) {
+    var rawMethod = originalFactory(methodName, logLevel, loggerName);
+    var logLevelNames = ['TRACE', 'DEBUG', 'INFO ', 'WARN ', 'ERROR']
+    var messageColor  = getColorFromStr(loggerName)
+
+    return function (message) {
+      rawMethod(chalk.cyan.underline(loggerName) + " " +
+                chalk.bold.magenta(logLevelNames[logLevel]) + " " +
+                messageColor(message) );
+    };
+};
+log.setLevel("info")  // trace == log everything
+// log.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
+
 
 /*  // jasmine-console-reporter is much better than jasmine-terminal-reporter :-)
 // https://www.npmjs.com/package/jasmine-terminal-reporter
@@ -15,6 +44,8 @@ var reporter = new Reporter({
   includeStackTrace: true
 })
 */
+
+var jasmine = new Jasmine({projectBaseDir: __dirname});
 
 // Nice colorful jasmine reports for the console
 // https://github.com/onury/jasmine-console-reporter

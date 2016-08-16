@@ -1,6 +1,6 @@
 /**
  * Main entry class for Liquido
- * 
+ *
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 import Vue from 'vue'
@@ -14,7 +14,6 @@ Vue.component('liquido-header', require('./components/LiquidoHeader'))
 // Vue plugins
 Vue.use(VueResource);
 Vue.use(VueRouter)
-//TODO: Vue.use(require('vue-model'))
 
 // Vue components
 //TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/
@@ -56,11 +55,11 @@ router.map({
 var userService = require('./services/UserService.js')
 
 router.start(App, '#app', function() {
-  console.log("App is started.") 
+  console.log("App is started.")
   userService.getAll({l:1}).then((users)=> {
     console.log("currentUser: "+users[0].email)
     router.$currentUser = users[0]
   })
-  
+
 })
 
