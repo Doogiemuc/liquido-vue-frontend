@@ -1,8 +1,7 @@
 /**
  * UserService handles all CRUD and search operations for "users" and
- * - hashing and validating of passwords 
- * -  
- * It is a Javascript abstraction for the interface to the DB.
+ * - hashing and validating of passwords (on the client!)
+ * -
  */
 "use strict"
 
@@ -17,7 +16,7 @@ var userSchmea = {
     email: { type: "string" },
     passwordHash: { type: "string" },
     profile: {
-      type: "object", 
+      type: "object",
       properties: {
         name : { type: "string" },
         website : { type: "string", format:"url" },
@@ -46,7 +45,7 @@ class UserService extends BaseRestClient {
   setPassword(user, newPassword) {
     user.passwordHash = bcrypt.hashSync(newPassword);
   }
-  
+
   /**
    * check if a given password is correct
    * @param user a user from the DB
@@ -56,12 +55,11 @@ class UserService extends BaseRestClient {
   checkPassword(user, checkPassword) {
     return bcrypt.compareSync(checkPassword, user.passwordHash);
   }
-  
+
   //TODO:  getProxies(user) { get proxies per area }
-  //TODO:  getNumberOfVotes(user, area) { recursively count delegees }
 }
 
-/** 
+/**
  * This service exports a singleton instance.
  * So you can simply `require(...)` this file and use the returned instance without calling new.
  * It will always be the same instance (with one internal cache).

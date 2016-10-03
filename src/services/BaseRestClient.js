@@ -1,12 +1,18 @@
 /**
- * This is a base class for a RESTful Client.
+ * This is a base class for a RESTful Client of one MongoDB collection using the mLabDataAPI.
+ *
  * It is responsible for
+ * - setup a node-rest-client
  * - CRUD operations
  * - Lazy loading data
  * - Caching
+ * - Population of references to child docs
  * - and error handling
- * It is a Javascript abstraction for the interface to the DB.
- * This implementation corresponds to the mLab Data API http://docs.mlab.com/data-api/
+ *
+ * This class is a Javascript abstraction for the interface to the DB.
+ * Its API contract is: all public methods are in now way MongoDB releated.
+ * But their internal implementation are MongoDB related:
+ * This implementation corresponds to the mLab Data API.   http://docs.mlab.com/data-api/
  */
 "use strict"
 
@@ -21,11 +27,7 @@ Validator.prototype.customFormats.ObjectID = function(input) {
 }
 var validator = new Validator();
 
-var Client = require('node-rest-client').Client
-var client = new Client()
-client.on('error', function(err) {
-  console.error('ERROR in node-rest-client', err)
-})
+var RestClient = require('node-rest-client').Client
 
 // default properties for timestamps (createdAt and updatedAt)
 var jsonSchemaForTimestamps = {
@@ -35,7 +37,6 @@ var jsonSchemaForTimestamps = {
       properties: {
         $date : { type: "string", format: "date-time", required: true }
       }
-      //TODO: required: true    is that necessary here too?
     },
     updatedAt: {
       type: "object",
@@ -62,7 +63,7 @@ module.exports = class BaseRestClient {
 
   /**
    * Create a new instance of a RestClient
-   * @param opitons configuration for this client:
+   * @param options configuration for this client:
    *   options.modelName    name of model, used in log messages
    *   options.url          may contain path variables in the form ${var}
    *   options.urlParams    (optional) global URL params, for example apiKey
@@ -71,7 +72,7 @@ module.exports = class BaseRestClient {
    *   options.jsonSchema   (optional) jsonSchmea to validate documents after loading and before storing them to the DB.
    */
   constructor(options) {
-    if (options.url == undefined) throw new Error("BaseRestClient needs an options.URL")
+    if (options.url == undefined) throw new Error("BaseRestClient needs an options.url")
     this.options = options
     this.options.nameOfIdAttr = options.nameOfIdAttr || '_id'
     this.options.modelName    = options.modelName || this.constructor.name
@@ -79,6 +80,10 @@ module.exports = class BaseRestClient {
     if (options.timestamps) {
       _.defaultsDeep(this.options.jsonSchema, jsonSchemaForTimestamps)
     }
+    this.client = new RestClient();
+    this.client.on('error', function(err) {
+      console.error('ERROR in node-rest-client', err)
+    })
   }
 
   /**
@@ -144,7 +149,7 @@ module.exports = class BaseRestClient {
     }
     return new Promise(function(resolve, reject) {
       log.debug(that.options.modelName+".getAll() => ", args)
-      client.get(that.options.url, args, function(data, response) {
+      that.client.get(that.options.url, args, function(data, response) {
         log.debug(that.options.modelName+".getAll() <= Array("+data.length+")")
         that.cachePut(data)
         resolve(data)
@@ -175,7 +180,7 @@ module.exports = class BaseRestClient {
       path: { id: id }
     }
     return new Promise(function(resolve, reject) {
-      client.get(that.options.url, args, function(item, response) {
+      that.client.get(that.options.url, args, function(item, response) {
         log.debug(that.options.modelName+".getById(id="+id+") <= ", item)
         that.cachePut(item)  // remember item in cache
         resolve(item)
@@ -266,7 +271,7 @@ module.exports = class BaseRestClient {
     args.parameters.q = query
     return new Promise(function(resolve, reject) {
       log.debug(that.options.modelName+".findByQuery("+query+") => ...")
-      client.get(that.options.url, args, function(data, response) {
+      that.client.get(that.options.url, args, function(data, response) {
         if (data.length < 4)
           log.debug(that.options.modelName+".findByQuery("+query+") <= \n"+JSON.stringify(data, ' ', 2))
         else
@@ -313,7 +318,7 @@ module.exports = class BaseRestClient {
     args.parameters.c = true  // only return the count
     return new Promise(function(resolve, reject) {
       log.debug(that.options.modelName+".count() => ", args)
-      client.get(that.options.url, args, function(data, response) {
+      that.client.get(that.options.url, args, function(data, response) {
         log.debug(that.options.modelName+".count() <= "+data)
         resolve(data)
       }).on('error', function (err) {
@@ -327,18 +332,22 @@ module.exports = class BaseRestClient {
    * Populate the given path: replace its value with the child doc.
    *
    * Item in the DB may have references to other child items. Those references have
-   * an mongo ObjectId as their value. When populated, then this reference is replaced
+   * a mongo ObjectId as their value. When populated, then this reference is replaced
    * with the actual child doc.
    *
-   * opulate its attribute given by path.
+   * populate its attribute given by path.
    * That path must lead to a foreign key, ie. the ID of a child document:
    *
    *     // before population
    *     parentDoc = {
    *       _id: { $oid: 'ID_OF_PARENT'},
    *       attr1: 'value1',
-   *       refToChild: { $oid: 'ID_OF_CHILD_DOC' }
-   *       [...]
+   *       refToChild: {
+   *         "$ref": {
+   *           collection: 'childCollection',
+   *           query: { uniqueField: 'someValue' }
+   *         }
+   *       }
    *     }
    *
    *     populate(parentDoc, 'refToChild', childService).then((populatedChild) => { ... })
@@ -351,9 +360,7 @@ module.exports = class BaseRestClient {
    *         _id: { $oid: 'ID_OF_CHILD'}
    *         childAttr1: 'val1'
    *         childAttr2: 'val2'
-   *         [...]
    *       }
-   *       [...]
    *     }
    *
    *  Remark: Since parentDoc is only a reference, it will also point to the populated instance!
@@ -442,7 +449,7 @@ module.exports = class BaseRestClient {
         path: { id: '' }
       }
       log.debug(that.options.modelName+".postItem() => ", args)
-      client.post(that.options.url, args, function(data, response) {
+      that.client.post(that.options.url, args, function(data, response) {
         log.debug(that.options.modelName+".postItem() <= ", data)
         resolve(data)
       }).on('error', function(err) {
@@ -466,7 +473,7 @@ module.exports = class BaseRestClient {
         path: { id: id }
       }
       log.debug(that.options.modelName+".deleteById(id="+id+") => ", args)
-      client.delete(that.options.url, args, function(deletedItem, response) {
+      that.client.delete(that.options.url, args, function(deletedItem, response) {
         log.debug(that.options.modelName+".deleteById(id="+id+") <= successfully deleted")
         delete that.cache[that.getId(deletedItem)]   // remove item from cache
         resolve(deletedItem)

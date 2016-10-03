@@ -63,9 +63,9 @@ for (var i = 0; i < 5; i++) {
  */
 // be careful not to create any circular delegations :-)
 var delegations = {
-  "Area 1": [[1,0], [2,0], [3,0],   //user0 is proxy for 1,2 and 3
-             [0,4] ],               //user0 delegated to (transitive) proxy user4
-  "Area 2": [[1,0], [2,0]]
+  "Area 1": [[1,0], [2,0], [3,0],   //user0 is proxy for 1,2 and 3  in "Area 1"
+             [0,4] ],               //user0 delegated to (transitive) proxy user4, which now has 5 votes including his own.
+  "Area 2": [[1,0], [2,0]]          //user0 is proxy for 1 and 2 in "Area 2"
 }
 
 for(var area in delegations) {
