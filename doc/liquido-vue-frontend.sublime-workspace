@@ -4,12 +4,44 @@
 		"selected_items":
 		[
 			[
-				"pop",
-				"populatedTestUser"
+				"id",
+				"ideaData"
+			],
+			[
+				"find",
+				"findIndexOfRow"
+			],
+			[
+				"row",
+				"rowIndex"
+			],
+			[
+				"for",
+				"for	for (…) {…}"
 			],
 			[
 				"test",
-				"testUser"
+				"testData"
+			],
+			[
+				"h",
+				"height"
+			],
+			[
+				"api",
+				"apiKey"
+			],
+			[
+				"er",
+				"errorThrown"
+			],
+			[
+				"save",
+				"saveNewValue"
+			],
+			[
+				"pop",
+				"populatedTestUser"
 			],
 			[
 				"makeT",
@@ -196,10 +228,6 @@
 				"fromNow"
 			],
 			[
-				"for",
-				"format"
-			],
-			[
 				"date",
 				"dateVal"
 			],
@@ -355,6 +383,14 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/controllers/Ideas.vue",
+			"settings":
+			{
+				"buffer_size": 2537,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -380,8 +416,41 @@
 	},
 	"file_history":
 	[
-		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/App.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/ideas.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/node_modules/vue-tables/lib/table-template.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/test/testData/testData.js",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/test/testData/testDataCreator.js",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/components/EditableCell.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/node_modules/vue-tables/lib/filters/render.js",
+		"/Volumes/Data1TB/Coding/git_repos/liquido-vue-frontend/src/views/ideas.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/controllers/Ideas.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/controllers/Proxies.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/components/Ideas.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/components/LiquidoHeader.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/main.js",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/home.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/partials/header.html",
+		"/Volumes/Data1TB/Coding/git_repos/liquido-vue-frontend/node_modules/vue-tables/lib/table-template.html",
+		"/Volumes/Data1TB/Coding/git_repos/liquido-vue-frontend/node_modules/vue-tables/lib/v-client-table.js",
+		"/Volumes/Data1TB/Coding/git_repos/liquido-vue-frontend/node_modules/vue-tables/lib/methods/init-pagination.js",
+		"/Volumes/Data1TB/Coding/git_repos/liquido-vue-frontend/config/credentials.js",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/proxies.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/index.html",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/pages/Proxies.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/components/LiquidoHome.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/doc/liquido-vue-frontend.md",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/package.json",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/userHome/userHome.jade",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/static/css/loadingSpinner.css",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/js/main.js",
+		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/App.vue",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/layout.jade",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/home.jade",
+		"/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/views/partials/flash.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/views/home.jade",
+		"/Volumes/Data1TB/Coding/git_repos/Liquido/views/layout.jade",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/vote/voteController.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/userHome/userHomeController.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/startup.sh",
@@ -396,11 +465,9 @@
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/cucumber/features/support/world.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/app.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/test/ideaTest.js",
-		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/js/main.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/locales/english.yml",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/js/validator.min.js",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/public/css/doogie.css",
-		"/Volumes/Data1TB/Coding/git_repos/Liquido/views/home.jade",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/mvc/law/editLaw.jade",
 		"/Volumes/Data1TB/Coding/git_repos/Liquido/.env.example",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/LiquidDemocracy.md",
@@ -448,8 +515,6 @@
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/public/css/lib/bootstrap/bootstrap.scss",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/contact.jade",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/account/login.jade",
-		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
-		"/Users/Doogie/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/models/User.js",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/.env.example",
 		"/Volumes/Data1TB/Coding/Projects Geek/Liquid Democracy/HackatonStarterSkeleton/views/law/listLaws",
@@ -486,6 +551,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"records",
+			"checkforRef",
+			"mongo",
+			"Vue",
 			"update",
 			"csrf",
 			"IP",
@@ -546,8 +615,37 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "/Volumes/Data1TB/Coding/WebDevelopment/liquido-vue-frontend/src/controllers/Ideas.vue",
+					"settings":
+					{
+						"buffer_size": 2537,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/vue-syntax-highlight-master/vue.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 568.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -607,6 +705,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 219.0,
+	"side_bar_width": 289.0,
 	"status_bar_visible": true
 }

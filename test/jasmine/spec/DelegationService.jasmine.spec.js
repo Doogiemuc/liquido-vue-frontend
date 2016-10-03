@@ -36,7 +36,7 @@ describe("DelegationService", function() {
     }
     var checkProxies = function(testUser) {
       expect(testUser.email).toBeDefined()
-      return delegationService.getAllProxies(testUser._id.$oid).then((proxies) => {
+      return delegationService.getAllProxiesOf(testUser._id.$oid).then((proxies) => {
         log.debug("found "+proxies.length+" proxies")
         expect(proxies.length >= 1).toBeTruthy("Expected to find at least 1 proxy")
       })
@@ -59,7 +59,7 @@ describe("DelegationService", function() {
       expect(testUser.email).toBeDefined("No testUser found")
       expect(testArea.title).toBeDefined("No testArea found")
       return delegationService.getNumberOfVotes(testUser._id.$oid, testArea._id.$oid).then((numDelegations) => {
-        expect(numDelegations).toBe(5, "expected to find 5 delgations (including transitive proxies)")
+        expect(numDelegations).toBe(5, "expected to find 5 delegations (including transitive proxies)")
       })
     }
 

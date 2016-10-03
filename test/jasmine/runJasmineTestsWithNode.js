@@ -32,8 +32,8 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
                 messageColor(message) );
     };
 };
-log.setLevel("info")  // trace == log everything
-// log.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
+log.setLevel("info")  // trace == log everything including stack trace
+log.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
 
 
 /*  // jasmine-console-reporter is much better than jasmine-terminal-reporter :-)

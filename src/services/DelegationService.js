@@ -9,7 +9,7 @@
 var BaseRestClient = require('./BaseRestClient')
 var log = require("loglevel").getLogger("DelegationService");
 
-var delegationSchmea = {
+var delegationSchema = {
   id: "/Delegation",
   type: "object",
   properties: {
@@ -21,9 +21,10 @@ var delegationSchmea = {
 
 var options = {
   modelName: 'Delegation',
-  url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/delegations/${id}',
-  urlParams: { apiKey: '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' },
-  jsonSchema: delegationSchmea
+  //url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/delegations/${id}',
+  url: 'http://localhost:8080/users/${id}',
+  //urlParams: { apiKey: '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' },
+  jsonSchema: delegationSchema
 }
 
 class DelegationService extends BaseRestClient {
@@ -33,7 +34,7 @@ class DelegationService extends BaseRestClient {
    * @param userId plain ID of a delegee
    * @return all delegations that point from this delegee to a proxy in an area
    */
-  getAllProxies(userId) {
+  getAllProxiesOf(userId) {
     return this.findByQuery({ from: { $oid: userId } })
   }
 
@@ -46,14 +47,18 @@ class DelegationService extends BaseRestClient {
    */
   getNumberOfVotes(userId, areaId) {
     var that = this;
-    var getNumVotesURL = that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId="+areaId;
+    var args = {
+      parameters: { areaId: areaId },  // url query parameters
+      path: { id: userId }             // url path parameter replacement
+    }
+    log.debug("=> getNumOfVotes(userId="+userId+", areaId="+areaId+")")
     return new Promise(function(resolve, reject) {
-      that.client.get(getNumVotesURL, function(data, response) {
-        log.debug(that.options.modelName+".getNumVotes() <= "+data)
+      that.client.get(that.options.url+"/getNumVotes", args, function(data, response) {
+        log.debug("<= getNumVotes() = "+data)
         resolve(data)
       }).on('error', function (err) {
-        log.error("ERROR in getAll()", err)
-        reject('ERROR in BaseRestClient.getAll():', err)
+        log.error("ERROR in getNumberOfVotes()", err)
+        reject('ERROR in getNumberOfVotes():', err)
       })
     })
 
