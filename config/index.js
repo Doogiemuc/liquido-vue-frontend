@@ -19,6 +19,8 @@ module.exports = {
   dev: {
     env: require('./dev.env'),
     port: 8080,
-    proxyTable: {}
+    proxyTable: {
+      //TODO: '/user': 'http://aws.amazon.com/liquiodo' // https://github.com/chimurai/http-proxy-middleware
+    }
   }
 }

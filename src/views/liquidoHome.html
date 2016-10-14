@@ -1,12 +1,12 @@
 <div class="container">
   <h1>Liquido</h1>
-  <p class="lead">A modern aproach to interactive representative direct democracy.</p>
+  <p class="lead">A modern aproach for interactive, representative and direct democracy.</p>
   <hr>
   <div class="row">
     <div class="col-sm-6">
       <h2>Dev Links</h2>
       <p>Some quick links for development:</p>
-      
+
       <h2>Laws</h2>
       <ul>
         <li v-for="law in laws">{{ law.title }} ({{ law.id}})<br>
@@ -18,11 +18,18 @@
           No laws yet ...
         </li>
       </ul>
+      <p><a href="/createNewLaw" role="button" class="btn btn-default">Create new law</a></p>
+
     </div>
     <div class="col-sm-6">
+      <h2>Your proxies</h2>
+      <p>A proxy is someone you trust. You can delegate your vote to this person, so that he can vote for you in one area.</p>
+      <p><a href="/proxies" role="button" class="btn btn-default">Show proxies »</a></p>
+
       <h2>Heading</h2>
       <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
       <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
+
       <h2>Heading</h2>
       <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
       <p><a href="#" role="button" class="btn btn-default">View details »</a></p>

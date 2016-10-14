@@ -8,7 +8,7 @@ import VueRouter from 'vue-router'
 import VueResource from 'vue-resource'
 import LiquidoHome from './controllers/LiquidoHome'
 
-// Register custom components
+// Register custom components: <liquido-header> is used in index.html
 Vue.component('liquido-header', require('./components/LiquidoHeader'))
 
 // Vue plugins
@@ -50,16 +50,22 @@ router.map({
 })
 
 
-// Start Vue app
+// Full logging when developming
+if (process.env.NODE_ENV == "development") {
+  console.log("DEVELOPMENT mode: setting log level to TRACE")
+  var log = require("loglevel")
+  log.setLevel("trace")  // trace == log everything
+  //log.getLogger("DelegationService").setLevel("TRACE");  // configure per file/module logging
 
-var userService = require('./services/UserService.js')
-
-router.start(App, '#app', function() {
-  console.log("App is started.")
+  console.debug("DEVELOPMENT: perform automatic login")
+  var userService = require('./services/UserService.js')
   userService.getAll({l:1}).then((users)=> {
-    console.log("currentUser: "+users[0].email)
+    console.debug("currentUser: "+users[0].email)
     router.$currentUser = users[0]
   })
+}
 
+router.start(App, '#app', function() {
+  console.log("Vue App is started.")
 })
 

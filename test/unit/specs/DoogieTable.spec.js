@@ -2,7 +2,9 @@
 import Vue from 'vue'
 import DoogieTable from 'src/components/DoogieTable'
 
-/** 
+var log = require("loglevel").getLogger("DoogieTable.spec");
+
+/**
  * returns a Vue instance that contains a DoogieTable
  * filled with some default dummy data for testing
  */
@@ -46,18 +48,18 @@ var getTestee = function() {
  */
 describe('DoogieTable.vue', () => {
   var fakeServer
-  
+
   before(function() {
     //console.log("Setting up fakeServer")
     //fakeServer = sinon.fakeServer.create()
   })
-  
+
   after(function() {
     //console.log("restoring original XHR")
     //fakeServer.restore()
   })
-  
-  
+
+
   it('should render a table with correct content in its cells', () => {
     const vm = getTestee()
     const testtable = vm.$refs.testtable
@@ -68,7 +70,7 @@ describe('DoogieTable.vue', () => {
       //console.log("=======> testtable.nextTick ", vm.$el.querySelector('.doogie-table tr td'))
       expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 01')
     })
-    
+
   })
 
   it('can load data from remote vue-resource', (done) => {
@@ -77,20 +79,20 @@ describe('DoogieTable.vue', () => {
       { id: '4712', title: "Title 2", description: "Remote 2" },
       { id: '4713', title: "Title 3", description: "Remote 3" },
     ])
-    
+
     Vue.use(require('vue-resource'));
     Vue.http.interceptors.push((request, next) => {
       if (request.url == '/tabletestdata') {
-        console.log('Intercepting request to '+request.url+ '. Sending reply with canned testdata.')
+        log.debug('Intercepting request to '+request.url+ '. Sending reply with canned testdata.')
         // stop and return response
         next(request.respondWith(testData, { status: 200, statusText: 'Ok' }))
       } else {
         next()
       }
     });
-    
-    /*  
-    // I tried to get this running with sinon.fakeServer. 
+
+    /*
+    // I tried to get this running with sinon.fakeServer.
     // It works when setting fakeServer.autoRespond = true. But according to the sinson docs, this should not be used for production ready tests.
     // It I didn't get it working with manually callign fakeServer.respond() anywhere.
     fakeServer.respondWith("GET", "/tabletestdata",
@@ -100,12 +102,12 @@ describe('DoogieTable.vue', () => {
         xhr.respond(200, { "Content-Type": "application/json" }, testData)
       }
     )
-    //for debugging: 
+    //for debugging:
     sinon.log = function (message) {  console.log("SINON: ", message); };
     fakeServer.autoRespond = true;   // I couldn't get it working with calling fakeServer.respond() mamually.
-    //There would also be a   fakeServer.respondImmediately = true;  
+    //There would also be a   fakeServer.respondImmediately = true;
     */
-    
+
     const vm = new Vue({
       data () {
         return {
@@ -126,7 +128,7 @@ describe('DoogieTable.vue', () => {
       components: { DoogieTable },
       events: {
         'DoogieTable:dataLoaded': function() {
-          console.log("DoogieTable:dataLoaded event received."); //, JSON.stringify(fakeServer.requests[0].responseText, ' ', 4))
+          log.debug("DoogieTable:dataLoaded event received."); //, JSON.stringify(fakeServer.requests[0].responseText, ' ', 4))
           expect(vm.$el.querySelector('.doogie-table tbody tr:nth-child(1)').textContent).to.contain('Remote 1')
           done()
         }
@@ -138,12 +140,12 @@ describe('DoogieTable.vue', () => {
     console.log("###### requests=", JSON.stringify(fakeServer.requests, ' ', 2))
     vm.$nextTick(function() {
       console.log("###### $nextTick requests=", JSON.stringify(fakeServer.requests, ' ', 2))
-      fakeServer.respond()  
+      fakeServer.respond()
     })
     */
   })
-  
-  
+
+
   it('can filter rows by search query', () => {
     const vm = getTestee()
     vm.$refs.testtable.searchQuery = "Title 02"
@@ -152,7 +154,7 @@ describe('DoogieTable.vue', () => {
       expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 02')
     })
   })
-  
+
   it('handles paging and sorting correctly', () => {
     const vm = getTestee()
     const testtable = vm.$refs.testtable
@@ -165,8 +167,8 @@ describe('DoogieTable.vue', () => {
       expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 11')
     })
   })
-  
-  
-  
-  
+
+
+
+
 })

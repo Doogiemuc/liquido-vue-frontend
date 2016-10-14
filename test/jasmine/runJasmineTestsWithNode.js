@@ -15,7 +15,7 @@ var getColorFromStr = function(str) {
   for (var i = str.length; i--; ) {
     hash += str.charCodeAt(i);
   }
-  var chalkColors = [ chalk.red, chalk.green, chalk.yellow, chalk.blue, chalk.magenta, chalk.cyan]
+  var chalkColors = [ chalk.green, chalk.grey, chalk.yellow, chalk.blue, chalk.magenta, chalk.cyan]
   return chalkColors[ hash % chalkColors.length ]
 };
 
@@ -27,7 +27,8 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
     var messageColor  = getColorFromStr(loggerName)
 
     return function (message) {
-      rawMethod(chalk.cyan.underline(loggerName) + " " +
+      rawMethod("         "+
+                chalk.cyan.underline(loggerName) + " " +
                 chalk.bold.magenta(logLevelNames[logLevel]) + " " +
                 messageColor(message) );
     };

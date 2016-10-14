@@ -13,7 +13,7 @@ var handleError = function(err) {
 
 describe("IdeaService", function() {
   var ideaService = require('../../../src/services/IdeaService');
-  
+
   /**
    * Each test will get its own freshly new IdeaService instance (with a clean cache).
    * Tests must be indipendant of each other!
@@ -36,8 +36,8 @@ describe("IdeaService", function() {
       })
     }).catch(handleError)
   })
-  
-  
+
+
   it('should validate an idea', function(done) {
     var params = { l: 1 }
     ideaService.getAll(params).then(function(ideas) {
@@ -46,21 +46,18 @@ describe("IdeaService", function() {
       done()
     })
   })
-  
+
   it('should find one specific idea by title', function(done) {
     var query = { title: 'Idea 1' }
-    console.log("send query")
     ideaService.findOne(query).then((idea) => {
-      console.log("found idea")
       expect(idea.title).toEqual('Idea 1')
       done()
     })
   })
-  
-  
+
+
   it('should post a new idea and then delete it', (done) => {
     var createNewIdea = function() {
-      console.log("ENTER createNewIdea testStep")
       var newIdea = {
         title: 'Idea from test case',
         description: 'Some dummy description timestamp='+new Date().getTime(),
@@ -69,7 +66,6 @@ describe("IdeaService", function() {
         updatedAt: new Date(),
       }
       return ideaService.postItem(newIdea).then(function(createdIdea) {
-        //console.log("createdIdea\n", createdIdea)
         expect(createdIdea._id).toBeDefined()
         expect(createdIdea.title).toEqual(newIdea.title)
         return createdIdea

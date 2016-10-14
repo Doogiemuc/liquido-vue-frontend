@@ -56,7 +56,6 @@ class UserService extends BaseRestClient {
     return bcrypt.compareSync(checkPassword, user.passwordHash);
   }
 
-  //TODO:  getProxies(user) { get proxies per area }
 }
 
 /**

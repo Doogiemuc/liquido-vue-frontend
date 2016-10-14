@@ -4,28 +4,33 @@
 
 var areaService = require('../services/AreaService.js')
 var userService = require('../services/UserService.js')
+var delegationService = require('../services/DelegationService.js')
 
 export default {
   data () {
     return {
       areas: [],
-      proxy: {}
+      proxies: []
     }
   },
-  
-  created () { 
-    console.log("Proxies.vue created")
-    
+
+  ready () {
+    console.log("Proxies.vue READY")
     areaService.getAll().then((areas) => {
-      this.areas = areas  
+      console.log("Areas:", areas)
+      this.areas = areas  // Vue magic: This assignment will dynamically update the UI, when ready
     })
-    userService.getProxies(this.$router.$currentUser).then((proxies) => {
-      console.log("Proxies\n", proxies)
-      this.proxies = proxies
+    console.log("======== getAllProxies() currentUser=",this.$router.$currentUser)
+    delegationService.getDelegationsFrom(userService.getId(this.$router.$currentUser)).then(delegations => {
+      console.log("Delegations:", delegations)
+      //populate user information of all proxies
+      delegationService.populateAll(delegations, 'to', userService).then(populatedDelegations => {
+        console.log("populatedDelegations:", populatedDelegations[0])
+        this.proxies = populatedDelegations
+      })
     })
-    
-    
   }
+
 }
 </script>
 

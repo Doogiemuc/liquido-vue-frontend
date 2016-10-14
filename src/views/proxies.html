@@ -1,13 +1,14 @@
 <div class="container">
   <h1>Your Proxies</h1>
-  <p class="lead">Here you can delegate your vote to someone you trust.</p>
+  <p class="lead">Here you can delegate your vote to someone you trust. Or revoke that delegation at any time you want.</p>
   <hr>
-  <div v-for="area in areas" class="row">
+  <div v-for="area in areas">
     <h3>{{area.title}} - {{area.description}}</h3>
-    <p v-if="proxy[area]">
+    <p v-if="proxies[area.id]">
       No proxy => Choose one.
     </p>
     <p v-else>
+      
       {{proxy[area].profile.name}}
     </p>
   </div>

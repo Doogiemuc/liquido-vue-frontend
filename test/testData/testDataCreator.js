@@ -52,7 +52,7 @@ var unwindOneRef = function(db, obj, key) {
          reject("Cannot resolve ref for key='"+key+"' to "+JSON.stringify(ref.query))
        }
        console.log("unwindOneRef '"+key+"' =>", ref.collection, ref.query, "=>", doc._id)
-       obj[key] = new ObjectID(doc._id);  // replace obj[key] = { $ref {...} } with found MongoDB ObjectId
+       obj[key] = new ObjectID(doc._id);  // replace obj[key] = { $ref {...} } with found MongoDB ObjectId: obj[key] = { _id: { $oid: 'asdf....' } }
        resolve(doc._id)
      })
    })

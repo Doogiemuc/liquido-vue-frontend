@@ -1,6 +1,6 @@
 /**
- * UserService handles all CRUD and search operations for "delegations" from a delegee to a proxy.
- * When a user delgates his vote to a proxy in one given area, then this delegation is added a a link
+ * DelegationService handles all CRUD and search operations for "delegations" from a delegee to a proxy.
+ * When a user delgates his vote to a proxy in one given area, then this delegation is added as a link
  * from 'delegee' to the 'proxy' in that area.
  *
  */
@@ -14,13 +14,14 @@ var delegationSchmea = {
   type: "object",
   properties: {
     area: { type: "ObjectId", required: true },
-    fromDelegee: { type: "ObjectID", required: true },
-    toProxy: { type: "ObjectID", required: true },
+    from: { type: "ObjectID", required: true },
+    to:   { type: "ObjectID", required: true },
   }
 }
 
 var options = {
   modelName: 'Delegation',
+  baseURL: 'http://localhost:4444',  // base URL of liquido backend
   url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/delegations/${id}',
   urlParams: { apiKey: '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' },
   jsonSchema: delegationSchmea
@@ -29,35 +30,40 @@ var options = {
 class DelegationService extends BaseRestClient {
 
   /**
-   * find all proxies that this user has chosen in any area
-   * @param userId plain ID of a delegee
-   * @return all delegations that point from this delegee to a proxy in an area
+   * Get all proxies that this userId has delegated to (per area)
+   * If you need the user information of the proxies, then you can simply populate them from the to._ids
    */
-  getAllProxies(userId) {
+  getDelegationsFrom(userId) {
     return this.findByQuery({ from: { $oid: userId } })
   }
 
+
   /**
-   * sum up the number of votes a proxy may cast, becasue of delegations to him.
-   * Recursively traverses the tree of proxies (for that area) backwards starting from the given user.
+   * Query the backend for the number of votes that this user may cast in this area
+   * due to (transitive) proxies. Will include his own vote!
+   *
    * @param userId plain ID string of the proxy at the end of the chain
    * @param areaId plain ID string of the area to consider
    * @return (A Promise that will resolve to) the number of votes this proxy may cast, including his own one
    */
   getNumberOfVotes(userId, areaId) {
+    log.debug(this.options.modelName+".getNumVotes() => userId="+userId+", areaId="+areaId)
     var that = this;
     var getNumVotesURL = that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId="+areaId;
     return new Promise(function(resolve, reject) {
-      that.client.get(getNumVotesURL, function(data, response) {
-        log.debug(that.options.modelName+".getNumVotes() <= "+data)
-        resolve(data)
+      that.client.get(getNumVotesURL, function(responseBodyAsObject, rawResponse) {
+        var numVotes = responseBodyAsObject.toString()     // responseBodyAsObject is a Buffer. Need to convert to string
+        log.debug(that.options.modelName+".getNumVotes() <= "+numVotes)
+        resolve(numVotes)
       }).on('error', function (err) {
         log.error("ERROR in getAll()", err)
         reject('ERROR in BaseRestClient.getAll():', err)
       })
     })
 
-    /*  MOVED to server
+    /* MOVED to server:   This was the client side javascript implementation.
+       But of course this has been moved to the backend cause its security relevant!
+
     var queryForDelegations = {
       area: { $oid: areaId },
       to: { $oid: userId }

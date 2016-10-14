@@ -60,6 +60,7 @@ module.exports = function (config) {
     preprocessors: {
       './index.js': ['webpack', 'sourcemap']
     },
+    browserNoActivityTimeout: 20000,   // I love race conditinos :-(  https://github.com/karma-runner/karma/issues/598
     webpack: webpackConfig,
     webpackMiddleware: {
       noInfo: true

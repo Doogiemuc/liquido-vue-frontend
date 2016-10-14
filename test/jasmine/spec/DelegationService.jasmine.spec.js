@@ -1,12 +1,15 @@
 /**
- * Smoke tests for UserService
+ * Smoke tests fo DelegationService (imlemented withJasmine)
  *
  * These tests will run with jasmin as plain node javascript - no browser involved
  * So you cannot test any real HTML DOM frontend here. But you can do unit tests of backend services very quickly.
  */
 "user strict"
 /*global jasmine, expect, fail, fit */
-var log = require("loglevel").getLogger("DelegationService.jasmine.spec.js");
+var loglevel = require("loglevel")
+var log = loglevel.getLogger("DelegationService.jasmine.spec.js");
+
+loglevel.getLogger("DelegationService").setLevel("TRACE");  // enable full debug logging in module under test
 
 var handleError = function(err) {
   console.error("ERROR in test", err)
@@ -20,6 +23,11 @@ describe("DelegationService", function() {
   var userService = require(pathPrefix+'/services/UserService')
   var areaService = require(pathPrefix+'/services/AreaService')
 
+  // Test fixtures
+  var USER0_EMAIL = 'testuser0@liquido.de'
+  var USER4_EMAIL = 'testuser4@liquido.de'
+  var USER4_NUM_VOTES = '5';
+
   /**
    * Each test will get its own freshly new IdeaService instance (with a clean cache).
    * Tests must be indipendant of each other!
@@ -28,26 +36,28 @@ describe("DelegationService", function() {
     delegationService.cache = {}
   });
 
-  var testuser0 = 'testuser0@liquido.de'
-  it('should find the proxies of '+testuser0, function(done) {
-    var findTestUser0 = function() {
-      var userQuery = { email: testuser0 }
+
+  it('should find proxies of '+USER0_EMAIL, function(done) {
+    var getTestUser = function() {
+      var userQuery = { email: USER0_EMAIL }
       return userService.findOne(userQuery)
     }
     var checkProxies = function(testUser) {
+      log.debug("got user "+testUser)
       expect(testUser.email).toBeDefined()
-      return delegationService.getAllProxies(testUser._id.$oid).then((proxies) => {
-        log.debug("found "+proxies.length+" proxies")
-        expect(proxies.length >= 1).toBeTruthy("Expected to find at least 1 proxy")
+      return delegationService.getDelegationsFrom(testUser._id.$oid).then(proxies => {
+        expect(proxies).not.toBe(null)
+        log.debug("found "+proxies.length+" proxies of "+USER0_EMAIL)
+        expect(proxies.length >= 1).toBeTruthy("Expected to find at least 1 proxy of "+USER0_EMAIL)
       })
     }
-    findTestUser0().then(checkProxies).then(done).catch(handleError)
+    getTestUser().then(checkProxies).then(done).catch(handleError)
   })
 
-  it('should get the number of votes a proxy can cast (incl. transitive proxies)', function(done) {
+  it('should get the number of votes that a proxy can cast (incl. transitive proxies)', function(done) {
     var findTestUser = function() {
-      log.debug("Querying for user")
-      var userQuery = { email: 'testuser4@liquido.de' }
+      log.debug("Querying for user "+USER4_EMAIL)
+      var userQuery = { email: USER4_EMAIL }
       return userService.findOne(userQuery)
     }
     var findTestArea = function() {
@@ -58,15 +68,17 @@ describe("DelegationService", function() {
     var checkNumberOfVotes = function(testUser, testArea) {
       expect(testUser.email).toBeDefined("No testUser found")
       expect(testArea.title).toBeDefined("No testArea found")
-      return delegationService.getNumberOfVotes(testUser._id.$oid, testArea._id.$oid).then((numDelegations) => {
-        expect(numDelegations).toBe(5, "expected to find 5 delgations (including transitive proxies)")
+      log.debug("sending request for getNumberOfVotes")
+      return delegationService.getNumberOfVotes(testUser._id.$oid, testArea._id.$oid).then(numVotes => {
+        expect(numVotes).toBe(USER4_NUM_VOTES, "expected to get "+USER4_NUM_VOTES+" votes for user "+USER4_EMAIL)
       })
     }
 
-    Promise.all([findTestUser(), findTestArea()]).then(result =>  {
+    Promise.all([findTestUser(), findTestArea()]).then(result => {
       return checkNumberOfVotes(result[0], result[1])
     })
-    .then(done).catch(handleError)
+    .then(done)
+    .catch(handleError)
   })
 
 })

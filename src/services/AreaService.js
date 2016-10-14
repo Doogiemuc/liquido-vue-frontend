@@ -22,7 +22,7 @@ var options = {
 }
 
 class AreaService extends BaseRestClient {
-  // Empty
+  // Empty. Everything is already implemented in BaseRestClient
 }
 
 module.exports = AreaService.getInstance(options)

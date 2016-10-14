@@ -3,7 +3,9 @@
  *
  * It is responsible for
  * - setup a node-rest-client
+ * - abstraction layer for all MongoDB related stuff
  * - CRUD operations
+ * - validating against a JSON schema (optional)
  * - Lazy loading data
  * - Caching
  * - Population of references to child docs
@@ -89,10 +91,10 @@ module.exports = class BaseRestClient {
   /**
    * Retreive the ID of a given item.
    * This ID is used as key in the cache.
-   * You must overwrite this if your id attribute is not called "_id".
+   * You must overwrite this if your id attribute is not called "_id.$oid".
    */
   getId(item) {
-    if (item === undefined) throw new Error("BaseRestClient: Cannot get Id of undefined!")
+    if (item === undefined) throw new Error(this.options.modelName+": Cannot get Id of undefined!")
     return _.get(item, this.options.nameOfIdAttr+'.$oid')
   }
 
@@ -103,12 +105,17 @@ module.exports = class BaseRestClient {
   /**
    * Validate the given item against this.options.jsonSchmea
    * using https://github.com/tdegrunt/jsonschema
+   * If you need the individual validation errors, then you can call
+   * `validator.validate(item, this.options.jsonSchema)` yourself.
+   * The validate method returns very nice error information
+   *
+   * @param item the model with data to validate
    * @return true if item is valid
    */
   validate(item) {
     var result = validator.validate(item, this.options.jsonSchema)
     for (var i = result.errors.length; i--; ) {
-      console.error(result.errors[i])
+      log.warn(result.errors[i])
     }
     return result.errors.length == 0
   }
@@ -162,15 +169,19 @@ module.exports = class BaseRestClient {
 
   /**
    * Get one item by its unique ID.
-   * By default the item will be returned from the cache.
-   * @param id the primary key of the item to fetch
-   * œparam  params (optional) additional URL query parameteres
+   * By default the item will be returned from the cache if possible.
+   *
+   * @param id the primary key of the item to fetch  (as 24 chars HEX)
+   * @param  params (optional) additional URL query parameteres
    * @param nocache (optional) if true, then the value will fetched and updated from the server
-   * @return a Promise that will resolve with the fetched item
+   * @return (a Promise that will resolve with) the fetched item
    */
   getById(id, params, nocache) {
-    log.debug(this.options.modelName+"getById(id="+id+") => ")
-    if (!nocache && this.cacheGet(id) !== undefined) {
+    log.debug(this.options.modelName+".getById(id=", id, ") => ")
+    if (_.has(id, '$oid')) {
+      id = id.$oid
+    }
+    if (this.cacheGet(id) !== undefined && !nocache) {
       log.debug(this.options.modelName+".getById(id="+id+") <= FROM CACHE ", this.cacheGet(id))
       return Promise.resolve(this.cacheGet(id))
     }
@@ -181,8 +192,8 @@ module.exports = class BaseRestClient {
     }
     return new Promise(function(resolve, reject) {
       that.client.get(that.options.url, args, function(item, response) {
-        log.debug(that.options.modelName+".getById(id="+id+") <= ", item)
         that.cachePut(item)  // remember item in cache
+        log.debug(that.options.modelName+".getById(id="+id+") <= ", item)
         resolve(item)
       }).on('error', function (err) {
         reject('ERROR in BaseRestClient.getById(id='+id+'):', err)
@@ -214,10 +225,10 @@ module.exports = class BaseRestClient {
     ids = _.uniq(ids)
     //----- get items from cache, where possible
     ids.forEach((id) => {
-      if (!nocache && this.cache[id] !== undefined) {
-        result.push(this.cache[id])
+      if (nocache || this.cache[id] == undefined) {
+        notInCacheIds.push('{$oid:"'+id+'"}')
       } else {
-        notInCacheIds.push('{$oid:"'+id+'"}')  // see http://stackoverflow.com/questions/26938598/mongodb-oid-vs-objectid
+        result.push(this.cache[id])
       }
     })
     if (notInCacheIds.length == 0) {
@@ -225,11 +236,9 @@ module.exports = class BaseRestClient {
       return Promise.resolve(result)  // Found all in cache
     }
     //----- query DB for the rest of the ids that were not found in the cache
-    var query = '{'+this.options.nameOfIdAttr+' : { $in: ['+notInCacheIds.join(',')+'] } }'
-    return new Promise(function(resolve, reject) {
-      that.findByQuery(query, params).then((dbResult) => {
-        resolve(result.concat(dbResult))
-      })
+    var query = '{'+this.options.nameOfIdAttr+' : { $in: ['+notInCacheIds.join(',')+'] } }'   // see http://stackoverflow.com/questions/26938598/mongodb-oid-vs-objectid
+    return that.findByQuery(query, params).then(dbResult => {
+      return result.concat(dbResult)
     })
   }
 
@@ -296,10 +305,10 @@ module.exports = class BaseRestClient {
     return new Promise(function(resolve, reject) {
       that.findByQuery(query, params).then((matches) => {
         if (matches == undefined || matches.length == 0) {
-          console.warn("Could not find ", query)
+          log.warn("Could not find ", query)
           reject("Could not find "+JSON.stringify(query))
         }
-        if (matches.length > 1) console.warn('findOne found more than one match. Returning first one.')
+        if (matches.length > 1) log.warn('findOne found more than one match. Returning first one.')
         that.cachePut(matches[0])
         resolve(matches[0])
       })
@@ -343,10 +352,7 @@ module.exports = class BaseRestClient {
    *       _id: { $oid: 'ID_OF_PARENT'},
    *       attr1: 'value1',
    *       refToChild: {
-   *         "$ref": {
-   *           collection: 'childCollection',
-   *           query: { uniqueField: 'someValue' }
-   *         }
+   *         '$oid': { 'ID_OF_CHILD' }
    *       }
    *     }
    *
@@ -371,11 +377,14 @@ module.exports = class BaseRestClient {
    */
   populate(item, path, childService) {
     log.debug('populate(', path, 'with', childService.options.modelName, ')')
-    if (_.has(item, path+'.'+childService.nameOfIdAttr)) {
-      log.debug("Already populated")
+    //log.debug("item=", JSON.stringify(item, ' ', 2))
+    //log.debug("path+'.'+childService.nameOfIdAttr =", path+'.'+childService.nameOfIdAttr)
+    //log.debug("has _id=", _.has(item, path+'.'+childService.options.nameOfIdAttr))
+    if (_.has(item, path+'.'+childService.options.nameOfIdAttr)) {
+      log.debug("path '"+this.options.modelName+"."+path+"' is already populated")
       return Promise.resolve(item)   // already populated
     }
-    var childId = _.get(item, path+'.$oid')   //TODO:  $oid is mongoDB specific. Where to handle it?
+    var childId = _.get(item, path+'.$oid')
     return childService.getById(childId).then(function(childItem) {
       _.set(item, path, childItem)
       return item
@@ -387,41 +396,47 @@ module.exports = class BaseRestClient {
    *
    * This is highly optimized:
    *  1. collect a list of childIds (that are not yet populated)
-   *  2. receive all child items for those childIds (will use cache in childService)
+   *  2. receive all child items for those childIds (will use cache in childService if possible)
    *  3. replace all references with child items
    *
-   * @param itemArray array of items (need items. No ids!)
-   * @param path path to child id that will be replaced/populated
+   * @param itemArray array of items (need full models/item objects. Not just a list of string ids!)
+   * @param path path to property in parent items that will be replaced/populated with child objects
    * @param childServie where to receive child items from
    * @return (A promise that will resolve to) a list of populated items
    */
   populateAll(itemArray, path, childService) {
-    //console.log("ENTER populateAll")
+    log.debug("ENTER populateAll")
     if (!_.isArray(itemArray)) throw new Error("Need array in populateAll()")
     //collect ids of not yet populated child items
     var childIds = []
     for (var i = itemArray.length; i--; ) {
-      var alreadyPopulated = _.get(itemArray[i], path+"."+childService.nameOfIdAttr)  // When path._id exists, then the child object is already populated
-      if (alreadyPopulated !== undefined) {
-        //console.log("populateAll(path='+path+'): Found already populated item childId=", alreadyPopulated)
+      var alreadyPopulated = _.has(itemArray[i], path+"."+childService.options.nameOfIdAttr)  // When path._id exists, then the child object is already populated
+      if (alreadyPopulated) {
+        log.debug("populateAll(path="+path+"): Found already populated item")
       } else {
         var childId = _.get(itemArray[i], path+'.$oid')        // path.$oid  is the not yet populated child id "reference"
-        //console.log("will populate childId="+childId)
+        log.debug("will populate "+this.options.modelName+"."+path+" with "+childService.options.modelName+"._id="+childId)
         childIds.push(childId)
       }
     }
-    return childService.getByIds(childIds).then(function(result) {
-      itemArray.forEach(function(item) {
-        var childId = _.get(item, path+'.$oid')
-        _.set(item, path, childService.cacheGet(childId))
-      })
+    // now fetch all childIds at once
+    log.debug("populateAll childIds=",childIds)
+    return childService.getByIdsAsMap(childIds).then(function(childMap) {
+      //log.debug("found childItems", JSON.stringify(childMap, ' ', 2))
+      for (var i = itemArray.length; i--; ) {
+        var childId = _.get(itemArray[i], path+'.$oid')
+        if (childId != null) {    // can be null when already populated
+          log.debug("==== setting "+path+" with childId="+childId+"to ", childMap[childId])
+          _.set(itemArray[i], path, childMap[childId])
+        }
+      }
       return itemArray
     })
 
     /*  Shorter but unoptimized. Since we send all tasks at once, the childServcie's cache would not be used (if not already filled)
     var tasks = []
-    idsOrItemArray.forEach(idOrItem => {
-      tasks.push(this.populate(idOrItem, path, childService))
+    itemArray.forEach(item => {
+      return tasks.push(this.populate(item, path, childService))
     })
     return Promise.all(tasks)
     */
@@ -433,6 +448,7 @@ module.exports = class BaseRestClient {
    */
 
   //POST will save over the old document; PUT will modify it (when passed the ID matches)
+
   /**
    * Insert a new item
    * @param newItem data for new item (without _id)

@@ -4,39 +4,44 @@
  */
 
 /* global expect */
-import IdeaService from 'src/services/IdeaService'
-import UserService from 'src/services/UserService'
+var userService = require('src/services/UserService')
+var ideaService = require('src/services/IdeaService')
+var log = require("loglevel").getLogger("DelegationService.spec");
+
+//if (process.env.NODE_ENV == 'testing') {
+//  log.debug("================ SETTING LOG LEVEL in IdeaService.spec.js")
+//  log.setLevel("trace")  // trace == log everything
+//}
 
 describe('IdeaService', () => {
-  var ideaService
-  var userService
   var numTestIdeas = 10
   var ideas
-  
-  //You can run single tests with   it.only(...)
 
+  //You can run a single KARMAA test case with   it.only(...)
+
+  // MochaJS "before all hock": this runs once before all tests in this block (should be called beforeAll :-)
   before(function(done) {
     this.timeout(5000)
     setTimeout(done, 5000)
-    ideaService = new IdeaService()
-    userService = new UserService();  
-    var params = { l: numTestIdeas }  // get first 5 ideas
-    console.log("Fetching first "+numTestIdeas+" ideas")  
+    var params = { l: numTestIdeas }  // get first 10 ideas
+    log.debug("Fetching first "+numTestIdeas+" ideas")
     //MAYBE: chai-promised: return ideaService.getAll().should.eventually.have.length.of.at.least(5)
-    ideaService.getAll(params).then((result) => {
+    ideaService.getAll(params).then(result => {
       ideas = result
+      log.debug("========= got "+result.length+" ideas in BEFORE")
       done()
     })
   })
-  
-  it('should have gotten list of 10 ideas', () => {
+
+  it('should have gotten list of '+numTestIdeas+' ideas', () => {
     expect(ideas).to.be.instanceof(Array)
     expect(ideas).to.have.length(numTestIdeas)
+    //TODO: validate an idea
   })
-  
-  it.only('should create a newItem and delete it', () => {
+
+  it('should be able to create a new Idea and then delete it', () => {
     var createNewIdea = function() {
-      console.log("ENTER createNewIdea testStep")
+      log.debug("ENTER createNewIdea testStep")
       var newIdea = {
         title: 'Idea from test case',
         description: 'Some dummy description timestamp='+new Date().getTime(),
@@ -45,19 +50,21 @@ describe('IdeaService', () => {
         updatedAt: new Date(),
       }
       return ideaService.postItem(newIdea).then(function(createdIdea) {
-        console.log("createdIdea\n", createNewIdea)
+        log.debug("createdIdea\n", createNewIdea)
+        return createdIdea
       })
     }
     var deleteIdea = function(idea) {
-      console.log("ENTER deleteIdea testStep")
-      return ideaService.deleteIdea(idea._id.$oid).then(function(deletedIdea) {
-        console.log("deletedIdea:\n", deletedIdea)
+      log.debug("ENTER deleteIdea testStep ideaToDelete=", idea)
+      return ideaService.deleteById(idea._id.$oid).then(function(deletedIdea) {
+        log.debug("deletedIdea:\n", deletedIdea)
+        return deletedIdea
       })
     }
     return createNewIdea().then(deleteIdea)
 
   })
-  
+
   it('should get idea by ID and cache it', () => {
     var id = ideas[0]._id.$oid
     return ideaService.getById(id).then((idea) => {
@@ -89,18 +96,19 @@ describe('IdeaService', () => {
   it('should populate idea.createdBy with user and then recognize already populated attribute', function() {
     this.timeout(5000)
     var reloadIdeafromDB = function() {
-      console.log("reloadIdeafromDB")
+      //log.debug("reloadIdeafromDB")
       var params = { l : 1 }
-      return ideaService.getAll(params).then(function(result) {    // findAll does not use cache!
+      return ideaService.getAll(params).then(function(result) {    // getAll does not use cache!
         expect(result).to.have.length(1)
         expect(result[0]).to.have.deep.property('createdBy.$oid')
         return result[0]  // return unpopulated idea
       })
     }
     var populateIdea = function(idea) {
-      console.log("populateIdea")
+      //log.debug("populateIdea")
+      //log.debug("idea===\n", JSON.stringify(idea, ' ', 2))
       return ideaService.populate(idea, 'createdBy', userService).then((populatedIdea) => {
-        //console.log("populatedIdea", JSON.stringify(populatedIdea, ' ', 2))
+        //log.debug("populatedIdea===\n", JSON.stringify(populatedIdea, ' ', 2))
         expect(populatedIdea).to.have.deep.property('createdBy.email')
         expect(populatedIdea).to.have.deep.property('createdBy.profile.name')
         return idea
@@ -108,22 +116,21 @@ describe('IdeaService', () => {
     }
     return reloadIdeafromDB().then(populateIdea).then(populateIdea)   // populate twice!
   })
-  
+
   it('should populate createdBy in list of ideas (and recognize already populated item in list)', function() {
     this.timeout(5000)
     var prePopulateOneIdea = function() {
       return ideaService.populate(ideas[0], 'createdBy', userService)
     }
     var populateAllIdeas = function() {
-      console.log("populateAll")
       return ideaService.populateAll(ideas, 'createdBy', userService).then((populatedIdeas) => {
-        //console.log("populatedIdeas from populateAll\n\n", JSON.stringify(populatedIdeas, ' ', 2))
+        //log.debug("populatedIdeas from populateAll\n\n", JSON.stringify(populatedIdeas, ' ', 2))
         expect(populatedIdeas[2]).to.have.deep.property('createdBy.email')
         expect(populatedIdeas[2]).to.have.deep.property('createdBy.profile.name')
       })
     }
     return prePopulateOneIdea().then(populateAllIdeas)
   })
-  
-  
+
+
 })
