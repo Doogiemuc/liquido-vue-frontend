@@ -9,7 +9,7 @@
 var BaseRestClient = require('./BaseRestClient')
 var log = require("loglevel").getLogger("DelegationService");
 
-var delegationSchmea = {
+var delegationSchema = {
   id: "/Delegation",
   type: "object",
   properties: {
@@ -24,7 +24,7 @@ var options = {
   baseURL: 'http://localhost:4444',  // base URL of liquido backend
   url: 'https://api.mlab.com/api/1/databases/liquido-test/collections/delegations/${id}',
   urlParams: { apiKey: '1crkrQWik4p98uPiOzZiFG0Fkya0iNiU' },
-  jsonSchema: delegationSchmea
+  jsonSchema: delegationSchema
 }
 
 class DelegationService extends BaseRestClient {
@@ -49,15 +49,15 @@ class DelegationService extends BaseRestClient {
   getNumberOfVotes(userId, areaId) {
     log.debug(this.options.modelName+".getNumVotes() => userId="+userId+", areaId="+areaId)
     var that = this;
-    var getNumVotesURL = that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId="+areaId;
+    log.debug("=> getNumOfVotes(userId="+userId+", areaId="+areaId+")")
     return new Promise(function(resolve, reject) {
-      that.client.get(getNumVotesURL, function(responseBodyAsObject, rawResponse) {
+      that.client.get(that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId"+areaId, function(responseBodyAsObject, rawResponse) {
         var numVotes = responseBodyAsObject.toString()     // responseBodyAsObject is a Buffer. Need to convert to string
         log.debug(that.options.modelName+".getNumVotes() <= "+numVotes)
         resolve(numVotes)
       }).on('error', function (err) {
-        log.error("ERROR in getAll()", err)
-        reject('ERROR in BaseRestClient.getAll():', err)
+        log.error("ERROR in getNumberOfVotes()", err)
+        reject('ERROR in getNumberOfVotes():', err)
       })
     })
 
