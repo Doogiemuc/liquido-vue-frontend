@@ -28,13 +28,17 @@ describe("DelegationService", function() {
   var USER4_EMAIL = 'testuser4@liquido.de'
   var USER4_NUM_VOTES = '5';
 
+
+  //TODO: start mock server for backend
+
+
   /**
    * Each test will get its own freshly new IdeaService instance (with a clean cache).
    * Tests must be indipendant of each other!
    */
   beforeEach(function() {
     delegationService.cache = {}
-  });
+  })
 
 
   it('should find proxies of '+USER0_EMAIL, function(done) {

@@ -51,13 +51,13 @@ class DelegationService extends BaseRestClient {
     var that = this;
     log.debug("=> getNumOfVotes(userId="+userId+", areaId="+areaId+")")
     return new Promise(function(resolve, reject) {
-      that.client.get(that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId"+areaId, function(responseBodyAsObject, rawResponse) {
+      that.client.get(that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId="+areaId, function(responseBodyAsObject, rawResponse) {
         var numVotes = responseBodyAsObject.toString()     // responseBodyAsObject is a Buffer. Need to convert to string
         log.debug(that.options.modelName+".getNumVotes() <= "+numVotes)
         resolve(numVotes)
       }).on('error', function (err) {
-        log.error("ERROR in getNumberOfVotes()", err)
-        reject('ERROR in getNumberOfVotes():', err)
+        log.error("ERROR in getNumberOfVotes()"+err)
+        reject('ERROR in getNumberOfVotes():'+err)
       })
     })
 
