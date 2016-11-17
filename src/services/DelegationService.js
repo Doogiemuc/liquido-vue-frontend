@@ -34,7 +34,7 @@ class DelegationService extends BaseRestClient {
    * If you need the user information of the proxies, then you can simply populate them from the to._ids
    */
   getDelegationsFrom(userId) {
-    return this.findByQuery({ from: { $oid: userId } })
+    return this.findByQuery({ fromUser: { $oid: userId } })
   }
 
 

@@ -1,15 +1,51 @@
 <div class="container">
   <h1>Your Proxies</h1>
-  <p class="lead">Here you can delegate your vote to someone you trust. Or revoke that delegation at any time you want.</p>
   <hr>
-  <div v-for="area in areas">
-    <h3>{{area.title}} - {{area.description}}</h3>
-    <p v-if="proxies[area.id]">
-      No proxy => Choose one.
-    </p>
-    <p v-else>
-      
-      {{proxy[area].profile.name}}
-    </p>
+  <p>Here you can delegate your vote to someone you trust, for example an export in this area.
+     This "proxy" will then vote on your behalf in that area. You may revoke this delegation
+     at any time and vote for yourself. </p>
+  <table class="table table-bordered">
+    <thead><tr><th>Area</th><th>Proxy</th></tr></thead>
+    <tbody>
+      <tr v-for="area in areas">
+        <td>{{area.title}} - {{area.description}}</h3></td>
+        <td v-if="proxyMap[area._id.$oid]">
+          <img v-bind:src="proxyMap[area._id.$oid].profile.picture" />
+          {{proxyMap[area._id.$oid].profile.name}} &lt;{{proxyMap[area._id.$oid].email}}&gt;
+          <span class="glyphicon glyphicon-pencil text-primary pull-right"v-on:click="editProxy(area._id.$oid)" aria-hidden="true"></span>
+        </td>
+        <td v-else>
+          <span class="grey">---</span>
+          <span class="glyphicon glyphicon-pencil text-primary pull-right" v-on:click="editProxy(area._id.$oid)" aria-hidden="true"></span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Modal for editing proxies -->
+  <div class="modal" id="editProxyModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Edit Proxy in area </h4>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="proxySearchInput" class="form-control" style="width:100%" placeholder="Search for proxy name or e-mail" size=30 />
+          <div class="list-group">
+            <a href="#" class="list-group-item">User1 </a>
+            <a href="#" class="list-group-item">Morbi leo risus</a>
+            <a href="#" class="list-group-item">Porta ac consectetur ac</a>
+            <a href="#" class="list-group-item">Vestibulum at eros</a>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger"  data-dismiss="modal">Remove Delegation</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Set Proxy</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 </div>

@@ -33,7 +33,7 @@ for(var i = 0; i<=5; i++) {
       profile: {
         name: 'Test User'+i,
         website: 'http://www.liquido.de',
-        picture: 'http://www.avatar.org/img'+i+'.png'
+        picture: '/img/Avatar_32x32.jpeg'
       },
       createdAt: daysAgo(20-i),
       updatedAt: daysAgo(19-i)
@@ -58,7 +58,7 @@ for (var i = 0; i < 5; i++) {
 
 
 /**
- * Delegations between users (from delegee to proxy)
+ * Delegations between users (from voter to proxy)
  * Since the delegations collection only consists of foreign key references this is a bit more complicated
  */
 // be careful not to create any circular delegations :-)
@@ -71,8 +71,8 @@ var delegations = {
 for(var area in delegations) {
   delegations[area].forEach((deleg) => {
     var fromUserEMail = 'testuser'+deleg[0]+'@liquido.de'
-    var toUserEMail   = 'testuser'+deleg[1]+'@liquido.de'
-    console.log("Delegation from "+fromUserEMail+" to "+toUserEMail)
+    var toProxyEMail   = 'testuser'+deleg[1]+'@liquido.de'
+    console.log("Delegation from voter "+fromUserEMail+" to proxy "+toProxyEMail)
 
     var newDelegation = {
       collection: "delegations",
@@ -81,13 +81,13 @@ for(var area in delegations) {
           collection: 'areas',
           query: { title: area }
         } },
-        from: { "$ref": {
+        fromUser: { "$ref": {
           collection: 'users',
           query: { email: fromUserEMail }
         } },
-        to: { "$ref": {
+        toProxy: { "$ref": {
           collection: 'users',
-          query: { email: toUserEMail }
+          query: { email: toProxyEMail }
         } }
       },
       update: {
@@ -95,13 +95,13 @@ for(var area in delegations) {
           collection: 'areas',
           query: { title: area }
         } },
-        from: { "$ref": {
+        fromUser: { "$ref": {
           collection: 'users',
           query: { email: fromUserEMail}
         } },
-        to: { "$ref": {
+        toProxy: { "$ref": {
           collection: 'users',
-          query: { email: toUserEMail }
+          query: { email: toProxyEMail }
         } },
         createdAt: daysAgo(10),
         updatedAt: daysAgo(10)
@@ -192,7 +192,7 @@ for(var i = 4; i<=51; i++) {
 //TODO: move these to a central place
 const LAW_PROPOSAL = 0;
 
-// create some (proposals) for a law
+// create some proposals for a law
 testData = testData.concat([
   {
     collection: 'laws',

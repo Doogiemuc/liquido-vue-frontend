@@ -50,22 +50,27 @@ router.map({
 })
 
 
+var startApp = function() {
+  router.start(App, '#app', function() {
+    console.log("Vue App is started.")
+  })
+}
+
 // Full logging when developming
 if (process.env.NODE_ENV == "development") {
-  console.log("DEVELOPMENT mode: setting log level to TRACE")
+  console.log("DEVELOPMENT: perform automatic login")
   var log = require("loglevel")
   log.setLevel("trace")  // trace == log everything
   //log.getLogger("DelegationService").setLevel("TRACE");  // configure per file/module logging
 
-  console.debug("DEVELOPMENT: perform automatic login")
   var userService = require('./services/UserService.js')
   userService.getAll({l:1}).then((users)=> {
     console.debug("currentUser: "+users[0].email)
     router.$currentUser = users[0]
-  })
+  }).then(startApp)
 }
-
-router.start(App, '#app', function() {
-  console.log("Vue App is started.")
-})
+else
+{
+  startApp()
+}
 

@@ -1,0 +1,1 @@
+{"_id":{"$oid":"577a011f3d5b352b9b000c31"},"title":"Law 1","description":"Genious proposal for a law","status":0,"createdBy":{"$oid":"577a00543d5b352b9b000c2c"},"createdAt":{"$date":"2016-10-06T06:58:26.010Z"},"updatedAt":{"$date":"2016-10-10T06:58:26.010Z"}}

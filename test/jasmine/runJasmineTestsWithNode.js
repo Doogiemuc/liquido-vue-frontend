@@ -1,5 +1,5 @@
 /**
- * I love jasmine because its so nice and fast
+ * I love jasmine because its so nice and fast.
  * Ok, no browser involved here. These are just some very quick SMOKE tests.
  */
 console.log("======= Running JASMINE tests in projectBaseDir: "+ __dirname)
