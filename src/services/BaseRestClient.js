@@ -426,7 +426,7 @@ module.exports = class BaseRestClient {
       for (var i = itemArray.length; i--; ) {
         var childId = _.get(itemArray[i], path+'.$oid')
         if (childId != null) {    // can be null when already populated
-          log.debug("==== populating path='"+path+"', childId="+childId+" with child=", childMap[childId])
+          //log.debug("populating path='"+path+"', childId="+childId+" with child=", childMap[childId])
           _.set(itemArray[i], path, childMap[childId])
         }
       }

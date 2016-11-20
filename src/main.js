@@ -54,10 +54,15 @@ router.map({
   }
 })
 
+import SessionCache from './SessionCache'
+
+router.cache = SessionCache
+
 
 var startApp = function() {
+
   router.start(App, '#app', function() {
-    console.log("Vue App is started.")
+    console.log(" Vue App is started.")
   })
 }
 
