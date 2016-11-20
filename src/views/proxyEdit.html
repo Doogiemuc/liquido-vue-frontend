@@ -1,0 +1,47 @@
+<div class="container">
+  <h1>Edit Proxy - '{{area.title}}'</h1>
+  <hr>
+  <div class="row">
+
+    <div class="col-sm-6">
+      <div class="panel panel-default">
+        <div class="panel-body">
+
+          <doogie-table
+            v-ref:voter-table
+            :row-data="allVoters"
+            :columns="usersColumns"
+            :primary-key-for-row="userKey"
+            :loading="true"
+            :show-add-button="false"
+            :show-row-numbers="false"
+            :selectable-rows="true"
+            position-of-search='top'
+          ></doogie-table>
+
+          <div class="buttonWrapper">
+            <a class="btn btn-default" v-link="'/proxies'" role="button">Cancel / Back</a>
+            <button type="button" class="btn btn-primary pull-right" v-bind:disabled="!isProxySelected" @click="saveProxy()">Set as your proxy</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div v-if="proxy">
+        <h4 style="margin-top:0">Your currently set proxy</h4>
+        <img v-bind:src="proxy.profile.picture" />&nbsp;{{proxy.profile.name}} &lt;{{proxy.email}}&gt;
+        <br/><br/>
+        <button v-if="proxy" type="button" class="btn btn-danger">Remove delegation to this proxy</button>
+      </div>
+      <div v-else>
+        <h4 style="margin-top:0">No proxy assigned</h4>
+        You currently have no proxy assigned for the area '{{area.title}}'. Here you can search
+        for a voter and then select him as your proxy. Click on a row in the table
+        to select it.
+      </div>
+    </div>
+
+  </div>
+</div>

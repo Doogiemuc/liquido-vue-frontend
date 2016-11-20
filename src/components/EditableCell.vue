@@ -2,7 +2,6 @@
 <template>
   <span id="{{cellId}}">{{value}}</span>
   <span class="glyphicon glyphicon-edit pull-right invisible" style="cursor:pointer" @click="startEdit"></span>
-  
 </template>
 
 <script>
@@ -11,11 +10,11 @@ import Vue from 'vue'
 export default {
   methods: {
     // show x-editable popup when user clicks on the edit icon
-    startEdit: function(evt) {  
+    startEdit: function(evt) {
       evt.stopPropagation();
       $("#"+this.cellId).editable('show');
     },
-    
+
     // this is called when the user clicks on the save icon in the x-editable popup
     // Here in the editable-cell we will update our local value and update the path in the row object.
     // Since this is a reference into our parents rowData, this will automatically be up to date.
@@ -37,18 +36,18 @@ export default {
 
   computed: {
     cellId: function() {                    // unique ID for this cell
-      return this.rowId + '_' + this.path;  
+      return this.rowId + '_' + this.path;
     }
   },
 
   ready () {
     //console.log("cell is ready:", this.row, this.rowId, this.path, '"'+this.value+'"');
-    $("#"+this.cellId).editable( {          
+    $("#"+this.cellId).editable( {
       send: 'never',
       toggle: 'manual',
       type: 'text',
       name: this.path,
-      url: this.saveNewValue, // Call our own function, instead of sending an AJAY request.
+      url: this.saveNewValue, // Call our own function, instead of sending an AJAX request.
       pk: this.rowId,
       title: 'Edit '+this.path,
       error: function(errors) {
@@ -56,8 +55,8 @@ export default {
         return "Cannot save "+this.path;  //TODO: localize (on the client!)
       }
     } );
-    
-    
+
+
   }
 }
 </script>

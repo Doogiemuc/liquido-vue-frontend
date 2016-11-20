@@ -37,6 +37,17 @@ class DelegationService extends BaseRestClient {
     return this.findByQuery({ fromUser: { $oid: userId } })
   }
 
+  /**
+   * find the delegation that a given user has in one area
+   * @return the delegation or NULL if that user currently has no proxy assigned in that area.
+   */
+  findByUserAndArea(userId, areaId) {
+    return this.findByQuery({ fromUser: { $oid: userId }, area: { $oid: areaId } })
+      .then(foundDelegations => {
+        if (foundDelegations.length >= 1) return foundDelegations[0]
+        return null
+      })
+  }
 
   /**
    * Query the backend for the number of votes that this user may cast in this area
@@ -49,7 +60,6 @@ class DelegationService extends BaseRestClient {
   getNumberOfVotes(userId, areaId) {
     log.debug(this.options.modelName+".getNumVotes() => userId="+userId+", areaId="+areaId)
     var that = this;
-    log.debug("=> getNumOfVotes(userId="+userId+", areaId="+areaId+")")
     return new Promise(function(resolve, reject) {
       that.client.get(that.options.baseURL+"/users/"+userId+"/getNumVotes?areaId="+areaId, function(responseBodyAsObject, rawResponse) {
         var numVotes = responseBodyAsObject.toString()     // responseBodyAsObject is a Buffer. Need to convert to string
@@ -83,6 +93,27 @@ class DelegationService extends BaseRestClient {
       })
     })
     */
+  }
+
+  /**
+   * Save a newly assigned proxy. Will overwrite any existing assignment for this user and area.
+   *
+   * @param userId   the delegee
+   * @param proxyId  ID of proxy
+   * @param areaId   Area of interest for this delegation
+   * @return (A Promise that will resolve to) the payload of the response (Ok)
+   */
+  saveProxy(userId, areaId, proxyId) {
+    log.debug("DelegationService.saveProxy() => userId="+userId+", areaId="+areaId+", proxyId="+proxyId)
+    var newDelegation = {
+      fromUser: userId,
+      toProxy: proxyId,
+      area: areaId
+    }
+    var params = {
+      url: this.baseURL+'/delegations'
+    }
+    return this.postItem(newDelegation, params)
   }
 
 }

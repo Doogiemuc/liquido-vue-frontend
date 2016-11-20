@@ -37,3 +37,7 @@ footer a:hover {
 .grey {
   color: #999;
 }
+
+footer .container {
+  text-align: center;
+}

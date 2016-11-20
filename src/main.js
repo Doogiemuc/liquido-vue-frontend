@@ -31,20 +31,25 @@ router.map({
     component: Login
   }
   */
+  // asyncronously require components for lazy loading
   '/ideas': {
     component: function(resolve) {
-      //console.log("async loadin Ideas.vue")
       require(['./controllers/Ideas.vue'], resolve)
     }
   },
   '/userHome': {
-    component: function(resolve) {    // asyncronously require component for lazy loading
+    component: function(resolve) {
       require(['./controllers/UserHome.vue'], resolve)
     }
   },
   '/proxies': {
-    component: function(resolve) {    // asyncronously require component for lazy loading
+    component: function(resolve) {
       require(['./controllers/Proxies.vue'], resolve)
+    }
+  },
+  '/editProxy': {   // ?areaId=33be442...
+    component: function(resolve) {
+      require(['./controllers/ProxyEdit.vue'], resolve)
     }
   }
 })

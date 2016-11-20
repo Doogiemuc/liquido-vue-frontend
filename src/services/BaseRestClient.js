@@ -279,10 +279,10 @@ module.exports = class BaseRestClient {
     }
     args.parameters.q = query
     return new Promise(function(resolve, reject) {
-      log.debug(that.options.modelName+".findByQuery("+query+") => ...")
+      log.debug(that.options.modelName+".findByQuery("+query+") =>")
       that.client.get(that.options.url, args, function(data, response) {
         if (data.length < 4)
-          log.debug(that.options.modelName+".findByQuery("+query+") <= \n"+JSON.stringify(data, ' ', 2))
+          log.debug(that.options.modelName+".findByQuery("+query+") <= ", data)
         else
           log.debug(that.options.modelName+".findByQuery("+query+") <= Array("+data.length+")")
         that.cachePut(data)   //put results of query into cache
@@ -376,7 +376,7 @@ module.exports = class BaseRestClient {
    * @return (A Promise that will resolve to) the parent document that has the the given path replaced/populated with the child document
    */
   populate(item, path, childService) {
-    log.debug('populate(', path, 'with', childService.options.modelName, ')')
+    log.debug('populate('+this.options.modelName+'.'+path+' with '+childService.options.modelName+')')
     //log.debug("item=", JSON.stringify(item, ' ', 2))
     //log.debug("path+'.'+childService.nameOfIdAttr =", path+'.'+childService.nameOfIdAttr)
     //log.debug("has _id=", _.has(item, path+'.'+childService.options.nameOfIdAttr))

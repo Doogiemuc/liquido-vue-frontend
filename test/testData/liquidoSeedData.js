@@ -33,7 +33,7 @@ for(var i = 0; i<=5; i++) {
       profile: {
         name: 'Test User'+i,
         website: 'http://www.liquido.de',
-        picture: '/img/Avatar_32x32.jpeg'
+        picture: '/static/img/Avatar_32x32.jpeg'
       },
       createdAt: daysAgo(20-i),
       updatedAt: daysAgo(19-i)
