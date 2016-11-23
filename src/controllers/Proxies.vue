@@ -33,49 +33,8 @@ export default {
   },
 
   ready () {
-    var that = this
-
-    /*
-    var loadAllAreas = function() {
-      return areaService.getAll()
-    }
-
-    // First get all delegations for the currently logged in user and populate their toProxy attribute with the user information
-    var getPopulatedDelegations = function() {
-      return delegationService.getDelegationsFrom(that.$root.currentUserId)
-        .then(delegations => {
-          return delegationService.populateAll(delegations, 'toProxy', userService)
-        })
-    }
-
-    // then create a map   areaId => proxy user in that area
-    var createProxyMap = function(populatedDels) {
-      var proxyMap = {}
-      for(let delegation of populatedDels) {
-        var areaId = delegation.area.$oid
-        proxyMap[areaId] = delegation.toProxy
-      }
-      return proxyMap
-    }
-
-    var loadProxyMap = function() {
-      return getPopulatedDelegations().then(createProxyMap)
-    }
-    */
-
-    this.$root.fetchAllAreas().then(areas => { that.areas = areas })
-    this.$root.fetchProxyMap().then(proxyMap => { that.proxyMap = proxyMap })
-
-    /*
-    that.$router.cache.load('allAreas', areaService.getAll.bind(areaService))
-    .then(areas => { that.areas = areas })
-    .catch(err => { console.error("ERROR loading areas is Proxies.vue "+err) })
-
-
-    that.$router.cache.load('proxyMap', loadProxyMap)
-    .then(proxyMap => { that.proxyMap = proxyMap })
-    .catch(err => { console.error("ERROR loading ProxyMap in Proxies.vue "+err) })
-    */
+    this.$root.fetchAllAreas().then(areas => { this.areas = areas })
+    this.$root.fetchProxyMap().then(proxyMap => { this.proxyMap = proxyMap })
   }
 
 }

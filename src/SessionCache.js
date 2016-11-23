@@ -37,16 +37,17 @@ module.exports = {
       console.debug("Found key='"+key+"' in cache with value="+cache[key])
       return Promise.resolve(this.get(key))
     } else {
-      console.debug("Loading key='"+key+"' with loadFunc: ", loadFunc)
-      return loadFunc(loadFuncParams)
+      console.debug("=> SessionCache.load(key='"+key+"', loadFuncParams=", loadFuncParams, ")")
+      return loadFunc.apply(this, loadFuncParams)
         .then(result => {
+          console.log("<= SessionCache.load(key='"+key+"', loadFuncParams=", loadFuncParams, ") ", result)
           cache[key] = result
-          return result
+          return Promise.resolve(result)
         })
         .catch(err => {
           console.error("ERROR in SessionCache: Cannot load key='"+key+"' with loadFunc:", err)
+          return Promise.reject("ERROR in SessionCache: Cannot load key='"+key+" "+err)
         })
-
     }
   },
 

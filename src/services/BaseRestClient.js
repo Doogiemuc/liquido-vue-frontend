@@ -150,7 +150,7 @@ module.exports = class BaseRestClient {
   /** Get all items from the server. Without using the cache! */
   getAll(params) {
     var that = this
-    console.log("getAll this=", this)
+    console.log("BaseRestClient.getAll(): this==", this)
     var args = {
       parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }

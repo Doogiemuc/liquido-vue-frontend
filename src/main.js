@@ -53,16 +53,16 @@ router.map({
 })
 
 
-
+var currentUser = null;
 
 // Start the RootApp via vue-router
 var startApp = function() {
   router.start(RootApp, '#app', function() {
+    if (currentUser) router.app.currentUser = currentUser
     console.log("=== RootApp.vue is started.")
     //TODO: router.app.cacheWarmup()
   })
 }
-
 
 if (process.env.NODE_ENV == "development") {
   // Full logging when developming
@@ -70,16 +70,13 @@ if (process.env.NODE_ENV == "development") {
   log.setLevel("trace")  // trace == log everything
   //log.getLogger("DelegationService").setLevel("TRACE");  // configure per file/module logging
 
-  /*
   //perform automatic login. This MUST be done BEFORE the RootApp is started.
   var userService = require('./services/UserService.js')
-  userService.getAll({l:1}).then((users)=> {
-    RootApp.currentUserId = userService.getId(users[0])
-    console.debug("DEVELOPMENT: automatically logged in user: "+users[0].email)
+  userService.getAll({l:1}).then(users => {
+    currentUser = users[0]
+    console.debug("DEVELOPMENT: automatically logged in user: "+currentUser.email)
   })
   .then(startApp)
-  */
-  startApp()
 }
 else
 {

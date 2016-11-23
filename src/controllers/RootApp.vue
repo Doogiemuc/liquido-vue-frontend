@@ -32,8 +32,9 @@ var createProxyMap = function(populatedDels) {
 }
 
 /* load all information necessary for proxyMap of the currenetly logged in user*/
-var loadProxyMap = function(userId) {
-  console.log("loading ProxyMap of userId="+userId)
+var loadProxyMap = function(user) {
+  console.log("===== RootApp.loadProxyMap(user=", user)
+  var userId = userService.getId(user)
   return delegationService.getDelegationsFrom(userId).then(delegations => {
     return delegationService.populateAll(delegations, 'toProxy', userService).then(createProxyMap)
   })
@@ -47,7 +48,7 @@ export default {
   data () {
     return {
       cache: SessionCache,       // global session cache, available for all components
-      currentUserId: null,       // ID of currently logged in user
+      currentUser: null,       // ID of currently logged in user
     }
   },
 
@@ -55,30 +56,23 @@ export default {
   methods: {
     /** lazy load all areas (from cache if possible) */
     fetchAllAreas: function() {
-      return this.cache.load('allAreas', areaService.getAll.bind(areaService))
+      return this.cache.load('allAreas', areaService.getAll.bind(areaService) )
         .catch(err => { console.error("ERROR loading areas in RootApp.vue: "+err) })
+    },
+
+    /** lazy load all users (from cache is possible) */
+    fetchAllUsers: function() {
+      return this.cache.load('allUsers', userService.getAll.bind(userService))
+        .catch(err => { console.error("ERROR loading users in RootApp.vue: "+err) })
     },
 
     /* Lazyly createa a map  from areaId to user information of the proxy in that area */
     fetchProxyMap: function() {
-      console.log("fetchProxyMap currentUserId="+this.currentUserId)
-      return this.cache.load('proxyMap', loadProxyMap, this.currentUserId)
+      //console.log("RootApp.fetchProxyMap() this.currentUser=", this.currentUser)
+      return this.cache.load('proxyMap', loadProxyMap, this.currentUser)
         .catch(err => { console.error("ERROR loading ProxyMap in RootApp.vue "+err) })
     }
   },
-
-  init () {
-    console.log("======= RootApp.init() ", this.currentUserId)
-    userService.getAll({l:1}).then((users)=> {
-      console.debug("DEVELOPMENT: automatic login of user "+users[0].email)
-      this.currentUserId = userService.getId(users[0])
-    })
-
-  },
-
-  ready () {
-    console.log("======= RootApp.ready() ", this.currentUserId)
-  }
 
 }
 </script>
