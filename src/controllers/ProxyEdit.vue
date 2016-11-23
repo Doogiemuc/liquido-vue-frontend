@@ -64,12 +64,7 @@ export default {
     this.$refs.voterTable.loading = true
     this.$refs.voterTable.localizedTexts.searchFilter = 'Search for name or e-mail'
 
-    var loadArea = function(areaId) {
-      return areaService.getById(areaId).then(area => {
-        that.area = area
-      })
-    }
-
+/*
     var loadDelegation = function() {
       var userId = userService.getId(that.$router.$currentUser)
       var areaId = areaService.getId(that.area)
@@ -92,21 +87,38 @@ export default {
         })
       })
     }
+*/
 
-    var loadAllVoters = function() {
-      return userService.getAll().then((users) => {
-        that.allVoters = users
-        that.$refs.voterTable.setSortCol(that.usersColumns[1])
-        that.$refs.voterTable.loading = false
-      })
-    }
+    // Load all list of areas (from cache is possible, otherwise from areaService)
+    // Implementation note: Need to bind the this context of the areaService.getAll() function to the areaService
+    that.$router.cache.load('allAreas', areaService.getAll.bind(areaService))
+    .then(areas => { that.areas = areas })
 
+    that.$router.cache.load('proxyMap', delegationService.loadProxyMap.bind(delegationService))
+    .then(proxyMap => {
+      var areaId = that.$route.query.areaId
+      if (areaId == undefined || areaId == null) {
+        console.error("ProxyEdit.vue: Missing URL parametere areaId!")
+      }
+      that.proxy = proxyMap[areaId]
+    })
+
+    that.$router.cache.load('allUsers', userService.getAll.bind(userService))
+    .then(users => {
+      that.allVoters = users
+      that.$refs.voterTable.setSortCol(that.usersColumns[1])
+      that.$refs.voterTable.loading = false
+    })
+
+/*
     loadArea(that.$route.query.areaId)
     .then(loadDelegation)
     .then(loadAllVoters)
     .catch(err => {
       console.error("ERROR in Proxies.vue "+err)
     })
+*/
+
 
   }
 

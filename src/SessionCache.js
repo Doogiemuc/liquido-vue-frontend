@@ -29,19 +29,24 @@ module.exports = {
    * get an item from the cache or use loadFunc to fetch it
    * @param key the cache key
    * @param loadFunc a function that loads the value e.g. from a remote resource and returns a Promise
+   * @param loadFuncParams (opotional) parameteres for the loadFunc
    * @return (A Promise that will resolve to) the loaded value. Will resolve immideately when item was already in the cache.
    */
-  load: function(key, loadFunc) {
+  load: function(key, loadFunc, ...loadFuncParams) {
     if (this.has(key)) {
       console.debug("Found key='"+key+"' in cache with value="+cache[key])
       return Promise.resolve(this.get(key))
     } else {
       console.debug("Loading key='"+key+"' with loadFunc: ", loadFunc)
-      return loadFunc().then(result => {
-        console.debug("... got result=", result)
-        cache[key] = result
-        return result
-      })
+      return loadFunc(loadFuncParams)
+        .then(result => {
+          cache[key] = result
+          return result
+        })
+        .catch(err => {
+          console.error("ERROR in SessionCache: Cannot load key='"+key+"' with loadFunc:", err)
+        })
+
     }
   },
 

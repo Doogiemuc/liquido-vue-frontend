@@ -146,12 +146,13 @@ describe('DoogieTable.vue', () => {
   })
 
 
-  it('can filter rows by search query', () => {
+  it('can filter rows by search query', (done) => {
     const vm = getTestee()
     vm.$refs.testtable.searchQuery = "Title 02"
     // nextTick callback will be called, when the DOM has been updated
     vm.$nextTick(() => {
       expect(vm.$el.querySelector('.doogie-table tr td').textContent).to.contain('Title 02')
+      done()
     })
   })
 

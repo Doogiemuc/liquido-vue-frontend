@@ -27,6 +27,18 @@ var options = {
   jsonSchema: delegationSchema
 }
 
+
+//=========================================
+// Module private methods
+//=========================================
+
+
+
+/**
+ * DelegationService class
+ *
+ * Handles everything around delegations from electorates to proxies.
+ */
 class DelegationService extends BaseRestClient {
 
   /**

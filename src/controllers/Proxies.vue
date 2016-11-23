@@ -35,14 +35,14 @@ export default {
   ready () {
     var that = this
 
+    /*
     var loadAllAreas = function() {
       return areaService.getAll()
     }
 
     // First get all delegations for the currently logged in user and populate their toProxy attribute with the user information
     var getPopulatedDelegations = function() {
-      var currentUserId = userService.getId(that.$router.$currentUser)
-      return delegationService.getDelegationsFrom(currentUserId)
+      return delegationService.getDelegationsFrom(that.$root.currentUserId)
         .then(delegations => {
           return delegationService.populateAll(delegations, 'toProxy', userService)
         })
@@ -61,15 +61,21 @@ export default {
     var loadProxyMap = function() {
       return getPopulatedDelegations().then(createProxyMap)
     }
+    */
 
-    that.$router.cache.load('allAreas', loadAllAreas)
+    this.$root.fetchAllAreas().then(areas => { that.areas = areas })
+    this.$root.fetchProxyMap().then(proxyMap => { that.proxyMap = proxyMap })
+
+    /*
+    that.$router.cache.load('allAreas', areaService.getAll.bind(areaService))
     .then(areas => { that.areas = areas })
     .catch(err => { console.error("ERROR loading areas is Proxies.vue "+err) })
+
 
     that.$router.cache.load('proxyMap', loadProxyMap)
     .then(proxyMap => { that.proxyMap = proxyMap })
     .catch(err => { console.error("ERROR loading ProxyMap in Proxies.vue "+err) })
-
+    */
   }
 
 }

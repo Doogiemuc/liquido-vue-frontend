@@ -6,21 +6,19 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import VueResource from 'vue-resource'
+import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
+import LiquidoHeader from './components/LiquidoHeader'
+//TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/
 
-// Register custom components: <liquido-header> is used in index.html
-Vue.component('liquido-header', require('./components/LiquidoHeader'))
+// Register global components: <liquido-header> is used in index.html / RootApp.vue
+Vue.component('liquido-header', LiquidoHeader)
 
 // Vue plugins
 Vue.use(VueResource);
 Vue.use(VueRouter)
 
-// Vue components
-//TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/
-
 // Setup Vue-router for navigation
-var App = Vue.extend({})    // Keep in mind that 'App' is _not_ a Vue instance, but a Vue component!
-
 var router = new VueRouter()
 router.map({
   '/': {
@@ -54,30 +52,34 @@ router.map({
   }
 })
 
-import SessionCache from './SessionCache'
-
-router.cache = SessionCache
 
 
+
+// Start the RootApp via vue-router
 var startApp = function() {
-
-  router.start(App, '#app', function() {
-    console.log(" Vue App is started.")
+  router.start(RootApp, '#app', function() {
+    console.log("=== RootApp.vue is started.")
+    //TODO: router.app.cacheWarmup()
   })
 }
 
-// Full logging when developming
+
 if (process.env.NODE_ENV == "development") {
-  console.log("DEVELOPMENT: perform automatic login")
+  // Full logging when developming
   var log = require("loglevel")
   log.setLevel("trace")  // trace == log everything
   //log.getLogger("DelegationService").setLevel("TRACE");  // configure per file/module logging
 
+  /*
+  //perform automatic login. This MUST be done BEFORE the RootApp is started.
   var userService = require('./services/UserService.js')
   userService.getAll({l:1}).then((users)=> {
-    console.debug("currentUser: "+users[0].email)
-    router.$currentUser = users[0]
-  }).then(startApp)
+    RootApp.currentUserId = userService.getId(users[0])
+    console.debug("DEVELOPMENT: automatically logged in user: "+users[0].email)
+  })
+  .then(startApp)
+  */
+  startApp()
 }
 else
 {

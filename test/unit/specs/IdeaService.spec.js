@@ -20,16 +20,15 @@ describe('IdeaService', () => {
   //You can run a single KARMAA test case with   it.only(...)
 
   // MochaJS "before all hock": this runs once before all tests in this block (should be called beforeAll :-)
-  before(function(done) {
+  before(function() {
     this.timeout(5000)
-    setTimeout(done, 5000)
+    //setTimeout(done, 5000)
     var params = { l: numTestIdeas }  // get first 10 ideas
     log.debug("Fetching first "+numTestIdeas+" ideas")
     //MAYBE: chai-promised: return ideaService.getAll().should.eventually.have.length.of.at.least(5)
-    ideaService.getAll(params).then(result => {
+    return ideaService.getAll(params).then(result => {
       ideas = result
       log.debug("========= got "+result.length+" ideas in BEFORE")
-      done()
     })
   })
 

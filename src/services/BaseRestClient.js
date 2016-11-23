@@ -150,6 +150,7 @@ module.exports = class BaseRestClient {
   /** Get all items from the server. Without using the cache! */
   getAll(params) {
     var that = this
+    console.log("getAll this=", this)
     var args = {
       parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }
@@ -405,7 +406,7 @@ module.exports = class BaseRestClient {
    * @return (A promise that will resolve to) a list of populated items
    */
   populateAll(itemArray, path, childService) {
-    log.debug("ENTER populateAll")
+    //log.debug("ENTER populateAll")
     if (!_.isArray(itemArray)) throw new Error("Need array in populateAll()")
     //collect ids of not yet populated child items
     var childIds = []
@@ -415,7 +416,7 @@ module.exports = class BaseRestClient {
         log.debug("populateAll(path="+path+"): Found already populated item")
       } else {
         var childId = _.get(itemArray[i], path+'.$oid')        // path.$oid  is the not yet populated child id "reference"
-        log.debug("will populate "+this.options.modelName+"."+path+" with "+childService.options.modelName+"._id="+childId)
+        log.debug("populateAll: will populate path='"+this.options.modelName+"."+path+"' with "+childService.options.modelName+"._id="+childId)
         childIds.push(childId)
       }
     }
