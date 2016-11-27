@@ -1,10 +1,10 @@
 /**
  * IdeaService handles all CRUD and search operations for "ideas"
- * 
+ *
  * This singleton facade is a Javascript abstraction for the interface to the DB.
  */
 "use strict"
- 
+
 var BaseRestClient = require ('./BaseRestClient')
 
 /** Schema for validating an idea. (see jsonschema.org) */
@@ -15,7 +15,7 @@ var ideaSchmea = {
     title: { type: "string" },
     description: { type: "string" },
     createdBy: {
-      type: "object", 
+      type: "object",
       properties: {
         $oid : { type: "string", format: "ObjectID", required: true }
       }
@@ -36,9 +36,9 @@ var options = {
 }
 
 class IdeaService extends BaseRestClient {
-  // empty. All in BaseRestClient
+  // empty. Everything we need is already declared in BaseRestClient
 }
 
-// export singleton instance, see http://stackoverflow.com/a/10128393/6113110
+// export a true(!) singleton instance, see http://stackoverflow.com/a/10128393/6113110
 // We only want one ideaService with one application wide cache for ideas!
 module.exports = IdeaService.getInstance(options)

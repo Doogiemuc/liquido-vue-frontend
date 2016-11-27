@@ -416,12 +416,12 @@ module.exports = class BaseRestClient {
         log.debug("populateAll(path="+path+"): Found already populated item")
       } else {
         var childId = _.get(itemArray[i], path+'.$oid')        // path.$oid  is the not yet populated child id "reference"
-        log.debug("populateAll: will populate path='"+this.options.modelName+"."+path+"' with "+childService.options.modelName+"._id="+childId)
+        //log.debug("populateAll: will populate path='"+this.options.modelName+"."+path+"' with "+childService.options.modelName+"._id="+childId)
         childIds.push(childId)
       }
     }
     // now fetch all childIds at once
-    log.debug("populateAll childIds=",childIds)
+    log.debug("populateAll: childIds that will be populated: "+childIds)
     return childService.getByIdsAsMap(childIds).then(function(childMap) {
       //log.debug("found childItems", JSON.stringify(childMap, ' ', 2))
       for (var i = itemArray.length; i--; ) {

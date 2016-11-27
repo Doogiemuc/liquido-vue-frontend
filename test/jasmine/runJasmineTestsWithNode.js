@@ -6,18 +6,12 @@ console.log("======= Running JASMINE tests in projectBaseDir: "+ __dirname)
 console.log("Usage:       babel-node runJasmineTestsWithNode.js <TestNameFilter>")
 
 //MAYBE: Test with injected mocks: http://vue-loader.vuejs.org/en/workflow/testing-with-mocks.html
+//MAYBE: USe Minilog for logging. With streams. http://mixu.net/minilog/
 
 var Jasmine = require('jasmine');
-var log = require('loglevel');
+var loglevel = require("loglevel")
+var log = loglevel.getLogger("runJasmine");
 var chalk = require('chalk')
-
-
-// =================================================================================
-//   Start mock backend server
-// =================================================================================
-var mockLiquidoBackend = require('../mockLiquidoBackend/mockLiquidoBackendServer.js')
-
-mockLiquidoBackend.startHttpServer();
 
 // =================================================================================
 //   Configure JASMINE test framework
@@ -47,23 +41,29 @@ jasmine.addReporter(reporter);
 // =================================================================================
 //  'loglevel' plugin to create colorfull log output using 'chalk'
 // =================================================================================
-var originalFactory = log.methodFactory;
-log.methodFactory = function (methodName, logLevel, loggerName) {
+var originalFactory = loglevel.methodFactory;
+loglevel.methodFactory = function (methodName, logLevel, loggerName) {
     var rawMethod = originalFactory(methodName, logLevel, loggerName);
     var logLevelNames = ['DEBUG', 'TRACE', 'INFO ', 'WARN ', 'ERROR']
-
-    return function (message) {
+    return function (...messages) {
       rawMethod("         "+    // indent log messages under jasmine spec headers
         chalk.cyan.underline(loggerName) + " " +
         chalk.magenta(logLevelNames[logLevel]) + " " +
-        chalk.white(message)
+        chalk.white(messages.join(" "))
       );
     };
 };
 
-log.setLevel("trace")      // trace == log everything including stack trace
-log.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
+loglevel.setLevel("trace")      // Global loglevel, trace == log everything including stack trace
+//loglevel.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
+loglevel.getLogger("BaseRestClient").setLevel("INFO");
 
+// =================================================================================
+//   Start mock backend server
+// =================================================================================
+var mockLiquidoBackend = require('../mockLiquidoBackend/mockLiquidoBackendServer.js')
+
+mockLiquidoBackend.startHttpServer();
 
 
 // =================================================================================

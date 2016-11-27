@@ -52,7 +52,7 @@ module.exports = {
     } else {
       return loadFunc.apply(this, loadFuncParams)
         .then(result => {
-          log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams=", loadFuncParams, "): loadFunc returned "+result.length+" items.")
+          log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams="+loadFuncParams+"): loadFunc returned: ", result)
           cache[key] = result
           return Promise.resolve(result)
         })
