@@ -150,15 +150,15 @@ module.exports = class BaseRestClient {
   /** Get all items from the server. Without using the cache! */
   getAll(params) {
     var that = this
-    console.log("BaseRestClient.getAll(): this==", this)
     var args = {
       parameters: _.merge(params, that.options.urlParams),
       path: { id: '' }
     }
     return new Promise(function(resolve, reject) {
-      log.debug(that.options.modelName+".getAll() => ", args)
+      var logId = '[' + new Date().getTime() % 10000 + ']';  //TODO: Maybe use https://github.com/NatLibFi/loglevel-message-prefix
+      log.debug('=> ' + logId + ' ' + that.options.modelName+".getAll()", args)
       that.client.get(that.options.url, args, function(data, response) {
-        log.debug(that.options.modelName+".getAll() <= Array("+data.length+")")
+        log.debug('<= ' + logId + ' ' + that.options.modelName+".getAll(): got "+data.length+" items")
         that.cachePut(data)
         resolve(data)
       }).on('error', function (err) {

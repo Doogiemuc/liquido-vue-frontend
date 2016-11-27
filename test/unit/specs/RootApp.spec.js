@@ -5,11 +5,12 @@
 
 /* global expect */
 
-import rootApp from 'src/components/RootApp'
+var Vue = require('vue')
+var RootApp = require('src/controllers/RootApp.vue')
 var log = require("loglevel").getLogger("RootApp.spec");
 
 //if (process.env.NODE_ENV == 'testing') {
-//  log.debug("================ SETTING LOG LEVEL in IdeaService.spec.js")
+//  log.debug("================ SETTING LOG LEVEL in RootApp.spec.js")
 //  log.setLevel("trace")  // trace == log everything
 //}
 
@@ -21,8 +22,15 @@ describe('RootApp.vue', () => {
     //this.timeout(5000)
   })
 
-  it('fetch all areas', () => {
-    return rootApp.fetchAllAreas().then(allAreas => {
+  it.only('fetch all areas', () => {
+    //console.log("====== rootApp=",rootApp)
+    var vm = new Vue({
+      template: '<div><root-app v-ref="RootAppRef"></root-app></div>',
+      components: {
+        'root-app': RootApp
+      }
+    }).$mount()
+    return vm.$refs.RootAppRef.fetchAllAreas().then(allAreas => {
       expect(allAreas.length).toBeGreaterThan(4)
       expect(allAreas[0].title).toBeContain("Area 0")
     })

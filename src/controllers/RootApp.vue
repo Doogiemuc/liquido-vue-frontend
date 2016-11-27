@@ -15,6 +15,7 @@
 import SessionCache from '../SessionCache'
 import areaService from '../services/AreaService.js'
 import userService from '../services/UserService.js'
+import ideaService from '../services/IdeaService.js'
 import delegationService from '../services/DelegationService.js'
 
 //=========================================
@@ -33,11 +34,18 @@ var createProxyMap = function(populatedDels) {
 
 /* load all information necessary for proxyMap of the currenetly logged in user*/
 var loadProxyMap = function(user) {
-  console.log("===== RootApp.loadProxyMap(user=", user)
+  //console.log("===== RootApp.loadProxyMap(user=", user)
   var userId = userService.getId(user)
   return delegationService.getDelegationsFrom(userId).then(delegations => {
     return delegationService.populateAll(delegations, 'toProxy', userService).then(createProxyMap)
   })
+}
+
+var loadPopulatedIdeas = function() {
+  return ideaService.getAll()
+    .then(ideas => {
+      return ideaService.populateAll(ideas, 'createdBy', userService)
+    })
 }
 
 //=========================================
@@ -60,6 +68,12 @@ export default {
         .catch(err => { console.error("ERROR loading areas in RootApp.vue: "+err) })
     },
 
+    /** lazy load all ideas with populated field 'createdBy' */
+    fetchAllIdeas: function() {
+      return this.cache.load('populatedIdeas', loadPopulatedIdeas )
+        .catch(err => { console.error("ERROR loading ideas in RootApp.vue: "+err) })
+    },
+
     /** lazy load all users (from cache is possible) */
     fetchAllUsers: function() {
       return this.cache.load('allUsers', userService.getAll.bind(userService))
@@ -68,7 +82,6 @@ export default {
 
     /* Lazyly createa a map  from areaId to user information of the proxy in that area */
     fetchProxyMap: function() {
-      //console.log("RootApp.fetchProxyMap() this.currentUser=", this.currentUser)
       return this.cache.load('proxyMap', loadProxyMap, this.currentUser)
         .catch(err => { console.error("ERROR loading ProxyMap in RootApp.vue "+err) })
     }

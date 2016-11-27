@@ -8,12 +8,29 @@
 
 var http = require('http')
 var	fs = require('fs');
+var loglevel = require("loglevel")
+var log = loglevel.getLogger("MockLiquidoBackend");
 
-// Create an HTTP server
-var httpSrv = http.createServer(function (req, res) {
-	console.log("=> "+req.method+" "+req.url);
-	RouteManager.findRoute(req,res);
-});
+var httpServer = null;
+
+// Start an HTTP server
+exports.startHttpServer = function() {
+	httpServer = http.createServer(function (req, res) {
+		log.debug("=> MockLiquidoBackend: "+req.method+" "+req.url);
+		RouteManager.findRoute(req,res);
+	});
+	httpServer.on('error',function(err){
+		console.error('Mock backend: Error starting http server',err);
+	});
+	httpServer.listen(4444);
+  log.info('Mock backend: Http server Listening on port ' + 4444);
+
+};
+
+exports.stopHttpServer = function() {
+	httpServer.close();
+	log.debug("Mock backend: http server stopped.")
+}
 
 var RouteManager ={
 	"findRoute":function(req,res){
@@ -35,9 +52,9 @@ var RouteManager ={
 	// regular expression matching for dummy URL routes
 	"routes":{
 		  // DelegationService.jasmine.spec.js   getNumVotes
-		  '/users/577a00543d5b352b9b000c2d/getNumVotes\\?areaId=57892d793d5b352b9b0134be': function(req, res) {
+		  '/users/[a-f0-9]{24}/getNumVotes\\?areaId=[a-f0-9]{24}': function(req, res) {
 		  	var message = '5';
-		  	console.log("<= "+message)
+		  	log.debug("<= MockLiquidoBackend: "+message)
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end('5');
 		  },
@@ -95,16 +112,3 @@ var RouteManager ={
 	}
 
 };
-
-
-
-
-
-
-httpSrv.on('error',function(err){
-	console.error('error starting http test server',err);
-});
-
-httpSrv.listen(4444);
-
-console.log('http server Listening on port ' + 4444);

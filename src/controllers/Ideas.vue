@@ -37,52 +37,30 @@ export default {
     // called when a value was changed (DoogieTable already handled saving to DB)
     'saveNewValue': function(rowId, key, value) {
       console.log("saveNewValue event in parent:", rowId, "#"+key+"#", value);
-    }, 
+    },
     'addButtonClicked': function() {
       console.log('addButtonClicked in Ideas.vue')
       //TODO: open create new Idea page (or popup?)
     },
   },
-  
+
   created () {
     //load remote data and replace users
-    var that = this
-    var ideaService = this.$router.$services.ideaService
-    var userService = this.$router.$services.userService
-    that.ideasLoading = true
-    ideaService.getAll()
-    .then((ideas) => {
-      return ideaService.populateAll(ideas, 'createdBy', userService)
+    this.$root.fetchAllIdeas().then(populatedIdeas => {
+      this.ideas = populatedIdeas
+      this.ideasLoading = false
     })
-    .then((populatedIdeas) => {
-      that.ideas = populatedIdeas
-      that.ideasLoading = false
-    })
-    /*
-      var createdByIds = ideas.map(idea => idea.createdBy.$oid)
-      //console.log("find users for Ids=", userIds)
-      userService.getByIdsAsMap(createdByIds).then(function(userMap) {
-        //console.log("got referenced users", userMap)
-        //replace createdBy with the actual user object
-        ideas.forEach((idea) => {
-          idea.createdBy = userMap[idea.createdBy.$oid]
-        })
-        that.ideas = ideas
-        that.ideasLoading = false
-      })  
-    })
-    */
     .catch(function(err) {
       console.log("ERROR loading Ideas: ", err)
       //TODO: show error to user, e.g. in ideatable
     })
   },
-  
+
   ready () {
     //console.log("Ideas.ready()")
   }
-  
-  
+
+
 }
 </script>
 
