@@ -61,11 +61,11 @@ describe("IdeaService", function() {
       var newIdea = {
         title: 'Idea from test case',
         description: 'Some dummy description timestamp='+new Date().getTime(),
-        //TOOD: createdBy: { $oid: '....'},
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdBy: { $oid: '577a00533d5b352b9b000c29'},          // just a dummy userID. Will be deleted anyway.
+        "createdAt" : { $date: "2016-07-20T06:16:59.791Z" },
+        "updatedAt" : { $date: "2016-07-21T06:16:59.791Z" }
       }
-      return ideaService.postItem(newIdea).then(function(createdIdea) {
+      return ideaService.insertNewItem(newIdea).then(function(createdIdea) {
         expect(createdIdea._id).toBeDefined()
         expect(createdIdea.title).toEqual(newIdea.title)
         return createdIdea

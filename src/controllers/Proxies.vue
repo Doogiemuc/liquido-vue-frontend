@@ -8,8 +8,8 @@
 <script>
 
 var areaService = require('../services/AreaService.js')
-var userService = require('../services/UserService.js')
-var delegationService = require('../services/DelegationService.js')
+//var userService = require('../services/UserService.js')
+//var delegationService = require('../services/DelegationService.js')
 
 export default {
   data () {
@@ -31,10 +31,10 @@ export default {
     },
 
   },
-
-  ready () {
-    this.$root.fetchAllAreas().then(areas => { this.areas = areas })
-    this.$root.fetchProxyMap().then(proxyMap => { this.proxyMap = proxyMap })
+ 
+  compiled () {
+    this.$root.liquidoCache.fetchAllAreas().then(areas => { this.areas = areas })
+    this.$root.liquidoCache.fetchProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
   }
 
 }

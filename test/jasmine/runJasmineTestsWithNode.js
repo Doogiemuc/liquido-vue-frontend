@@ -44,11 +44,11 @@ jasmine.addReporter(reporter);
 var originalFactory = loglevel.methodFactory;
 loglevel.methodFactory = function (methodName, logLevel, loggerName) {
     var rawMethod = originalFactory(methodName, logLevel, loggerName);
-    var logLevelNames = ['DEBUG', 'TRACE', 'INFO ', 'WARN ', 'ERROR']
+    var logLevelNames = ['TRACE', 'DEBUG', 'INFO ', 'WARN ', 'ERROR']
     return function (...messages) {
       rawMethod("         "+    // indent log messages under jasmine spec headers
         chalk.cyan.underline(loggerName) + " " +
-        chalk.magenta(logLevelNames[logLevel]) + " " +
+        chalk.magenta("("+logLevel+")"+logLevelNames[logLevel]) + " " +
         chalk.white(messages.join(" "))
       );
     };

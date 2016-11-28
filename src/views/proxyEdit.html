@@ -9,7 +9,7 @@
 
           <doogie-table
             v-ref:voter-table
-            :row-data="allUsers"
+            :row-data="userList"
             :columns="usersColumns"
             :primary-key-for-row="userKey"
             :loading="true"
@@ -20,7 +20,7 @@
           ></doogie-table>
 
           <div class="buttonWrapper">
-            <a class="btn btn-default" v-link="'/proxies'" role="button">Cancel / Back</a>
+            <a class="btn btn-default" v-link="'/proxies'" role="button">&laquo; Back</a>
             <button type="button" class="btn btn-primary pull-right" v-bind:disabled="!isProxySelected" @click="saveProxy()">Set as your proxy</button>
           </div>
 

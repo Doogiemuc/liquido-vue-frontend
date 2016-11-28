@@ -104,18 +104,20 @@ module.exports = class BaseRestClient {
 
   /**
    * Validate the given item against this.options.jsonSchmea
+   *
    * using https://github.com/tdegrunt/jsonschema
    * If you need the individual validation errors, then you can call
    * `validator.validate(item, this.options.jsonSchema)` yourself.
-   * The validate method returns very nice error information
+   * Hint: The jsonSchmea libs' validate() method returns quite nice error information
    *
    * @param item the model with data to validate
-   * @return true if item is valid
+   * @return true if item is valid   (or also if no jsonSchmea is defined)
    */
   validate(item) {
+    if (this.options.jsonSchema == undefined) return true 
     var result = validator.validate(item, this.options.jsonSchema)
     for (var i = result.errors.length; i--; ) {
-      log.warn(result.errors[i])
+      log.warn(this.options.modelName + " validation failed:", result.errors[i])
     }
     return result.errors.length == 0
   }
@@ -448,16 +450,54 @@ module.exports = class BaseRestClient {
    ================= WRITE (POST/PUT/UPDATE) operations  ==================
    */
 
-  //POST will save over the old document; PUT will modify it (when passed the ID matches)
+  // http://docs.mlab.com/data-api/#insert-document
+  // POST without ID will INSERT a new docuemnt
+  // POST with an ID will replace and overwrite that document
+  // PUT  will modify an existing document
+  // PUt  with u=true will upsert a document, insert a new doc or update existing doc
 
   /**
-   * Insert a new item
-   * @param newItem data for new item (without _id)
-   * @return (A Promise that will resolve to) the newly created item (with _id)
+   * upsert: update existing item or insert a new one if it does not exist yet.
+   * @param query search query for existing item
+   * @param updatedItem new data of new or updated item
+   * @param params (optional) URL parameters
    */
-  postItem(newItem, params) {
+  upsertItem(query, updatedItem, params) {
+    var that = this
+    params.u = true                    // upsert
+    params.q = JSON.stringify(query)   // only update documents matching this query
+    var logId = '[' + new Date().getTime() % 10000 + ']';
+    return new Promise(function(resolve, reject) {
+      var args = {
+        parameters: _.merge(params, that.options.urlParams),
+        data: JSON.stringify(updatedItem),
+        headers: { "Content-Type": "application/json" },
+        path: { id: '' }
+      }
+      log.debug("=> " + logId + " " + that.options.modelName+".upsertItem(", updatedItem, args, ")")
+      that.client.put(that.options.url, args, function(data, response) {
+        log.debug("<= " + logId + " " + that.options.modelName+".upsertItem(): ", data)
+        resolve(data)
+      }).on('error', function(err) {
+        console.error("<= " + logId + " ERROR in "+this.options.modelName+".upsertItem(", updatedItem, "):", err)
+        reject(err)
+      })
+    })
+  }
+
+  /**
+   * Insert a new item  (via POST)
+   * @param newItem data for new item (without _id, will be validated if jsonSchema is set)
+   * @return (A Promise that will resolve to) the newly created item (with _id)
+   *         Will reject promise if validation of newItem fails.
+   */
+  insertNewItem(newItem, params) {
     //console.log("ENTER: postItem")
     var that = this
+    var logId = '[' + new Date().getTime() % 10000 + ']';
+    
+    if (!this.validate(newItem)) return Promise.reject(that.options.modelName + ".insertNewItem(): Validation failed")
+
     return new Promise(function(resolve, reject) {
       var args = {
         parameters: _.merge(params, that.options.urlParams),
@@ -465,12 +505,12 @@ module.exports = class BaseRestClient {
         headers: { "Content-Type": "application/json" },
         path: { id: '' }
       }
-      log.debug(that.options.modelName+".postItem() => ", args)
+      log.debug("=> " + logId + " " + that.options.modelName+".insertNewItem(", newItem, args, ")")
       that.client.post(that.options.url, args, function(data, response) {
-        log.debug(that.options.modelName+".postItem() <= ", data)
+        log.debug("<= " + logId + " " + that.options.modelName+".insertNewItem(): ", data)
         resolve(data)
       }).on('error', function(err) {
-        console.error("ERROR in "+this.options.modelName+".postItem(", newItem, "):", err)
+        console.error("ERROR in "+this.options.modelName+".insertNewItem(", newItem, "):", err)
         reject(err)
       })
     })

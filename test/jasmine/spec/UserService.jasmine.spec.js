@@ -30,7 +30,7 @@ describe("UserService", function() {
     userService.getAll(params).then(function(users) {
       var user = {
         "email" : "testuser0@liquido.de",
-        "passwordHash" : "$2a$10$PHWR6leSZg01IC30g0aEj.8djcra7KcMhHz9wSOzqxdlTSI87gx26",
+        "passwordHash" : "$2a$10$PHWR6leSZg01IC30g0aEj.8XXXXa7KcMhHz9wSOzqxdlTSI87gx26",
         "profile" : {
                 "name" : "Test User0",
                 "website" : 'web',
@@ -40,9 +40,15 @@ describe("UserService", function() {
         "updatedAt" : { $date: "2016-07-21T06:16:59.791Z" }
       }
       var valid = userService.validate(user)
-      expect(valid).toBeTruthy("User is not valid")
+      expect(valid).toBeTruthy("User should have been valid.")
       done()
     })
+  })
+
+  it('validation should fail for invalid user data', function() {
+    var invalidUser = { emailFooBar: 'fooBar' }
+    var valid = userService.validate(invalidUser)
+    expect(valid).toBeFalsy("This user data should have been invalid.")
   })
   
 })

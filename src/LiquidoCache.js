@@ -76,6 +76,11 @@ module.exports = {
       .catch(err => { console.error("ERROR loading ProxyMap in LiquiodoCache "+err) })
   },
 
+  deleteProxyMap: function() {
+    sessionCache.deleteKey('proxyMap')
+    //delegationService.
+  },
+
   /** @return the internal session cache */
   getCache: function() {
     return sessionCache

@@ -6,8 +6,10 @@
  * Planned feature: Let keys automatically expire
  */
 
-var loglevel = require("loglevel")
+import _ from 'lodash'
+import loglevel from 'loglevel'
 var log = loglevel.getLogger("SessionCache");
+
 
 // Private cache
 var cache = {}
@@ -22,10 +24,13 @@ module.exports = {
     cache[key] = value
   },
 
-  /** get an item from the cache, if it is in there. MAY return undefined */
+  /** 
+   * Get an item from the cache, if it is in there. 
+   * Will return a cloned value!
+   * MAY return null if null is stored under that key. (Yeah, that's JS.)
+   */
   get: function(key) {
-    //MAYBE:return cloned value?  But why?   This way the value inside the cache could be changed.
-    return cache[key]
+    return _.clone(cache[key])
   },
 
   /**

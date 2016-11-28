@@ -59,9 +59,13 @@ for (var i = 0; i < 5; i++) {
 
 /**
  * Delegations between users (from voter to proxy)
- * Since the delegations collection only consists of foreign key references this is a bit more complicated
+ * Since the delegations collection only consists of foreign key references this is a bit more complicated:
+ *   newDelegation.query   searched for any existing assignments
+ *   newDelegation.update  then updates this assignment or a new one will be inserted ("upsert")
+ *
+ * be careful not to create any circular delegations :-)
  */
-// be careful not to create any circular delegations :-)
+
 var delegations = {
   "Area 1": [[1,0], [2,0], [3,0],   //user0 is proxy for 1,2 and 3  in "Area 1"
              [0,4] ],               //user0 delegated to (transitive) proxy user4, which now has 5 votes including his own.
@@ -71,7 +75,7 @@ var delegations = {
 for(var area in delegations) {
   delegations[area].forEach((deleg) => {
     var fromUserEMail = 'testuser'+deleg[0]+'@liquido.de'
-    var toProxyEMail   = 'testuser'+deleg[1]+'@liquido.de'
+    var toProxyEMail  = 'testuser'+deleg[1]+'@liquido.de'
     console.log("Delegation from voter "+fromUserEMail+" to proxy "+toProxyEMail)
 
     var newDelegation = {

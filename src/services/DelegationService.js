@@ -3,6 +3,8 @@
  * When a user delgates his vote to a proxy in one given area, then this delegation is added as a link
  * from 'delegee' to the 'proxy' in that area.
  *
+ * Keep in mind that a "service" must not have any dependencies to other services. I only handles
+ * everything around one 'model'. Relations between models are handled in LiquidoCache and RootApp.
  */
 "use strict"
 
@@ -82,50 +84,28 @@ class DelegationService extends BaseRestClient {
         reject('ERROR in getNumberOfVotes():'+err)
       })
     })
-
-    /* MOVED to server:   This was the client side javascript implementation.
-       But of course this has been moved to the backend cause its security relevant!
-
-    var queryForDelegations = {
-      area: { $oid: areaId },
-      to: { $oid: userId }
-    }
-    var that = this
-    return that.findByQuery(queryForDelegations).then(delegations => {
-      if (delegations.length == 0) return 1      // vote of delegee
-      //console.log("found "+delegees.length+" delegees:\n", delegees)
-      var tasks = delegations.map((delegation) => {
-        log.debug("Found delegation from "+delegation.from.$oid+" to "+delegation.to.$oid)
-        return that.getNumberOfVotes(delegation.from.$oid, areaId)   // look for transitive proxies
-      })
-      return Promise.all(tasks).then(result => {
-        log.debug("result", result)
-        var sum = result.reduce((prev, cur) => { return prev+cur })  // sum result.  "A for loop is soooo 2008'ish :-)"
-        return sum + 1  // +1 for own vote of proxy
-      })
-    })
-    */
   }
 
   /**
    * Save a newly assigned proxy. Will overwrite any existing assignment for this user and area.
    *
    * @param userId   the delegee
-   * @param proxyId  ID of proxy
    * @param areaId   Area of interest for this delegation
+   * @param proxyId  ID of proxy
    * @return (A Promise that will resolve to) the payload of the response (Ok)
    */
   saveProxy(userId, areaId, proxyId) {
     log.debug("DelegationService.saveProxy() => userId="+userId+", areaId="+areaId+", proxyId="+proxyId)
     var newDelegation = {
-      fromUser: userId,
-      toProxy: proxyId,
-      area: areaId
+      fromUser: { $oid : userId  },
+      toProxy:  { $oid : proxyId },
+      area:     { $oid : areaId  }
     }
+    var query  = newDelegation
     var params = {
       url: this.baseURL+'/delegations'
     }
-    return this.postItem(newDelegation, params)
+    return this.upsertItem(query, newDelegation, params)
   }
 
 }
