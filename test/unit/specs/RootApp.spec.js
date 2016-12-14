@@ -24,7 +24,7 @@ describe('RootApp.vue', () => {
 
   it('fetch all areas', () => {
     //console.log("====== rootApp=",rootApp)
-    var vm = new Vue({
+    var vm = new Vue({         //TODO: according to the docs this should be:  v-ref:root-app-ref
       template: '<div><root-app v-ref="RootAppRef"></root-app></div>',
       components: {
         'root-app': RootApp

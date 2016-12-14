@@ -26,6 +26,15 @@ module.exports = {
             console.log("self.el.id=", self.el.id)
             tinymce.init({
               selector: '#'+IDattr,
+              height: 400,
+              menubar: false,
+              plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table contextmenu paste code'
+              ],
+              toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+              content_css: '//www.tinymce.com/css/codepen.min.css',
               setup: function(editor) {
                 console.log("tinymce.setup editor="+editor)
 
@@ -35,12 +44,12 @@ module.exports = {
                 });
 
                 // when typing keyup event
-                editor.on('keyup', function() {
-                  console.log("TinyMCEDirective.editor.on  KEYUP this=", this)
+                editor.on('keyup', function(editorEl) {
+                  //console.log("TinyMCEDirective.editor.on  KEYUP this=", this)
                   // get new value
-                	var new_value = this.getContent(self.value);   // 'this' is the editor
+                	var new_value = this.getContent(self.value);   // 'this' is the tinymce editor instance
                   // set model value
-                  self.set(new_value)
+                  self.set(new_value)  // self is the Vue VM
                 });
               }
 
