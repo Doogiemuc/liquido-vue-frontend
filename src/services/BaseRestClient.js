@@ -67,11 +67,11 @@ module.exports = class BaseRestClient {
    * Create a new instance of a RestClient
    * @param options configuration for this client:
    *   options.modelName    name of model, used in log messages
-   *   options.url          may contain path variables in the form ${var}
-   *   options.urlParams    (optional) global URL params, for example apiKey
-   *   options.nameOfIdAttr (optional) name of id field. By default '_id' will be used as used by mongoDB. (Keep in mind that JSON replies have the id in  '_id.$oid')
-   *   options.timestamps   (optional) if "true", then createdAt and (last) updatedAt date fields will be added and updated automatically
-   *   options.jsonSchema   (optional) jsonSchmea to validate documents after loading and before storing them to the DB.
+   *   options.url          URL of rest endpoint, may contain path variables in the form ${var}
+   *   options.urlParams    (optional) global URL query parameters that will always be added to every request, for example for apiKeys
+   *   options.nameOfIdAttr (optional) name of id field. By default '_id' will be used as used by mongoDB. (Keep in mind that JSON replies of mLAB REST API have the actual id value in  '_id.$oid')
+   *   options.timestamps   (optional) if "true", then createdAt and updatedAt date fields will be added and updated automatically
+   *   options.jsonSchema   (optional) jsonSchmea to validate documents (See validate() method)
    */
   constructor(options) {
     if (options.url == undefined) throw new Error("BaseRestClient needs an options.url")
@@ -114,7 +114,7 @@ module.exports = class BaseRestClient {
    * @return true if item is valid   (or also if no jsonSchmea is defined)
    */
   validate(item) {
-    if (this.options.jsonSchema == undefined) return true 
+    if (this.options.jsonSchema == undefined) return true
     var result = validator.validate(item, this.options.jsonSchema)
     for (var i = result.errors.length; i--; ) {
       log.warn(this.options.modelName + " validation failed:", result.errors[i])
@@ -145,9 +145,9 @@ module.exports = class BaseRestClient {
     return this.cache[id]
   }
 
-  /*
-   ================= READ (GET) operations  ==================
-   */
+  // ====================================================================
+  // ==              Read (GET) and query operations                   ==
+  // ====================================================================
 
   /** Get all items from the server. Without using the cache! */
   getAll(params) {
@@ -161,6 +161,9 @@ module.exports = class BaseRestClient {
       log.debug('=> ' + logId + ' ' + that.options.modelName+".getAll()", args)
       that.client.get(that.options.url, args, function(data, response) {
         log.debug('<= ' + logId + ' ' + that.options.modelName+".getAll(): got "+data.length+" items")
+
+        //log.debug("========= data =\n"+JSON.stringify(data));
+
         that.cachePut(data)
         resolve(data)
       }).on('error', function (err) {
@@ -340,6 +343,11 @@ module.exports = class BaseRestClient {
     })
   }
 
+  // ====================================================================
+  // ==              Population                                      ==
+  // ====================================================================
+
+
   /**
    * Populate the given path: replace its value with the child doc.
    *
@@ -446,15 +454,24 @@ module.exports = class BaseRestClient {
   }
 
 
-  /*
-   ================= WRITE (POST/PUT/UPDATE) operations  ==================
-   */
+  // ====================================================================
+  // ==              WRITE (POST/PUT/UPDATE) operations               ==
+  // ====================================================================
+  //
+  // These operations go through the backend (and not directly to the DB.)
+  // See this.baseURL
+
+  // http://restcookbook.com/HTTP%20Methods/put-vs-post/
+  // POST - add a completely new object to the end of the list
+  // PUT with ID - update specific existing object (API may also allow to insert new objects this way)
+  // PUT is idempotent, ie. calling it twice will onyl create one object with that ID
 
   // http://docs.mlab.com/data-api/#insert-document
   // POST without ID will INSERT a new docuemnt
   // POST with an ID will replace and overwrite that document
   // PUT  will modify an existing document
-  // PUt  with u=true will upsert a document, insert a new doc or update existing doc
+  // PUT  with u=true will upsert a document, insert a new doc or update existing doc
+  // PUT  with empty array in payload will delete all items matching the given q=<query>
 
   /**
    * upsert: update existing item or insert a new one if it does not exist yet.
@@ -495,7 +512,9 @@ module.exports = class BaseRestClient {
     //console.log("ENTER: postItem")
     var that = this
     var logId = '[' + new Date().getTime() % 10000 + ']';
-    
+
+    //TODO: if(this.options.timestaps) {  add timestamp fields to newItem,
+
     if (!this.validate(newItem)) return Promise.reject(that.options.modelName + ".insertNewItem(): Validation failed")
 
     return new Promise(function(resolve, reject) {

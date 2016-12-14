@@ -1,12 +1,16 @@
 <div class="container-fluid">
+
   <h1>Liquido - Ideas</h1>
   <p class="lead">Spontaneous suggestions for improvement</p>
-  
+  <p>Here you can see all currently active ideas. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least NN supporters,
+     then it is moved onto the table and can be voted upon.</p>
+
   <doogie-table
     :row-data="ideas"
     :columns="ideaColumns"
     :primary-key-for-row="ideaKey"
     :loading="ideasLoading"
+    :show-add-button="true"
     v-ref:ideatable
   >
   </doogie-table>

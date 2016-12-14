@@ -19,6 +19,8 @@ export default {
   data () {
     return {
       area: { title: '' },      // the area of the proxy that is currently beeing edited, will be loaded in ready()
+      proxy: null,              // user information of currently set proxy in this area (if any)
+      // list of available users that could be assigned as proxies
       userList: [],
       usersColumns: [
         { title: "Avatar", path: "profile.picture", filter: 'userAvatar', rawHTML: true },
@@ -26,7 +28,7 @@ export default {
         { title: "Email", path: "email" },
       ],
       userKey: "_id.$oid",
-      proxy: null,             // proxy in this area
+
     }
   },
 
@@ -48,8 +50,8 @@ export default {
     }
   },
 
-  methods: {    
-    /** 
+  methods: {
+    /**
      * Fetch all users that could be assigned as proxy.
      * ie. all users minus the currently logged in user and any already assigned proxy
      * @return (A Promise that will resolve to) a list of users that could be assigned as proxy
@@ -64,10 +66,9 @@ export default {
       })
     },
 
-    // save the currently selected proxy
+    /** save the currently selected proxy */
     saveProxy: function() {
       var chosenProxy = this.$refs.voterTable.selectedRow
-      log.debug("saveProxy:", chosenProxy)
       var currentUserId = userService.getId(this.$root.currentUser)
       var areaId        = areaService.getId(this.area)
       var proxyId       = userService.getId(chosenProxy)
@@ -83,17 +84,23 @@ export default {
       })
     },
 
-    removeDelegation: function() {
-      console.log("Removing delegation in area ", this.area)
+    /** remove the currently set proxy */
+    removeProxy: function() {
+      log.debug("Removing proxy in area ", this.area)
+      delegationService.removeProxy(currentUserId, areaId)
+      .catch(err => {
+        log.error("Couldn't remove proxy: ", err)
+      })
     }
   },
 
-  activate (done) {
-    log.trace('ProxyEdit.vue: activate')
-    log.trace('ProxyEdit.vue: activation done.')
-    done()
-  },
-
+  /**
+   * Pre load all data for the page:
+   *  - area
+   *  - assignable proxies
+   *  - the proxy map of the currenlty logged in useer
+   * from remote source of from caches if possible.
+   */
   compiled () {
     log.trace('ProxyEdit.vue: compiled')
     //TODO: checkMandatoryQueryParam('areaId', 'Missing mandatory URL parameter areaId', /proxies')  // will redirect to proxies page if query param areaId is not set
@@ -113,13 +120,13 @@ export default {
     ])
     .then(results => {
       this.area     = results[0]
-      
+
       this.userList = results[1]
 
       var proxyMap  = results[2]
       this.proxy    = proxyMap[areaId]
       this.$refs.voterTable.loading = false
-      
+
     })
     .catch(err => {
       log.error("Couldn't load data for ProxyEdidt.vue: "+err)

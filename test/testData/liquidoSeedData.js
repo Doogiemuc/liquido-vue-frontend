@@ -197,13 +197,14 @@ for(var i = 4; i<=51; i++) {
 const LAW_PROPOSAL = 0;
 
 // create some proposals for a law
-testData = testData.concat([
-  {
+for(var i = 0; i<10; i++) {
+  var lawTitle = "Law "+i
+  var newLaw = {
     collection: 'laws',
-    query:  {title:"Law 1"  },
+    query:  {title: lawTitle  },
     update: {
-      title:"Law 1",
-      description:"Genious proposal for a law",
+      title: lawTitle,
+      description:"Genious proposal for law "+i,
       status: LAW_PROPOSAL,
       createdBy: {
         "$ref": {
@@ -215,7 +216,9 @@ testData = testData.concat([
       updatedAt: daysAgo(1),
     }
   }
-]);
+  testData.push(newLaw);
+
+}
 
 /*
 // test ballots

@@ -56,7 +56,7 @@ loglevel.methodFactory = function (methodName, logLevel, loggerName) {
 
 loglevel.setLevel("trace")      // Global loglevel, trace == log everything including stack trace
 //loglevel.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
-loglevel.getLogger("BaseRestClient").setLevel("INFO");
+loglevel.getLogger("BaseRestClient").setLevel("TRACE");
 
 // =================================================================================
 //   Start mock backend server

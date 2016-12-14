@@ -22,7 +22,7 @@ describe('RootApp.vue', () => {
     //this.timeout(5000)
   })
 
-  it.only('fetch all areas', () => {
+  it('fetch all areas', () => {
     //console.log("====== rootApp=",rootApp)
     var vm = new Vue({
       template: '<div><root-app v-ref="RootAppRef"></root-app></div>',

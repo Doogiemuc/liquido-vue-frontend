@@ -14,9 +14,10 @@
         <li><a v-link="{ path: '/userHome' }">UserHome</a>
         <li><a v-link="{ path: '/areas' }">Areas</a>
         <li><a v-link="{ path: '/ideas' }">Ideas</a>
+        <li><a v-link="'/createNewIdea'">Add Idea</a></li>
         <li><a v-link="{ path: '/laws' }">Laws</a>
       </ul>
-      
+
       <ul class="nav navbar-nav navbar-right" v-if="user">
         <li class="dropdown">
           <a href="#" data-toggle="dropdown" class="dropdown-toggle">

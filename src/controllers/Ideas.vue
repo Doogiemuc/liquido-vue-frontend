@@ -12,7 +12,8 @@ export default {
         { title: "Description", path: "description", editable: true  },
         { title: "Created By", path: "createdBy" ,filter: 'userAvatar' },
         { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
-        { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' }
+        { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' },
+        //TODO:  number of supporters
       ],
       ideaKey: "_id.$oid",
       /*
@@ -25,14 +26,17 @@ export default {
       ideas: [],
     }
   },
+
   components: {
     DoogieTable
   },
+
   filters: {
     userAvatar(user) {
-      return /*'<img src="'+user.profile.avatarURL+'" />&nbsp;' + */  user.profile.name
+      return /*'<img src="'+user.profile.picture+'" />&nbsp;' + */  user.profile.name
     }
   },
+
   events: {
     // called when a value was changed (DoogieTable already handled saving to DB)
     'saveNewValue': function(rowId, key, value) {
@@ -40,13 +44,17 @@ export default {
     },
     'addButtonClicked': function() {
       console.log('addButtonClicked in Ideas.vue')
-      //TODO: open create new Idea page (or popup?)
+      this.$router.go('/createNewIdea')
     },
+  },
+
+  init () {
+    console.log("====== Ideas.vue: init")
   },
 
   created () {
     //load remote data and replace users
-    this.$root.fetchAllIdeas().then(populatedIdeas => {
+    this.$root.liquidoCache.fetchAllIdeas().then(populatedIdeas => {
       this.ideas = populatedIdeas
       this.ideasLoading = false
     })
@@ -56,8 +64,14 @@ export default {
     })
   },
 
+  compiled () {
+
+  },
+
   ready () {
-    //console.log("Ideas.ready()")
+
+    console.log("Ideas.ready()")
+    this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
   }
 
 
@@ -65,4 +79,5 @@ export default {
 </script>
 
 <style>
+
 </style>

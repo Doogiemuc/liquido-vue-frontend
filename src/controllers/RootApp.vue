@@ -30,5 +30,7 @@ export default {
     }
   },
 
+  //TODO: make RootApp testable on its own:   components : { "liquido-header": LiquidoHeader }    Problem: How to hanlde <router-view> ?
+
 }
 </script>

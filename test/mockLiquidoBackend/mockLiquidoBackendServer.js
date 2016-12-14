@@ -51,7 +51,7 @@ var RouteManager ={
 	},
 	// regular expression matching for dummy URL routes
 	"routes":{
-		  // DelegationService.jasmine.spec.js   getNumVotes
+		  // DelegationService.jasmine.spec.js   getNumVotes  => always return 5  for any userId and areaId
 		  '/users/[a-f0-9]{24}/getNumVotes\\?areaId=[a-f0-9]{24}': function(req, res) {
 		  	var message = '5';
 		  	log.debug("<= MockLiquidoBackend: "+message)

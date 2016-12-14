@@ -18,6 +18,9 @@ Vue.component('liquido-header', LiquidoHeader)
 Vue.use(VueResource);
 Vue.use(VueRouter)
 
+import tinymceDirective from './components/TinyMceDirective.vue'
+Vue.directive('tinymce', tinymceDirective);
+
 // Setup Vue-router for navigation
 var router = new VueRouter()
 router.map({
@@ -35,6 +38,12 @@ router.map({
       require(['./controllers/Ideas.vue'], resolve)
     }
   },
+  '/createNewIdea': {
+    component: function(resolve) {
+      require(['./controllers/CreateNewIdea.vue'], resolve)
+    }
+  },
+
   '/userHome': {
     component: function(resolve) {
       require(['./controllers/UserHome.vue'], resolve)

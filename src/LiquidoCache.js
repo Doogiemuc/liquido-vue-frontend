@@ -39,10 +39,9 @@ var loadProxyMap = function(user) {
 }
 
 var loadPopulatedIdeas = function() {
-  return ideaService.getAll()
-    .then(ideas => {
-      return ideaService.populateAll(ideas, 'createdBy', userService)
-    })
+  return ideaService.getAll().then(ideas => {
+    return ideaService.populateAll(ideas, 'createdBy', userService)
+  })
 }
 
 //=========================================
@@ -78,7 +77,6 @@ module.exports = {
 
   deleteProxyMap: function() {
     sessionCache.deleteKey('proxyMap')
-    //delegationService.
   },
 
   /** @return the internal session cache */

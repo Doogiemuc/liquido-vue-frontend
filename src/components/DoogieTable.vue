@@ -16,7 +16,7 @@
     :resource="vue-resource-rest-service"
     :columns="columnsArray"
     :primary-key-for-row="nameOrPathOfprimaryKeyAttribute"
-    :localized-texts="yourTranslations"
+    :show-add-button="true"
   >
   </doogie-table>
 
@@ -76,7 +76,7 @@
       </tbody>
     </table>
     <div class="row">
-      <div v-if="positionOfSearch=='bottom'" class="col-sm-2 text-left">
+      <div v-if="positionOfSearch=='bottom'" id="searchDiv" class="col-sm-2 text-left">
         <input name="query" v-model="searchQuery" placeholder="{{localizedTexts.searchFilter}}"/>
       </div>
       <!-- pager for doogie table -->
@@ -105,7 +105,7 @@
         </nav>
       </div>
       <div v-if="showAddButton" class="col-sm-2 text-right">
-        <button type="button" class="btn btn-default btn-sm" @click="addRow()">
+        <button type="button" class="btn btn-primary btn-sm" @click="addRow()">
           <i class="fa fa-plus-square" aria-hidden="true"></i> {{localizedTexts.addButton}}
         </button>
       </div>
@@ -139,6 +139,7 @@ export default {
     // shows a loading text
     loading: false,
 
+    // text snippets that can be localized
     localizedTexts: {
       type: Object,
       required: false,
@@ -167,8 +168,8 @@ export default {
     // shall rows be selecteable via click
     selectableRows: false,
 
-    // 'top' or 'bottom'
-    positionOfSearch: 'bottom'
+    // 'top', 'bottom' or 'none'
+    positionOfSearch: { type: String, default: function() { return 'bottom' } }
   },
 
   data () {
@@ -352,6 +353,10 @@ export default {
 </script>
 
 <style>
+table.doogie-table {
+  margin-bottom: 5px;
+}
+
 th {
   background-color: #EEEEEE;
   color: rgba(0,0,0,0.66);
