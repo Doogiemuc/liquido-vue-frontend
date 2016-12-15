@@ -7,12 +7,10 @@ var TinyMceComponent = require('../components/TinyMceComponent.vue')
 export default {
   data () {
     return {
-      idea: { type: Object, required: true, default: function() {
-        return {
-          title: "Title of your idea",
-          description: "Describe what your idea will improve."
-        }
-      }}
+      idea: {
+        title: "",
+        description: ""
+      }
     }
   },
 
@@ -22,8 +20,15 @@ export default {
 
   methods: {
     saveIdea() {
-      console.log("Saving idea", this.$refs.ideaDescriptionEditor.getContent());
+      console.log("Saving idea: this.idea=", this.idea, "description=", this.$refs.ideaDescriptionEditor.getContent());
       //TODO: ideaService.insert()
+    }
+  },
+
+  events: {
+    'update-content' : function(msg) {
+      console.log("======== CreateNewIdea: TTT event: ", msg)
+      this.idea.description = msg
     }
   },
 

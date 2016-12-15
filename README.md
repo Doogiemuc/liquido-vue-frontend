@@ -2,6 +2,27 @@
 
 > Frontend for my liquid democracy app writtn with Vue.js
 
+This is my playground for learning [Vue](https://vuejs.org). Meanwhile this grew to a medium sized "single page application" (SPA) with quite some nice features
+
+Currently it uses VueJS 1.0   I am eventually plannign to upgrade to VueJS 2.0 soon. That will be a larger upgrade.
+
+## Dependencies / Tools used
+
+ * Vue
+ * Vue-loader
+ * Vue-router
+ * MongoDB
+ * RESTfull webservices
+
+## Features
+
+ * HTML, JS and CSS is packed and bundeld with Webpack
+ * MongoDB backend (currently I connect to it via mlab.com REST API)
+ * Local client side caching in the SPA
+ * Database seed script
+ * A powerfull Vue Table component
+ * Tests, tests and more tests.  I am a big fan of TDD!
+
 ## Build Setup
 
 ``` bash
@@ -28,6 +49,10 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 
 ## History
 
+ * 2016-12-14 21:44:46 +0000 - WORKING TinyMceComponent.vue
+ * 2016-12-14 16:51:51 +0000 - Working on Add Idea - with TinyMCE
+ * 2016-11-28 21:34:50 +0100 - Saving a proxy now works. With green smoke tests.
+ * 2016-11-27 20:09:25 +0000 - Cleaned up logging
  * 2016-11-27 12:54:48 +0000 - Very nice working version  * Added LiquidoCache.js for application specific caching.  * runJasmineTestsWithNode.js now automatically starts the mock backend server.  * improved logging
  * 2016-11-23 14:37:47 +0000 - ProxyEdit is now working with cached data
  * 2016-11-23 09:00:13 +0000 - Working on RootApp.vue and added test case for it

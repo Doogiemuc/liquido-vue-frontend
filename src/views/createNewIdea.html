@@ -8,26 +8,19 @@
     <div class="panel-body">
       <form>
         <div class="form-group">
-          <input class="form-control" name="ideaTitle" id="ideaTitle" placeholder="Title of your idea" />
+          <input class="form-control" name="ideaTitle" id="ideaTitle" v-model="idea.title" placeholder="Title of your idea"/>
         </div>
         <div class="form-group">
-          <tinymce v-ref:idea-description-editor textarea-id="ideaDescriptionEditor" content="Content from parent">This is some textarea content</tinymce>
+          <tinymce v-ref:idea-description-editor textarea-id="ideaDescriptionEditor" value="Describe what your idea will improve ..."></tinymce>
         </div>
 
-        <!--
         <div class="form-group">
-          <textarea name="ideaDescription" id="ideaDescription" v-tinymce>Describe your idea here. Keep in mind that your idea needs at least NN supporters before it can be voted upon.</textarea>
-        </div>
-        -->
-
-        <div class="form-group">
-          <button id="saveIdeaButton" @click="saveIdea" class="pull-right btn btn-primary">Save Idea</button>
+          <button id="saveIdeaButton" @click.prevent="saveIdea" class="pull-right btn btn-primary">Save Idea</button>
         </div>
       </form>
 
-      <h3>Idea Description</h3>
-      #{{ idea.description }}#
-
+      <h3>Idea</h3>
+      #{{ idea | json }}#
 
     </div>
   </div>
