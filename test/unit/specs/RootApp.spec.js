@@ -22,19 +22,24 @@ describe('RootApp.vue', () => {
     //this.timeout(5000)
   })
 
+/*    WORK IN PROGRESS     DOES NOT WORK YET
+      Maybe someway like this: https://github.com/vuejs/vue-router/blob/1.0/test/unit/specs/core.js
+
+
   it('fetch all areas', () => {
     //console.log("====== rootApp=",rootApp)
-    var vm = new Vue({         //TODO: according to the docs this should be:  v-ref:root-app-ref
-      template: '<div><root-app v-ref="RootAppRef"></root-app></div>',
+    var vm = new Vue({
+      template: '<div><root-app v-ref:root-app-ref></root-app></div>',
       components: {
         'root-app': RootApp
       }
     }).$mount()
-    return vm.$refs.RootAppRef.fetchAllAreas().then(allAreas => {
+    return vm.$refs.RootAppRef.liquidoCache.fetchAllAreas().then(allAreas => {
       expect(allAreas.length).toBeGreaterThan(4)
       expect(allAreas[0].title).toBeContain("Area 0")
     })
   })
 
+*/
 
 })

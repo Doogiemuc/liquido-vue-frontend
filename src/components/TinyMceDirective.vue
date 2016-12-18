@@ -1,6 +1,9 @@
 /**
  * Vue Directive that can be added to a textarea to add TinyMCE WYSIWYG editor.
  *
+ * ===> This kind of works, but I switchted to a full blown componente for TinyMCE.  See TinyMceComponent.js 
+ * 
+ * 
  * https://jsfiddle.net/edwindeveloper90/edjc82z0/
  * http://codegists.com/snippet/vue/tinymce-directivevue_lossendae_vue
  *

@@ -6,7 +6,7 @@
 /* global expect */
 var userService = require('src/services/UserService')
 var ideaService = require('src/services/IdeaService')
-var log = require("loglevel").getLogger("DelegationService.spec");
+var log = require("loglevel").getLogger("IdeaService.spec.js");
 
 //if (process.env.NODE_ENV == 'testing') {
 //  log.debug("================ SETTING LOG LEVEL in IdeaService.spec.js")
@@ -17,7 +17,7 @@ describe('IdeaService', () => {
   var numTestIdeas = 10
   var ideas
 
-  //You can run a single KARMAA test case with   it.only(...)
+  //You can run a single KARMA test case with   it.only(...)
 
   // MochaJS "before all hock": this runs once before all tests in this block (should be called beforeAll :-)
   before(function() {
@@ -39,28 +39,31 @@ describe('IdeaService', () => {
   })
 
   it('should be able to create a new Idea and then delete it', () => {
-    var createNewIdea = function() {
-      log.debug("ENTER createNewIdea testStep")
+    var getOneUser = function() {
+      return userService.findByQuery({email: 'testuser0@liquido.de'})
+      .then(foundUsers => { return foundUsers[0] })
+    }
+    var createNewIdea = function(user) {
+      log.debug("ENTER createNewIdea testStep    user="+JSON.stringify(user))
       var newIdea = {
-        title: 'Idea from test case',
-        description: 'Some dummy description timestamp='+new Date().getTime(),
-        //TOOD: createdBy: { $oid: '....'},
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        title: 'Idea from test case '+new Date().getTime(),
+        description: 'Some dummy description that looks very cool and is long enough',
+        createdBy: user._id,
+        //createdAt and updatedAt timestamps will be set automatically by ideaService
       }
-      return ideaService.postItem(newIdea).then(function(createdIdea) {
-        log.debug("createdIdea\n", createNewIdea)
+      return ideaService.insertNewItem(newIdea).then(function(createdIdea) {
+        //log.debug("createdIdea\n", createNewIdea)
         return createdIdea
       })
     }
     var deleteIdea = function(idea) {
-      log.debug("ENTER deleteIdea testStep ideaToDelete=", idea)
+      //log.debug("ENTER deleteIdea testStep ideaToDelete=", idea)
       return ideaService.deleteById(idea._id.$oid).then(function(deletedIdea) {
         log.debug("deletedIdea:\n", deletedIdea)
         return deletedIdea
       })
     }
-    return createNewIdea().then(deleteIdea)
+    return getOneUser().then(createNewIdea).then(deleteIdea)
 
   })
 

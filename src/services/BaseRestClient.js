@@ -24,8 +24,9 @@ var _ = require('lodash')
 // JsonSchmea Validator  https://github.com/tdegrunt/jsonschema
 var Validator = require('jsonschema').Validator;
 // custom Format for validating a MongoDB ObjectID (as 24 character long HEX value)
-Validator.prototype.customFormats.ObjectID = function(input) {
-  return input !== undefined && input.match(/[0-9a-f]{24}/)
+Validator.prototype.customFormats.ObjectID = function(oid) {
+  return _.isObject(oid) &&
+         _.get(oid, "$oid", "").match(/[0-9a-f]{24}/)
 }
 var validator = new Validator();
 
@@ -503,7 +504,7 @@ module.exports = class BaseRestClient {
   }
 
   /**
-   * Insert a new item  (via POST)
+   * Validate and then insert a new item (via POST)
    * @param newItem data for new item (without _id, will be validated if jsonSchema is set)
    * @return (A Promise that will resolve to) the newly created item (with _id)
    *         Will reject promise if validation of newItem fails.
@@ -513,7 +514,10 @@ module.exports = class BaseRestClient {
     var that = this
     var logId = '[' + new Date().getTime() % 10000 + ']';
 
-    //TODO: if(this.options.timestaps) {  add timestamp fields to newItem,
+    if(this.options.timestaps) {
+      newItem.createdAt = { $date: new Date() }
+      newItem.updatedAt = { $date: new Date() }
+    }
 
     if (!this.validate(newItem)) return Promise.reject(that.options.modelName + ".insertNewItem(): Validation failed")
 

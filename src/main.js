@@ -6,17 +6,20 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import VueResource from 'vue-resource'
+import VueForm from 'vue-form'
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
 import LiquidoHeader from './components/LiquidoHeader'
+
 //TODO: import Login from './components/Login'   see: https://auth0.com/blog/2015/11/13/build-an-app-with-vuejs/
 
 // Register global components: <liquido-header> is used in index.html / RootApp.vue
 Vue.component('liquido-header', LiquidoHeader)
 
 // Vue plugins
-Vue.use(VueResource);
+Vue.use(VueResource)   //TODO: remove VueResource
 Vue.use(VueRouter)
+Vue.use(VueForm)
 
 import tinymceDirective from './components/TinyMceDirective.vue'
 Vue.directive('tinymce', tinymceDirective);

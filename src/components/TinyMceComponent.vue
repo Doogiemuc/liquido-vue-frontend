@@ -19,6 +19,7 @@ export default {
           'insertdatetime media table contextmenu paste -placeholder'
         ],
         toolbar: 'undo redo | insert | styleselect | bold italic underline | alignleft aligncenter alignright | bullist numlist outdent indent | link image charmap',
+        statusbar: false
       }
     }}
   },
@@ -39,7 +40,7 @@ export default {
     var that = this
 
     var updateContent = function(evt) {
-      console.log("Updating content to "+this.getContent()+" and sending event")
+      //console.log("Updating content to "+this.getContent()+" and sending event")
       that.$dispatch('update-content', this.getContent());
     }
 
@@ -52,7 +53,7 @@ export default {
     //MAYBE: wrap tinymce.init() in this.$nextTick(function() { ... })   but seems to work like this atm.
     tinymce.init(this.tinyMceConfig)
     .then(editors => {
-      console.log("Loading tinymce plugin placeholder")
+      //console.log("Loading tinymce plugin placeholder") // Need to dynamically load this plugin from local, not from tinymce CDN.
       tinymce.PluginManager.load('placeholder', '/static/js/tinymce/plugins/tinymce-placeholder.plugin.js');
 
       //console.log("TinyMceComponent.tinymce init finished.  NumEditors=", editors.length)

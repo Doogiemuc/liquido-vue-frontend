@@ -6,21 +6,24 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      <form>
+
+      <form v-form name="createNewIdeaForm">
         <div class="form-group">
-          <input class="form-control" name="ideaTitle" id="ideaTitle" v-model="idea.title" placeholder="Title of your idea"/>
+          <input class="form-control" name="ideaTitle" id="ideaTitle" v-model="idea.title" v-form-ctrl required minlength="5" placeholder="Title of your idea"/>
+          <p class="form-error-msg" v-bind:class="toggleErrorMsg(createNewIdeaForm.ideaTitle)">Please provide a title (at least 5 chars)</p>
         </div>
         <div class="form-group">
-          <tinymce v-ref:idea-description-editor textarea-id="ideaDescriptionEditor" value="Describe what your idea will improve ..."></tinymce>
+          <span v-form-ctrl="idea.description" name="ideaDescription" required minlength="20">
+            <tinymce v-ref:idea-description-editor name="ideaDescription" textarea-id="ideaDescriptionEditor" value="Describe what your idea will improve ..."></tinymce>
+          </span>
+          <p class="form-error-msg" v-bind:class="toggleErrorMsg(createNewIdeaForm.ideaDescription)">Please provide a description of your idea (at least 20 chars)</p>
         </div>
 
         <div class="form-group">
-          <button id="saveIdeaButton" @click.prevent="saveIdea" class="pull-right btn btn-primary">Save Idea</button>
+          <button id="saveIdeaButton" @click.prevent="saveIdea" class="pull-right btn btn-primary" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Saving Idea ..."
+            v-bind:disabled="isSubmitDisabled(createNewIdeaForm)">Save Idea</button>
         </div>
       </form>
-
-      <h3>Idea</h3>
-      #{{ idea | json }}#
 
     </div>
   </div>

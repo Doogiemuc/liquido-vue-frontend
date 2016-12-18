@@ -10,7 +10,8 @@ export default {
       idea: {
         title: "",
         description: ""
-      }
+      },
+      createNewIdeaForm: {}  // will be set by VueForm
     }
   },
 
@@ -19,16 +20,46 @@ export default {
   },
 
   methods: {
+    /* @return bootstrap class 'invisible' when input field is valid, so that no error message is shown */
+    toggleErrorMsg(formElem) {
+      return formElem.$touched && formElem.$invalid ? '' : 'invisible'
+    },
+
+    /* @return true when form is pristine (newly loaded) or invalid, so that submit button is disabled  */
+    isSubmitDisabled(form) {
+      return form.$invalid || form.$pristine
+    },
+
+    /** set button to loading state and save idea to DB */
     saveIdea() {
-      console.log("Saving idea: this.idea=", this.idea, "description=", this.$refs.ideaDescriptionEditor.getContent());
-      //TODO: ideaService.insert()
+      $('#saveIdeaButton').button('loading')
+      var that = this
+      this.idea.createdBy = this.$root.currentUser._id
+      console.log("Saving idea: this.idea=", this.idea, this.$router);
+
+      ideaService.insertNewItem(this.idea)
+      .then(() => {
+        swal({
+          title: "SUCCESS",
+          text: "Your new Idea has been saved successfully.",
+          type: "success"
+        },
+        function () {
+          that.$router.go('/userHome')
+        })
+      }).catch(err => {
+        console.error(err)
+        $('#saveIdeaButton').button('reset')   // so that the user can try to save again
+      })
+
     }
   },
 
   events: {
-    'update-content' : function(msg) {
-      console.log("======== CreateNewIdea: TTT event: ", msg)
-      this.idea.description = msg
+    /** fires when the content of tinymce editor changed. */
+    'update-content' : function(newContent) {
+      this.idea.description = newContent
+      this.createNewIdeaForm.ideaDescription.$touched = true
     }
   },
 
@@ -45,5 +76,13 @@ export default {
 
 
 <style>
-
+  .form-error-msg {
+    font-size: 80%;
+    color: #a94442;
+    margin-left: 10px;
+  }
+  input.vf-touched.vf-invalid {
+    border-color: #a94442;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  }
 </style>
