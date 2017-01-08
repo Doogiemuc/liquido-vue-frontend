@@ -12,13 +12,14 @@ var ideaSchmea = {
   id: "/Idea",
   type: "object",
   properties: {
-    title: { type: "string" },
+    title: { type: "string" }, 
+    area: { type: "Integer" },
     description: { type: "string" },
     createdBy: { type: "object", format: "ObjectID", required: true },   // type ObjectId == { $oid: "a5bc...." }
     //TODO: views: { type: "number" },
     // validation for createdAt and updatedAt timestamps will automatically be added in BaseRestClient
   },
-  required: [ "title", "description", "createdBy" ]
+  required: [ "title", "area", "description", "createdBy" ]
 }
 
 var options = {

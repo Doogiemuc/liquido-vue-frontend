@@ -1,6 +1,6 @@
 <template>
   <div>
-    <liquido-header></liquido-header>
+    <liquido-header :current-user="currentUser"></liquido-header>
     <router-view></router-view>
   </div>
 </template>
@@ -26,11 +26,10 @@ export default {
   data () {
     return {
       liquidoCache: LiquidoCache, // global session cache, available to all components as this.$root.liquidoCache
-      currentUser: null,          // ID of currently logged in user
+      currentUser: null,          // currently logged in user,  passes as a prop to LquidoHeader
     }
   },
 
   //TODO: make RootApp testable on its own:   components : { "liquido-header": LiquidoHeader }    Problem: How to hanlde <router-view> ?
-
 }
 </script>

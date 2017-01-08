@@ -39,9 +39,10 @@ export default {
 
       ideaService.insertNewItem(this.idea)
       .then(() => {
+        $('#saveIdeaButton').button('reset')
         swal({
           title: "SUCCESS",
-          text: "Your new Idea has been saved successfully.",
+          text: "Your new Idea has been saved successfully.<br/>You know need at least NN supporters that like to discuss your idea.",
           type: "success"
         },
         function () {

@@ -1,19 +1,55 @@
-<template src="../views/partials/header.html"></template>
+<template>
+
+<div class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a v-link="'/'" class="navbar-brand"><i class="fa fa-university"></i> Liquido</a>
+    </div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a v-link="{ path: '/userHome' }">UserHome</a>
+        <li><a v-link="{ path: '/areas' }">Areas</a>
+        <li><a v-link="{ path: '/ideas' }">Ideas</a>
+        <li><a v-link="'/createNewIdea'">Add Idea</a></li>
+        <li><a v-link="{ path: '/laws' }">Laws</a>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right" v-if="currentUser">
+        <li class="dropdown">
+          <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+            <img v-bind:src="currentUser.profile.picture" alt="Avatar Image">
+            {{currentUser.profile.name}}<i class="caret"></i>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a v-link="'proxies'">My Proxies</a></li>
+            <li><a v-link="'account'">My Account</a></li>
+            <li class="divider"></li>
+            <li><a v-link="'logout'">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right" v-else="currentUser">
+        <li><a v-link="'login'">Login</a></li>
+        <li><a v-link="'signup'">Create Account</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</template>
 
 <script>
 export default {
-  data () {
-    return { 
-      user: {
-        email: "test@doogie.de",
-        password: "as23ö5ldfkgg",
-        profile: {
-          name: "Test User",
-          avatar: "https://gravatar.com/avatar/a9fe2e688ec8dd3c68f90e3438da7b3d?s=60&d=retro"
-        }
+  props : ['currentUser'],
 
-      }   
-    }
+  ready () {
+    //console.log("Current User in LiquidoHeader.vue = ", this.currentUser)
   }
 }
 </script>

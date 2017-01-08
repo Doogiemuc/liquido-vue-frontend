@@ -271,7 +271,7 @@ module.exports = class BaseRestClient {
   /**
    * Find one or more items that match the given mongoDB query.
    * Will cache the results.
-   * @param query  e.g. { email: "user@host.com" }
+   * @param query mongo search query e.g. { email: "user@host.com" }
    * @param params (optional) further URL parameters
    * @return a Promise that will resolve to the array of matched items
    */
@@ -285,17 +285,20 @@ module.exports = class BaseRestClient {
       path: { id: '' }
     }
     args.parameters.q = query
+    var logFuncStr = that.options.modelName+".findByQuery(query="+query
+    if (params !== undefined) logFuncStr += ", params="+JSON.stringify(params)
+    logFuncStr += ")"
     return new Promise(function(resolve, reject) {
-      log.debug(that.options.modelName+".findByQuery("+query+") =>")
+      log.debug(logFuncStr+" =>")
       that.client.get(that.options.url, args, function(data, response) {
         if (data.length < 4)
-          log.debug(that.options.modelName+".findByQuery("+query+") <= ", data)
+          log.debug(logFuncStr+" <= ", data)
         else
-          log.debug(that.options.modelName+".findByQuery("+query+") <= Array("+data.length+")")
+          log.debug(logFuncStr+" <= Array("+data.length+")")
         that.cachePut(data)   //put results of query into cache
         resolve(data)
       }).on('error', function (err) {
-        reject('ERROR in BaseRestClient.findByQuery(query='+query+'):', err)
+        reject('ERROR in '+logFuncStr+': ', err)
       })
     })
   }
@@ -417,10 +420,11 @@ module.exports = class BaseRestClient {
    * @return (A promise that will resolve to) a list of populated items
    */
   populateAll(itemArray, path, childService) {
-    //log.debug("ENTER populateAll")
+    log.debug("ENTER populateAll")
     if (!_.isArray(itemArray)) throw new Error("Need array in populateAll()")
+
     //collect ids of not yet populated child items
-    var childIds = []
+    var childIds = []    //TODO:  this should be a Set, that allows only unique entries
     for (var i = itemArray.length; i--; ) {
       var alreadyPopulated = _.has(itemArray[i], path+"."+childService.options.nameOfIdAttr)  // When path._id exists, then the child object is already populated
       if (alreadyPopulated) {
@@ -431,8 +435,9 @@ module.exports = class BaseRestClient {
         childIds.push(childId)
       }
     }
+
     // now fetch all childIds at once
-    log.debug("populateAll: childIds that will be populated: "+childIds)
+    log.debug(this.options.modelName+".populateAll(path="+path+": '"+childService.options.modelName+"' that will be populated: "+childIds)
     return childService.getByIdsAsMap(childIds).then(function(childMap) {
       //log.debug("found childItems", JSON.stringify(childMap, ' ', 2))
       for (var i = itemArray.length; i--; ) {

@@ -1,27 +1,35 @@
   <div class="container">
     <div class="page-header">
-      <h3>Welcome {{user.profile.name}}</h3>
+      <h3>Welcome {{$root.currentUser.profile.name}}</h3>
     </div>
     <div class="row">
+
       <div class="col-sm-6">
-      
+
+<!--
+        <h3>Proposals currently open for voting</h3>
+        <law-view v-for="law in openForVotingProposals" :law="law"></law-view>
+//-->
+        <h3 v-if="recentIdeas">Recently created Ideas</h3>
+        <p>That you might like to discuss further</p>
+        <idea-view v-for="idea in recentIdeas" :idea="idea"></idea-view>
+      </div>
+
+      <div class="col-sm-6">
+        <h3>Ideas and Proposals created by You</h3>
         <div class="panel panel-default">
           <div class="panel-body">
-            <div class="media">
-              <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object"></div>
-              <div class="media-body">
-                <div class="news_heading">John Doe added a new idea.<br>10 minutes ago | Area: Classroom</div>
-              </div>
-            </div>
-            <div>
-              <h3>This is some larger title</h3>
-              <p>Here comes the <b>subtitle</b> for this great idea.</p>
-            </div>
+            <ul>
+              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> My greatest idea</li>
+              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Second idea</li>
+              <li><i class="fa fa-university"></i> My propsal in work (elaboration, 4 alternatives)</li>
+              <li><i class="fa fa-university"></i>My proposal that did it (voting)</li>
+            </ul>
           </div>
-          <div style="text-align: right;" class="panel-footer"><a href="undefined" role="button" class="btn btn-default btn-xs"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> Like to discuss this!</a></div>
         </div>
-      
 
+
+      
         <div class="panel panel-default">
           <div class="panel-body">
       

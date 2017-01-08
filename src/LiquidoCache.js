@@ -44,6 +44,15 @@ var loadPopulatedIdeas = function() {
   })
 }
 
+var loadRecentIdeas = function() {
+  var query  = { }
+  var params = { s : "{ createdAt: 1 }", l : 10 }
+  return ideaService.findByQuery(query, params)
+    .then(ideas1 => { return ideaService.populateAll(ideas1, 'createdBy', userService) })
+    .then(ideas2 => { return ideaService.populateAll(ideas2, 'area', areaService) })
+
+}
+
 //=========================================
 // Public/Exported methods
 //=========================================
@@ -61,6 +70,10 @@ module.exports = {
   fetchAllIdeas: function() {
     return sessionCache.load('populatedIdeas', loadPopulatedIdeas )
       .catch(err => { console.error("ERROR loading ideas in LiquiodoCache: "+err) })
+  },
+
+  fetchRecentIdeas: function() {
+    return sessionCache.load('recentIdeas', loadRecentIdeas)
   },
 
   /** lazy load all users (from cache is possible) */
