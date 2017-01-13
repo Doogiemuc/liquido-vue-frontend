@@ -49,6 +49,7 @@ describe('IdeaService', () => {
         title: 'Idea from test case '+new Date().getTime(),
         description: 'Some dummy description that looks very cool and is long enough',
         createdBy: user._id,
+        //TODO: area:   
         //createdAt and updatedAt timestamps will be set automatically by ideaService
       }
       return ideaService.insertNewItem(newIdea).then(function(createdIdea) {

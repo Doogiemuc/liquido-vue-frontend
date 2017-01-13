@@ -6,13 +6,12 @@
 
       <div class="col-sm-6">
 
-<!--
         <h3>Proposals currently open for voting</h3>
-        <law-view v-for="law in openForVotingProposals" :law="law"></law-view>
-//-->
+        <law-panel v-for="law in openForVotingProposals" :law="law"></law-panel>
+
         <h3 v-if="recentIdeas">Recently created Ideas</h3>
         <p>That you might like to discuss further</p>
-        <idea-view v-for="idea in recentIdeas" :idea="idea"></idea-view>
+        <idea-panel v-for="idea in recentIdeas" :idea="idea"></idea-panel>
       </div>
 
       <div class="col-sm-6">

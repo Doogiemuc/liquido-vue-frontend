@@ -1,5 +1,6 @@
 # Frontend for Liquido written in Vue.js with WebPack
 
+
 ## Architecture
 
 This is a HTML5 frontend for Liquido. It communicates via REST with a RestHeart backend above a mongodb.

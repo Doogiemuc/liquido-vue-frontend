@@ -30,6 +30,8 @@ const usersCollection = api.all('users')                            // http://lo
 const lawsCollection = api.all('laws')
 const openForVotingProposals = api.custom('laws/search/findByStatus?status=VOTING')
 
+//TODO: add global AuthToken:   api.header('AuthToken', 'test');
+
 api.on('error', (error, config) => {
   console.log("ERROR in RestClient.js: ", error)
 })
@@ -82,13 +84,20 @@ module.exports = {
     console.log("POST userURI="+userURI+" to ", supportersCollection.url())
     var params = {}
     var headers = {'Content-Type' : 'text/uri-list'}
-    supportersCollection.post(userURI, params, headers)
+    return supportersCollection.post(userURI, params, headers)
     .catch(err => {
       console.log("ERROR: ", err)
     })
   },
 
-  usersCollection: usersCollection
+  uri2Id: function(uri) {
+    if (typeof uri !== "string") throw "RestClient.uri2Id  needs string!"
+    var matches = uri.match(/http.*\/(\d+)/)   // also matches https!
+    return matches[1]   // first match is whole string, second item in array is number at the end
+  },
+
+  usersCollection: usersCollection,
+  ideasCollection: ideasCollection,
 
 }
 

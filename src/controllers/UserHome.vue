@@ -1,14 +1,14 @@
 <template src="../views/userHome.html"></template>
 
 <script>
-var IdeaView   = require('../components/IdeaView.vue')
-var LawView    = require('../components/LawView.vue')
+var IdeaPanel   = require('../components/IdeaPanel.vue')
+var LawPanel    = require('../components/LawPanel.vue')
 var RestClient = require('../services/RestClient.js')
 
 export default {
   components: {
-    'idea-view' : IdeaView,
-    'law-view' : LawView
+    'idea-panel' : IdeaPanel,
+    'law-panel' : LawPanel
   },
 
   data () {

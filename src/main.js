@@ -29,11 +29,11 @@ router.map({
   '/': {
     component: LiquidoHome
   },
-  /*
   '/login': {
-    component: Login
-  }
-  */
+    component: function(resolve) {
+      require(['./controllers/LoginPage.vue'], resolve)
+    }
+  },
   // asyncronously require components for lazy loading
   '/ideas': {
     component: function(resolve) {
@@ -69,11 +69,13 @@ var currentUser = null;
 // Start the RootApp via vue-router
 var startApp = function() {
   router.start(RootApp, '#app', function() {
+    /*
     if (currentUser) { 
       console.debug("DEVELOPMENT: automatically logged in user: "+currentUser.email)
       router.app.currentUser = currentUser  // This is available in components as this.$root.currentUser
     }
-    console.log("RootApp.vue has started. currentUser = ", router.app.currentUser)
+    */
+    //console.log("RootApp.vue has started,")
     //TODO: router.app.cacheWarmup()
   })
 }
@@ -87,7 +89,6 @@ if (process.env.NODE_ENV == "development") {
 
   //perform automatic login. This MUST be done BEFORE the RootApp is started, because many components need this.
   RestClient.usersCollection.get('1').then(response => {
-    console.log("===== got ", response.body().data())
     currentUser = response.body().data()   // I need to store this is a temporary variable, because RootApp is not instantiated yet here.
   })
   .then(startApp)

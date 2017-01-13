@@ -5,7 +5,7 @@
           <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object"></div>
           <div class="media-body">
             <div class="news_heading">
-              <i class="pull-right fa fa-university-o lawIcon" aria-hidden="true"></i>
+            <i class="pull-right fa fa-university lawIcon grey" aria-hidden="true"></i>
               {{law.createdBy.profile.name}} <br>{{getFromNow(law.createdAt)}} | <span class="glyphicon glyphicon-inbox" aria-hidden="true"></span> {{law.area.title}}
             </div>
           </div>
