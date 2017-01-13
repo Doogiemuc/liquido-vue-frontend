@@ -1,21 +1,23 @@
 <template>
-  
-  <div class="alert alert-danger" v-if="error.msg">
-      There was a problem logging in. Please try again.
+  <div class="container">
+    <h1>Liquido User Login</h1>
+
+    <div class="alert alert-danger" v-if="errorMsg">
+        {{errorMsg}}
+    </div>
+
+    <form role="form">
+      <div class="form-group">
+          <label for="username">Email:</label> <input type="text"
+              class="form-control" id="email" name="email" v-model="email">
+      </div>
+      <div class="form-group">
+          <label for="password">Password:</label> <input type="password"
+              class="form-control" id="password" name="password" v-model="password"/>
+      </div>
+      <button type="submit" @click.prevent="doLogin()" class="btn btn-primary">Submit</button>
+    </form>
   </div>
-
-  <form role="form">
-    <div class="form-group">
-        <label for="username">Username:</label> <input type="text"
-            class="form-control" id="username" name="username" ng-model="controller.credentials.username"/>
-    </div>
-    <div class="form-group">
-        <label for="password">Password:</label> <input type="password"
-            class="form-control" id="password" name="password" ng-model="controller.credentials.password"/>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
-
 </template>
 
 /**
@@ -23,16 +25,21 @@
  */
 <script>
 
+import loglevel from 'loglevel'
+var log = loglevel.getLogger('LoginPage.vue');
+
 export default {
   data () {
     return {
-      
+      errorMsg: '',
+      email: '',
+      password: ''
     }
   },
 
   methods: {
-    doLogin: function(username, password) {
-      
+    doLogin: function() {
+      log.debug("doLogin(", this.email, this.password)
     },
 
   },
@@ -42,9 +49,5 @@ export default {
 </script>
 
 <style>
-/*=== 3. Text Outside the Box ===*/
-.etc-login-form {
-  color: #919191;
-  padding: 10px 20px;
-}
+
 </style>

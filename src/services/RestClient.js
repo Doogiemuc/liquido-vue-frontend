@@ -23,17 +23,19 @@
 import 'whatwg-fetch'
 import restful, { fetchBackend } from 'restful.js'
 
-const api = restful('http://localhost:8090/liquido/v2', fetchBackend(fetch));     //TODO:  move base URL to confi
+const api = restful(process.env.backendBaseURL, fetchBackend(fetch));   
+
+
+const ping = api.custom('_ping')
 const ideasCollection = api.all('ideas')     						            // http://localhost/liquido/v2/ideas
 const recentIdeas = api.custom('ideas/search/recentIdeas')	        // http://localhost/liquido/v2/ideas/recentIdeas
 const usersCollection = api.all('users')                            // http://localhost/liquido/v2/users
 const lawsCollection = api.all('laws')
 const openForVotingProposals = api.custom('laws/search/findByStatus?status=VOTING')
 
-//TODO: add global AuthToken:   api.header('AuthToken', 'test');
 
 api.on('error', (error, config) => {
-  console.log("ERROR in RestClient.js: ", error)
+ console.error("ERROR in RestClient.js: ", config.method, config.url, error)
 })
 
 var stripBasePath = function(URI) {
@@ -96,6 +98,17 @@ module.exports = {
     return matches[1]   // first match is whole string, second item in array is number at the end
   },
 
+  // Do very simple http basic auth
+  setLogin: function(username, password) {
+    var authStr = "Basic " + new Buffer(username+":"+password).toString('base64')
+    api.header('Authorization', authStr);
+  },
+
+  logout: function() {
+    api.header('Authorization', undefined)
+  },
+
+  ping: ping,
   usersCollection: usersCollection,
   ideasCollection: ideasCollection,
 
