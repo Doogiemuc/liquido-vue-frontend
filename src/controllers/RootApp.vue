@@ -7,7 +7,7 @@
 
 <script>
 /**
- * RootApp - Vue component at the root of the componente tree.
+ * RootApp.vue - Vue component at the root of the componente tree.
  * It is available to every sub component as this.$root
  */
 

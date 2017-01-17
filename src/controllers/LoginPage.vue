@@ -39,7 +39,7 @@ export default {
 
   methods: {
     doLogin: function() {
-      log.debug("doLogin(", this.email, this.password)
+      RestClient.login(this.username, this.password)
     },
 
   },
