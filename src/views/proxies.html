@@ -12,15 +12,15 @@
         <td>{{area.title}} - {{area.description}}</h3></td>
         <td v-if="proxyMap[getAreaId(area)]">
           <img v-bind:src="proxyMap[getAreaId(area)].profile.picture" />&nbsp;{{getProxyName(area)}}
-          <a v-link="{ path: 'editProxy', query: { areaId: getAreaId(area) }}">
+          <router-link to="{ path: 'editProxy', query: { areaId: getAreaId(area) }}">
             <span class="glyphicon glyphicon-edit text-primary pull-right" aria-hidden="true"></span>
-          </a>
+          </router-link>
         </td>
         <td v-else>
           <span class="grey">---</span>
-          <a v-link="{ path: 'editProxy', query: { areaId: area._id.$oid }}">
+          <router-link to="{ path: 'editProxy', query: { areaId: getAreaId(area) }}">
             <span class="glyphicon glyphicon-edit text-primary pull-right" aria-hidden="true"></span>
-          </a>
+          </router-link>
         </td>
       </tr>
     </tbody>

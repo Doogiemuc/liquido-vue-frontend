@@ -10,30 +10,26 @@
       <h2>Laws</h2>
       <ul>
         <li v-for="law in laws">{{ law.title }} ({{ law.id}})<br>
-          <a href="/showLaw?lawId={{law.id}}">Show</a> |
-          <a href="/editLaw?lawId={{law.id}}">Edit</a> |
-          <a href="/showVote?lawId={{law.id}}">Vote</a>
+          <router-link :to="{ path: '/showLaw', query: { lawId: law.id }}">Show</router-link> |
+          <router-link :to="{ path: '/editLaw', query: { lawId: law.id }}">Edit</router-link> |
+          <router-link :to="{ path: '/castVote', query: { lawId: law.id }}">Cast Vote</router-link>
         </li>
         <li v-if="laws.length == 0">
           No laws yet ...
         </li>
       </ul>
-      <p><a v-link="'/createNewLaw'" role="button" class="btn btn-default">Create new law</a></p>
-
+      <p><router-link to="/createNewLaw" role="button" class="btn btn-default">Create new law</router-link></p>
     </div>
 
     <div class="col-sm-6">
       <h2>Your proxies</h2>
       <p>A proxy is someone you trust. You can delegate your vote to this person, so that he can vote for you in one area.</p>
-      <p><a v-link="'/proxies'" role="button" class="btn btn-default">Show proxies »</a></p>
+      <p><router-link to="/proxies" role="button" class="btn btn-default">Show proxies &raqu;</router-link></p>
 
       <h2>Heading</h2>
       <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
       <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
 
-      <h2>Heading</h2>
-      <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
-      <p><a href="#" role="button" class="btn btn-default">View details »</a></p>
     </div>
   </div>
 </div>

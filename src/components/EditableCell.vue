@@ -1,7 +1,9 @@
 
 <template>
-  <span id="{{cellId}}">{{value}}</span>
-  <span class="glyphicon glyphicon-edit pull-right invisible" style="cursor:pointer" @click="startEdit"></span>
+  <div>
+    <span v-bind:id="cellId">{{value}}</span>
+    <span class="glyphicon glyphicon-edit pull-right invisible" style="cursor:pointer" @click="startEdit"></span>
+  </div>
 </template>
 
 <script>
@@ -18,12 +20,12 @@ export default {
     // this is called when the user clicks on the save icon in the x-editable popup
     // Here in the editable-cell we will update our local value and update the path in the row object.
     // Since this is a reference into our parents rowData, this will automatically be up to date.
-    // At last we dispatch an event that will bubble up to our parent table component.
+    // At last we emit an event that will bubble up to our parent table component.
     // We will not do any database updates here. This is the responsibility of the parent component.
     saveNewValue: function(params) {
       this.value = params.value
       Vue.parsers.path.setPath(this.row, this.path, this.value)  // set value in row object (this will also update parent rowdata!)
-      this.$dispatch('saveNewValue', this.rowId, this.path, this.value)
+      this.$emit('saveNewValue', this.rowId, this.path, this.value)
     }
   },
 
@@ -40,7 +42,7 @@ export default {
     }
   },
 
-  ready () {
+  mounted () {
     //console.log("cell is ready:", this.row, this.rowId, this.path, '"'+this.value+'"');
     $("#"+this.cellId).editable( {
       send: 'never',

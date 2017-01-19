@@ -14,7 +14,7 @@
         </div>
         <div class="form-group">
           <span v-form-ctrl="idea.description" name="ideaDescription" required minlength="20">
-            <tinymce v-ref:idea-description-editor name="ideaDescription" textarea-id="ideaDescriptionEditor" value="Describe what your idea will improve ..."></tinymce>
+            <tinymce ref:idea-description-editor name="ideaDescription" textarea-id="ideaDescriptionEditor" value="Describe what your idea will improve ..."></tinymce>
           </span>
           <p class="form-error-msg" v-bind:class="toggleErrorMsg(createNewIdeaForm.ideaDescription)">Please provide a description of your idea (at least 20 chars)</p>
         </div>

@@ -1,6 +1,6 @@
 
 <template>
-  <textarea :id="textareaId" placeholder="{{value}}"></textarea>
+  k<textarea :id="textareaId" v-bind:placeholder="value"></textarea>
 </template>
 
 <script>
@@ -35,13 +35,13 @@ export default {
     }
   },
 
-  ready () {
-    console.log("TinyMceComponent.ready() id="+this.textareaId)
+  mounted () {
+    console.log("TinyMceComponent.mounted() id="+this.textareaId)
     var that = this
 
     var updateContent = function(evt) {
       //console.log("Updating content to "+this.getContent()+" and sending event")
-      that.$dispatch('update-content', this.getContent());
+      that.$emit('update-content', this.getContent());
     }
 
     this.tinyMceConfig.selector = '#' + this.textareaId
@@ -50,7 +50,7 @@ export default {
 
     }
 
-    //MAYBE: wrap tinymce.init() in this.$nextTick(function() { ... })   but seems to work like this atm.
+    //TODO: Do I need to wrap tinymce.init() in this.$nextTick(function() { ... }) ? But seems to work like this atm.
     tinymce.init(this.tinyMceConfig)
     .then(editors => {
       //console.log("Loading tinymce plugin placeholder") // Need to dynamically load this plugin from local, not from tinymce CDN.

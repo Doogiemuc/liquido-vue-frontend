@@ -32,6 +32,8 @@ exports.stopHttpServer = function() {
 	log.debug("Mock backend: http server stopped.")
 }
 
+var apiBasePath = '/liquido/v2'
+
 var RouteManager ={
 	"findRoute":function(req,res){
 		var handler
@@ -50,58 +52,64 @@ var RouteManager ={
     }
 	},
 	// regular expression matching for dummy URL routes
-	"routes":{
-		  // DelegationService.jasmine.spec.js   getNumVotes  => always return 5  for any userId and areaId
-		  '/users/[a-f0-9]{24}/getNumVotes\\?areaId=[a-f0-9]{24}': function(req, res) {
-		  	var message = '5';
-		  	log.debug("<= MockLiquidoBackend: "+message)
+	"routes": {
+		// main.js => isAlive
+		apiBasePath+'/_ping': function(req, res) {
+			log.debug("<= _ping")
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			res.end("{\"Hello\":\"World\"}");
+		},
+	  // DelegationService.jasmine.spec.js   getNumVotes  => always return 5  for any userId and areaId
+	  '/users/[a-f0-9]{24}/getNumVotes\\?areaId=[a-f0-9]{24}': function(req, res) {
+	  	var message = '5';
+	  	log.debug("<= MockLiquidoBackend: "+message)
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end('5');
-		  },
-		  /*
-			"/json":function(req,res){
-				//this.sleep(5000);
-				var message = fs.readFileSync('./message.json','utf8');
+	  },
+	  /*
+		"/json":function(req,res){
+			//this.sleep(5000);
+			var message = fs.readFileSync('./message.json','utf8');
+			res.writeHead(200, {'Content-Type': 'application/json'});
+			res.write(message.toString());
+			res.end();
+		},
+		"/xml":function(req,res){
+			var message = fs.readFileSync('./message.xml','utf8');
+			res.writeHead(200, {'Content-Type': 'application/xml'});
+			res.write(message.toString());
+			res.end();
+		},
+		"/120/json?arg1=hello&arg2=world":function(req,res){
+				if (!req.headers["test-header"]) throw "no test-header found!!";
+				res.setHeader("test-response-header",req.headers["test-header"]);
+				this.routes["/json"](req,res);
+		},
+		"/json?post":function(req,res){
+			req.on('data',function(data){
+				console.log("[SERVER] data = ", data);
 				res.writeHead(200, {'Content-Type': 'application/json'});
-				res.write(message.toString());
+				//res.writeHead(200, {'Content-Type': 'text/plain'});
+				res.write(data.toString());
 				res.end();
-			},
-			"/xml":function(req,res){
-				var message = fs.readFileSync('./message.xml','utf8');
-				res.writeHead(200, {'Content-Type': 'application/xml'});
-				res.write(message.toString());
-				res.end();
-			},
-			"/120/json?arg1=hello&arg2=world":function(req,res){
-					if (!req.headers["test-header"]) throw "no test-header found!!";
-					res.setHeader("test-response-header",req.headers["test-header"]);
-					this.routes["/json"](req,res);
-			},
-			"/json?post":function(req,res){
-				req.on('data',function(data){
-					console.log("[SERVER] data = ", data);
-					res.writeHead(200, {'Content-Type': 'application/json'});
-					//res.writeHead(200, {'Content-Type': 'text/plain'});
-					res.write(data.toString());
-					res.end();
-				});
+			});
 
-			},
-			"/json/empty":function(req,res){
-				res.writeHead(204, {'Content-Type': 'application/json'});
-				res.end();
-			},
-			"/xml/empty":function(req,res){
-				res.writeHead(204, {'Content-Type': 'application/xml'});
-				res.end();
-			},
-			"/json/contenttypewithspace":function(req,res){
-				var message = fs.readFileSync('./message.json','utf8');
-				res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-				res.write(message.toString());
-				res.end();
-			}
-			*/
+		},
+		"/json/empty":function(req,res){
+			res.writeHead(204, {'Content-Type': 'application/json'});
+			res.end();
+		},
+		"/xml/empty":function(req,res){
+			res.writeHead(204, {'Content-Type': 'application/xml'});
+			res.end();
+		},
+		"/json/contenttypewithspace":function(req,res){
+			var message = fs.readFileSync('./message.json','utf8');
+			res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+			res.write(message.toString());
+			res.end();
+		}
+		*/
 	},
 	"sleep":function(ms){
 

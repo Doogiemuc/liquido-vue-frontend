@@ -6,6 +6,9 @@
  * Planned feature: Let keys automatically expire
  */
 
+
+//TODO: check https://www.npmjs.com/package/apicache  as alternative
+
 import _ from 'lodash'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger("SessionCache");

@@ -46,7 +46,7 @@ export default {
           type: "success"
         },
         function () {
-          that.$router.go('/userHome')
+          that.$router.push('/userHome')
         })
       }).catch(err => {
         console.error(err)
@@ -63,14 +63,6 @@ export default {
       this.createNewIdeaForm.ideaDescription.$touched = true
     }
   },
-
-  ready () {
-    //console.log("CreateNewIdea.vue: ready")
-  },
-
-  beforeDestroy: function() {
-    //console.log("CreateNewIdea.vue: beforeDestory")
-  }
 
 }
 </script>

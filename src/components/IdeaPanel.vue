@@ -18,7 +18,7 @@
         </div>
       </div>
       <div style="text-align: right;" class="panel-footer">
-        supported={{idea.supportedByCurrentUser?"true":"false"}}
+        supportedByCurrentUser: {{idea.supportedByCurrentUser?"true":"false"}}
         <span v-bind:class="{ 'green' : idea.supportedByCurrentUser }" >
           <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
           &nbsp;

@@ -44,12 +44,8 @@ export default {
     },
     'addButtonClicked': function() {
       console.log('addButtonClicked in Ideas.vue')
-      this.$router.go('/createNewIdea')
+      this.$router.push('/createNewIdea')
     },
-  },
-
-  init () {
-    console.log("====== Ideas.vue: init")
   },
 
   created () {
@@ -64,13 +60,8 @@ export default {
     })
   },
 
-  compiled () {
-
-  },
-
-  ready () {
-
-    console.log("Ideas.ready()")
+  mounted () {
+    console.log("Ideas.mounted()")
     this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
   }
 

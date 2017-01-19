@@ -7,9 +7,7 @@
 
 <script>
 
-var areaService = require('../services/AreaService.js')
-//var userService = require('../services/UserService.js')
-//var delegationService = require('../services/DelegationService.js')
+import apiClient from '../services/LiquidoApiClient'
 
 export default {
   data () {
@@ -27,14 +25,16 @@ export default {
     },
 
     getAreaId: function(area) {
-      return areaService.getId(area)
+      return area.id
     },
 
   },
  
-  compiled () {
-    this.$root.liquidoCache.fetchAllAreas().then(areas => { this.areas = areas })
-    this.$root.liquidoCache.fetchProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
+  mounted () {
+    apiClient.fetchAllAreas().then(areas => { this.areas = areas })
+
+
+    //this.$root.liquidoCache.fetchProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
   }
 
 }

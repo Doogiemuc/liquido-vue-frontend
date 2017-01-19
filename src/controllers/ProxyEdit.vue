@@ -101,8 +101,8 @@ export default {
    *  - the proxy map of the currenlty logged in useer
    * from remote source of from caches if possible.
    */
-  compiled () {
-    log.trace('ProxyEdit.vue: compiled')
+  mounted () {
+    log.trace('ProxyEdit.vue: mounted')
     //TODO: checkMandatoryQueryParam('areaId', 'Missing mandatory URL parameter areaId', /proxies')  // will redirect to proxies page if query param areaId is not set
     var areaId = this.$route.query.areaId
     if (areaId == undefined || areaId == null) {

@@ -11,7 +11,8 @@
  * It is available to every sub component as this.$root
  */
 
-import LiquidoCache from '../LiquidoCache'
+import LiquidoHeader from '../components/LiquidoHeader'
+import LiquidoApiClient from '../services/LiquidoApiClient'
 
 //=========================================
 // Module private methods
@@ -25,10 +26,12 @@ import LiquidoCache from '../LiquidoCache'
 export default {
   data () {
     return {
-      liquidoCache: LiquidoCache, // global session cache, available to all components as this.$root.liquidoCache
+      liquidoApiClient: LiquidoApiClient, // global session cache, available to all components as this.$root.liquidoCache
       currentUser: null,          // currently logged in user,  passes as a prop to LquidoHeader
     }
   },
+
+  components: { LiquidoHeader }
 
   //TODO: make RootApp testable on its own:   components : { "liquido-header": LiquidoHeader }    Problem: How to hanlde <router-view> ?
 }

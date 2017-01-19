@@ -2,7 +2,6 @@
  Rest client for our HATEAOS REST API
  
  https://github.com/marmelab/restful.js
- 
  Restful.js thinks in Collections -> Members -> Entities -> Body -> Data
  
   var lawCollection = api.all("laws")
@@ -23,16 +22,21 @@
 import 'whatwg-fetch'
 import restful, { fetchBackend } from 'restful.js'
 
+console.log("=== Initializing RestClient.js (This should only happen once!)")
+
+if (process.env.backendBaseURL == undefined) {
+  throw new Error("process.env.backendBaseURL must be defined!")
+}
+
 const api = restful(process.env.backendBaseURL, fetchBackend(fetch));   
 
-
 const ping = api.custom('_ping')
+const areasCollection = api.all('areas')
 const ideasCollection = api.all('ideas')     						            // http://localhost/liquido/v2/ideas
 const recentIdeas = api.custom('ideas/search/recentIdeas')	        // http://localhost/liquido/v2/ideas/recentIdeas
 const usersCollection = api.all('users')                            // http://localhost/liquido/v2/users
 const lawsCollection = api.all('laws')
 const openForVotingProposals = api.custom('laws/search/findByStatus?status=VOTING')
-
 
 api.on('error', (error, config) => {
  console.error("ERROR in RestClient.js: ", config.method, config.url, error)
@@ -47,6 +51,18 @@ var stripBasePath = function(URI) {
 }
 
 module.exports = {
+  getAllAreas: function() {
+    return areasCollection.getAll().then(response => {
+      return response.body().data()._embedded.areas
+    })
+  },
+
+  getUserById: function(id) {
+    return usersCollection.get(id).then(response => {
+      return response.body().data()
+    })
+  },
+
   // get the 10 monst recently updated ideas
   getRecentIdeas: function() {
     return recentIdeas.get().then(response => {
@@ -92,6 +108,15 @@ module.exports = {
     })
   },
 
+  getProxyMap: function(user) {
+    var endpoint = api.custom(user._links.self.href + '/getProxyMap')   // api.custom supports absolute URIs
+    return endpoint.get().then(response => {
+      var proxyMap = response.body().data()
+      console.log("RestClient.getProxyMap(user="+user.email+"): ", proxyMap)
+      return proxyMap
+    })
+  },
+
   uri2Id: function(uri) {
     if (typeof uri !== "string") throw "RestClient.uri2Id  needs string!"
     var matches = uri.match(/http.*\/(\d+)/)   // also matches https!
@@ -109,8 +134,7 @@ module.exports = {
   },
 
   ping: ping,
-  usersCollection: usersCollection,
-  ideasCollection: ideasCollection,
+
 
 }
 

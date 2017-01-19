@@ -1,19 +1,17 @@
 /**
   Localizable boostrap table with sorting, filtering and paging.
-  You can pass in data directly as an array of rows or pass a vue-resource.
 
   Features:
-    - RowData can be local or loaded from remote REST resource
-    - The data of each row can be an object
-    - Cell values can be converted from the source object before shown in a cell
+    - Each row is represented by one object. The keys can have any format.
+    - Cell values can be converted from the source object before shown in a cell.
     - Sortable by each column
     - Optional Row numbers
     - Search/Filter input (client side filtering!)
-    - localisatzion support
+    - Localisatzion support
 
   Usage:
   <doogie-table
-    :resource="vue-resource-rest-service"
+    :rowData="dataArray"
     :columns="columnsArray"
     :primary-key-for-row="nameOrPathOfprimaryKeyAttribute"
     :show-add-button="true"
@@ -24,10 +22,8 @@
 
 <template>
   <div id="DoogieTableWrapper">
-    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     <div v-if="positionOfSearch=='top'" id="searchDiv">
-      <input name="query" v-model="searchQuery" placeholder="{{localizedTexts.searchFilter}}"/>
+      <input name="query" v-model="searchQuery" v-bind:placeholder="localizedTexts.searchFilter"/>
     </div>
     <table class="table table-condensed table-bordered table-hover doogie-table">
       <thead>
@@ -44,20 +40,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!loading && (rowData == undefined || rowData.length == 0)">
-          <td colspan="{{columns.length + (showRowNumbers ? 1 : 0)}}">{{localizedTexts.emptyData}}</td>
+        <tr v-if="rowData == undefined || rowData.length == 0">
+          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.emptyData}}</td>
         </tr>
-        <tr v-if="loading">
-          <td colspan="{{columns.length + (showRowNumbers ? 1 : 0)}}">{{localizedTexts.loadingText}} {{resourceError}}</td>
+        <tr v-if="message">
+          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
         </tr>
-        <tr v-else="loading" @click="rowClicked(row)"
-            v-for="row in rowData
-                    | orderBy comparator sortOrder
-                    | filterBy searchQuery
-                    | paginationFilter">
+        <tr v-for="(row, index) in getRowDataForCurrentPage()" @click="rowClicked(row)">
           <th v-if="showRowNumbers">
-            {{page*rowsPerPage + $index + 1}}
-          </td>
+            {{page*rowsPerPage + index + 1}}
+          </th>
           <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}">
             <editable-cell v-if="col.editable"
               :row="row"
@@ -66,40 +58,37 @@
               :value="getPath(row, col.path)" >
             </editable-cell>
             <span v-if="!col.editable && !col.rawHTML">
-              {{ getPath(row, col.path) | applyFilter col.filter }}
+              {{ getFilteredCellValue(row, col.path, col.filter) }}
             </span>
-            <span v-if="!col.editable && col.rawHTML">
-              {{{ getPath(row, col.path) | applyFilter col.filter }}}
-            </span>
+            <span v-if="!col.editable && col.rawHTML" v-html="getFilteredCellValue(row, col.path, col.filter)"></span>
           </td>
         </tr>
       </tbody>
     </table>
     <div class="row">
       <div v-if="positionOfSearch=='bottom'" id="searchDiv" class="col-sm-2 text-left">
-        <input name="query" v-model="searchQuery" placeholder="{{localizedTexts.searchFilter}}"/>
+        <input name="query" v-model="searchQuery" v-bind:placeholder="localizedTexts.searchFilter"/>
       </div>
       <!-- pager for doogie table -->
       <div class="col-sm-8 text-center">
-        <nav v-if="lastPageIndex > 0">
+        <nav v-if="lastPageIndex() > 0">
           <ul class="pagination">
-            <li v-if="page-adjacentPages >= 1">
+            <li v-bind:class="isActivePage(0)?'active':''">
               <a href="#" @click.prevent="page = 0">1</a>
             </li>
             <li class="disabled" v-if="page-adjacentPages > 1">
-              <a href="#" class="narrowEllipsis">...</a>
+              <a href="#" @click.prevent class="narrowEllipsis">...</a>
             </li>
             <li
               v-for="pageIndex in currentPages"
-              v-if="pageIndex <= lastPageIndex"
               v-bind:class="isActivePage(pageIndex)?'active':''">
               <a href="#" @click.prevent="page = pageIndex">{{pageIndex+1}}</a>
             </li>
-            <li class="disabled" v-if="page+adjacentPages < lastPageIndex-1">
-              <a href="#" class="narrowEllipsis">...</a>
+            <li class="disabled" v-if="page+adjacentPages < lastPageIndex()-1">
+              <a href="#" @click.prevent class="narrowEllipsis">...</a>
             </li>
-            <li v-if="page+adjacentPages < lastPageIndex">
-              <a href="#" @click.prevent="page = lastPageIndex">{{lastPageIndex+1}}</a>
+            <li v-bind:class="isActivePage(lastPageIndex())?'active':''">
+              <a href="#" @click.prevent="page = lastPageIndex()">{{lastPageIndex()+1}}</a>
             </li>
           </ul>
         </nav>
@@ -126,18 +115,11 @@ export default {
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
     columns: { type: Array, required: true },
 
-    // vue-resource for fetching data. columns.path  must match the returned Object structure
-    resource: { type: Object, required: false },
+    // raw rowData, that will then be filtered and sorted
+    rowData: { type: Array, required: true, default: function() { return [] } },
 
-    // raw rowData for client only table
-    // You MUST set either resource or rowData !
-    rowData: { type: Array, required: false, default: function(){return null} },
-
-    // which path in resource data is the primary key for each row (rowID)
+    // which path in rowData is the primary key for each row (rowID)
     primaryKeyForRow: { type: String, required: true },
-
-    // shows a loading text
-    loading: false,
 
     // text snippets that can be localized
     localizedTexts: {
@@ -145,7 +127,6 @@ export default {
       required: false,
       default: function() {    //TODO: merge with what has been passed
         return {
-          loadingText: 'Loading data ...',
           emptyData: 'Empty data',
           searchFilter: 'Search/Filter',
           addButton: 'Add'
@@ -178,7 +159,7 @@ export default {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,
       page: 0,                         // currently shown page. 0 is first page!
-      resourceError: '',
+      message: '',                     // message shown in the first row, e.g "loading" or for error messages
       selectedRow: null
     }
   },
@@ -188,19 +169,17 @@ export default {
   },
 
   computed: {
-    // array of current page indexes that are shown in the pagination component
+    // Array of current page indexes that are shown in the middle of the pagination component
+    // (A field with first and last page is always shown at the very left and right of my pager.)
     currentPages() {
-      var firstPageInPager = Math.max(0, this.page - this.adjacentPages)
-      var result = new Array(this.adjacentPages*2 + 1)
-      for (var i = result.length; i--; ) {
-        result[i] = firstPageInPager + i
+      var firstIndexInPager = Math.max(1, this.page - this.adjacentPages)
+      var lastIndexInPager  = Math.min(this.lastPageIndex()-1, this.page + this.adjacentPages)
+      var len = lastIndexInPager - firstIndexInPager + 1
+      var result = new Array()
+      for (var i = len-1; i >= 0; i--) {
+        result[i] = firstIndexInPager + i
       }
       return result
-    },
-    // index of last page (after applying filter)
-    lastPageIndex() {
-      var filteredRowData = Vue.filter('filterBy')(this.rowData, this.searchQuery)
-      return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
     },
   },
 
@@ -216,6 +195,14 @@ export default {
       this.sortOrder = this.sortOrder * -1
     },
 
+    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
+    comparator(row1,row2) {
+      if (!this.sortByCol) return 0;
+      var val1 = _.get(row1, this.sortByCol.path)
+      var val2 = _.get(row2, this.sortByCol.path)
+      return val1.localeCompare(val2, 'lookup', { numeric: true } ) * this.sortOrder // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+    },
+
     // called when header is clicked: Will sort by this column and invert sort order on subsequent clicks
     clickHeader(col) {
       this.setSortCol(col)
@@ -227,71 +214,52 @@ export default {
       return row == this.selectedRow
     },
 
-    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
-    comparator(row1,row2) {
-      if (!this.sortByCol) return 0;
-      var val1 = _.get(row1, this.sortByCol.path)
-      var val2 = _.get(row2, this.sortByCol.path)
-      return val1.localeCompare(val2, 'lookup', { numeric: true } )  // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+    // index of last page (after applying filter)
+    lastPageIndex() {
+      var filteredRowData = this.getFilteredRowData()
+      return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
     },
 
-    // pick the Vue utility function 'getPath' and make it available in our template above
-    getPath: Vue.parsers.path.getPath,
-
-    // get filtered data (needed in pagination child component)
-    getFilteredData() {
-      return Vue.filter('filterBy')(this.rowData, this.searchQuery)
-    },
-
-    // highlights current page in pagination
-    isActivePage(index) {
-      return index == this.page
-    },
-
-    // dispatch event when a row was clicked
-    rowClicked(row) {
-      if (this.selectableRows) {
-        this.selectedRow = row
-      }
-      this.$dispatch('rowClicked', row)
-    },
-
-    //dispatch an event so that the parent component can for example show a popup where the new entry can be created.
-    addRow() {
-      this.$dispatch('addButtonClicked')
-    },
-
-    hasRemoteData() {
-      return this.resource && _.isFunction(this.resource.get)
-    },
-
-    // Load rowData from restEndpoint
-    reload() {
-      this.loading = true
-      this.resourceError = ''
-      var params = {}  //for example { q: "{ title: { $regex: 'idea', $options: 'i' }}" }  for a search query
-      //console.log("DoogieTable: sending request to resource")
-      this.resource.get(params).then((response) => {
-        //console.log("DoogieTable: got data from resource: ", response.json())
-        this.rowData = response.json();
-        this.loading = false
-        this.$nextTick(function() {
-          this.$dispatch('DoogieTable:dataLoaded', this.rowData)    // dispatch event to parent component
+    // Get filtered row data (if any searchQuery is set).
+    // Matches on the cell values as the user sees them!
+    // adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
+    // and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
+    getFilteredRowData() {
+      if (this.rowData == undefined) return []
+      if (this.searchQuery == undefined || this.searchQuery == '') return this.rowData
+      var result = this.rowData
+      var that = this
+      var filterKey = this.searchQuery.toLowerCase()
+      result = result.filter(function (row) {
+        return that.columns.some(function(col) {
+          var cellValue = that.getFilteredCellValue(row, col.path, col.filter)
+          return cellValue.toLowerCase().indexOf(filterKey) > -1
         })
-      }, (err) => {
-        console.error(err)
-        this.resourceError = 'ERROR while loading'
       })
-    }
-  },
-
-  filters: {
-    // this filter returns only the data for the current page
-    paginationFilter(data) {
-      return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
+      //console.log("getFilteredRowData: ", result)      
+      return result
     },
 
-    // applies a filter/conversion to val given by filterName from this component or any of its parents
+    // get filtered and sorted row data for current page only
+    getRowDataForCurrentPage() {
+      // apply filter (if any)
+      var result = this.getFilteredRowData()
+      // sort
+      if (this.sortByCol) {
+        result = result.slice().sort(this.comparator)   // need to make a copy of the array!
+      }
+      // slice out data for current page only
+      result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
+      return result
+    },
+
+    // get a cell value filtered by the filter with the give name
+    getFilteredCellValue(row, path, colFilter) {
+      var cellValue = this.getPath(row, path)
+      return this.applyFilter(cellValue, colFilter)
+    },
+
+    // applies a filter/conversion given by 'filterName' to 'val' from this component or any of its parents
     applyFilter(val, filterName) {
       if (!filterName) return val;
       var filterFunc = undefined, vueComp = this
@@ -304,6 +272,35 @@ export default {
         vueComp = vueComp.$parent
       }
       return val
+    },
+
+    // pick the lodash utility function 'get path in object' and make it available in our template
+    getPath: _.get,
+
+    // highlights current page in pagination
+    isActivePage(index) {
+      return index == this.page
+    },
+
+    // emit event when a row was clicked
+    rowClicked(row) {
+      if (this.selectableRows) {
+        this.selectedRow = row
+      }
+      this.$emit('rowClicked', row)
+    },
+
+    //emit an event so that the parent component can for example show a popup where the new entry can be created.
+    addRow() {
+      this.$emit('addRow')
+    },
+
+  },
+
+  filters: {
+    // this filter returns only the data for the current page
+    paginationFilter(data) {
+      return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
     },
 
     // returns a localized version of dateValue, e.g. 15.03.2016 for DE-DE
@@ -320,34 +317,12 @@ export default {
   events: {
     // This event is fired by editable-cell when a cell's value has been edited.
     // The value in rowData has already been synced.
-    // Here we update the value in the remote DB (if there is any remote resource).
     'saveNewValue': function(rowId, key, value) {
-      //console.log("saveNewValue event in DoogieTable:", rowId, "#"+key+"#", value);
-      if (this.hasRemoteData()) {
-        var updateOp = { "$set" : {} }
-        updateOp["$set"][key] = value
-        this.resource.update({id: rowId}, updateOp)
-        .then((response) => {
-          if (response.status == 200) {
-            console.log("saved new value '"+value+"' successfully to DB in rowId="+rowId)
-          } else {
-            console.error("Could not save new value: ", response)
-          }
-        })
-      }
+      console.log("saveNewValue event in DoogieTable:", rowId, "#"+key+"#", value);
       return true  // let the event bubble further up
     }
   },
 
-  ready () {
-    if (this.resource === undefined && this.rowData == null) {
-      console.warn("You did not pass any data into DoogieTable. You must either set the 'resource' or the 'rowData' property.")
-      this.rowData = [];
-    }
-    if (this.hasRemoteData()) {
-      this.reload()
-    }
-  }
 
 }
 </script>

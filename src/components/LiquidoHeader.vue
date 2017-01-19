@@ -9,15 +9,15 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a v-link="'/'" class="navbar-brand"><i class="fa fa-university"></i> Liquido</a>
+      <router-link to="/" class="navbar-brand"><i class="fa fa-university"></i> Liquido</router-link>
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li><a v-link="{ path: '/userHome' }">UserHome</a>
-        <li><a v-link="{ path: '/areas' }">Areas</a>
-        <li><a v-link="{ path: '/ideas' }">Ideas</a>
-        <li><a v-link="'/createNewIdea'">Add Idea</a></li>
-        <li><a v-link="{ path: '/laws' }">Laws</a>
+        <li><router-link to="/userHome">UserHome</router-link></li>
+        <li><router-link to="/areas">Areas</router-link></li>
+        <li><router-link to="/ideas">Ideas</router-link></li>
+        <li><router-link to="/createNewIdea">Add Idea</router-link></li>
+        <li><router-link to="/laws">Laws</router-link></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right" v-if="currentUser">
@@ -27,16 +27,16 @@
             {{currentUser.profile.name}}<i class="caret"></i>
           </a>
           <ul class="dropdown-menu">
-            <li><a v-link="'proxies'">My Proxies</a></li>
-            <li><a v-link="'account'">My Account</a></li>
+            <li><router-link to="/proxies">My Proxies</router-link></li>
+            <li><router-link to="/account">My Account</router-link></li>
             <li class="divider"></li>
-            <li><a v-link="'logout'">Logout</a></li>
+            <li><router-link to="/logout'">Logout</router-link></li>
           </ul>
         </li>
       </ul>
       <ul class="nav navbar-nav navbar-right" v-else="currentUser">
-        <li><a v-link="'login'">Login</a></li>
-        <li><a v-link="'signup'">Create Account</a></li>
+        <li><router-link to="/login">Login</router-link></li>
+        <li><router-link to="/signup">Create Account</router-link></li>
       </ul>
     </div>
   </div>
@@ -48,8 +48,8 @@
 export default {
   props : ['currentUser'],
 
-  ready () {
-    //console.log("Current User in LiquidoHeader.vue = ", this.currentUser)
+  mounted () {
+    //console.log("Current User in LiquidoHeader.vue = ", this.$root.currentUser)
   }
 }
 </script>

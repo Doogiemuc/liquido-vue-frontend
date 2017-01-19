@@ -6,6 +6,10 @@ This is my playground for learning [Vue](https://vuejs.org). Meanwhile this grew
 
 Currently it uses VueJS 1.0   I am eventually plannign to upgrade to VueJS 2.0 soon. That will be a larger upgrade.
 
+# Liquido Architecture
+
+![Liquido Architecture](./doc/Liquido Architecture.png)
+
 ## Dependencies / Tools used
 
  * Vue

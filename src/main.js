@@ -8,60 +8,62 @@ import VueRouter from 'vue-router'
 import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
-import LiquidoHeader from './components/LiquidoHeader'
-import RestClient from './services/RestClient'
+import restClient from './services/RestClient'
 import loglevel from 'loglevel'
 
 var log = loglevel.getLogger('main.js');
 
 // Register global components: <liquido-header> is used in index.html / RootApp.vue
-Vue.component('liquido-header', LiquidoHeader)
+//Vue.component('liquido-header', LiquidoHeader)
 
 // Vue plugins
 Vue.use(VueRouter)
 Vue.use(VueForm)
 
-import tinymceDirective from './components/TinyMceDirective.vue'
-Vue.directive('tinymce', tinymceDirective);
-
 // Setup Vue-router for navigation
-var router = new VueRouter()
-router.map({
-  '/': {
-    component: LiquidoHome
-  },
-  '/login': {
-    component: function(resolve) {
-      require(['./controllers/LoginPage.vue'], resolve)
+var router = new VueRouter({
+  routes: [
+    { 
+      path: '/', 
+      component: LiquidoHome 
+    },
+    // asyncronously require components for lazy loading, WebPack code split point
+    { path: '/login', 
+      component: function(resolve) {
+        require(['./controllers/LoginPage.vue'], resolve)
+      }
+    },
+    { path: '/areas',
+      component: function(resolve) {
+        require(['./controllers/AreasPage.vue'], resolve)
+      }
+    },
+    { path: '/ideas', 
+      component: function(resolve) {
+        require(['./controllers/Ideas.vue'], resolve)
+      }
+    },
+    { path: '/createNewIdea',
+      component: function(resolve) {
+        require(['./controllers/CreateNewIdea.vue'], resolve)
+      }
+    },
+    { path: '/userHome',
+      component: function(resolve) {
+        require(['./controllers/UserHome.vue'], resolve)
+      }
+    },
+    { path: '/proxies',
+      component: function(resolve) {
+        require(['./controllers/Proxies.vue'], resolve)
+      }
+    },
+    { path: '/editProxy',   // ?areaId=33be442...
+      component: function(resolve) {
+        require(['./controllers/ProxyEdit.vue'], resolve)
+      }
     }
-  },
-  // asyncronously require components for lazy loading
-  '/ideas': {
-    component: function(resolve) {
-      require(['./controllers/Ideas.vue'], resolve)
-    }
-  },
-  '/createNewIdea': {
-    component: function(resolve) {
-      require(['./controllers/CreateNewIdea.vue'], resolve)
-    }
-  },
-
-  '/userHome': {
-    component: function(resolve) {
-      require(['./controllers/UserHome.vue'], resolve)
-    }
-  },
-  '/proxies': {
-    component: function(resolve) {
-      require(['./controllers/Proxies.vue'], resolve)
-    }
-  },
-  '/editProxy': {   // ?areaId=33be442...
-    component: function(resolve) {
-      require(['./controllers/ProxyEdit.vue'], resolve)
-    }
-  }
+  ]
 })
 
 
@@ -75,26 +77,28 @@ router.map({
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
-
 // Starts the RootApp via vue-router
 var startApp = function() {
-  router.start(RootApp, '#app', function() {
-    if (currentUser) { 
-      console.debug("DEVELOPMENT: automatically logged in user: "+currentUser.email)
-      router.app.currentUser = currentUser  // This is available in components as this.$root.currentUser
-    }
-    //console.log("RootApp.vue has started,")
-    //TODO: router.app.cacheWarmup()
-  })
+  
+  //TODO: SIMPLIFY THIS!
+  var rootAppComponent = Vue.extend(RootApp)
+  var rootApp = new rootAppComponent({router}).$mount('#app')
+  
+  if (currentUser) { 
+    console.debug("DEVELOPMENT: automatically logged in user: "+currentUser.email)
+    router.app.currentUser = currentUser  // This is available in components as this.$root.currentUser
+  }
+  console.log("RootApp.vue has started.")
+  //TODO: router.app.cacheWarmup()
 }
 
-// Performs automatic login. This MUST be done BEFORE the RootApp is started, because many components need this.
+// Performs automatic login (when in "development" env). This MUST be done BEFORE the RootApp is started, because many components need this.
 var currentUser = null;
 var loadDefaultUser = function() {
-  RestClient.setLogin("testuser0@liquido.de", "dummyPasswordHash")
-  return RestClient.usersCollection.get('1').then(response => {
-    currentUser = response.body().data()   // I need to store this is a temporary variable, because RootApp is not instantiated yet here.
-    RestClient.setLogin(currentUser.email, "dummyPasswordHash")
+  restClient.setLogin("testuser0@liquido.de", "dummyPasswordHash")
+  return restClient.getUserById(1).then(user => {
+    currentUser = user   // I need to store this is a temporary variable, because RootApp is not instantiated yet here.
+    restClient.setLogin(currentUser.email, "dummyPasswordHash")
     log.debug("Loaded default user "+currentUser.email)
   })
   .catch(err => {
@@ -102,9 +106,9 @@ var loadDefaultUser = function() {
   })
 }
 
-RestClient.ping.get()
+restClient.ping.get()
 .then(() => {
-  console.log("Backend is alive at "+RestClient.ping.url())
+  console.log("Backend is alive at "+restClient.ping.url())
   // When we are in development environment, we prepare some special things
   if (process.env.NODE_ENV == "development") {
     log.setLevel("trace")  // trace == log everything
