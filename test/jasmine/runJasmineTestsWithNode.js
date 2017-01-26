@@ -1,9 +1,13 @@
 /**
  * I love jasmine because its so nice and fast.
  * Ok, no browser involved here. These are just some very quick SMOKE tests.
+ * Usage:    babel-node runJasmineTestsWithNode.js <TestNameFilter>
  */
 console.log("======= Running JASMINE tests in projectBaseDir: "+ __dirname)
-console.log("Usage:       babel-node runJasmineTestsWithNode.js <TestNameFilter>")
+if (process.argv[2] !== undefined) {
+  console.log("     Spec Filter: "+process.argv[2])
+}
+
 
 //MAYBE: Test with injected mocks: http://vue-loader.vuejs.org/en/workflow/testing-with-mocks.html
 //MAYBE: USe Minilog for logging. With streams. http://mixu.net/minilog/
@@ -12,17 +16,23 @@ var Jasmine = require('jasmine');
 var loglevel = require("loglevel")
 var log = loglevel.getLogger("runJasmine");
 var chalk = require('chalk')
+var Config = require('merge-config');
 
 // =================================================================================
 //   Configure JASMINE test framework
 // =================================================================================
 var jasmine = new Jasmine({projectBaseDir: __dirname});
-
 jasmine.loadConfigFile(__dirname+'/jasmineConf.json');
-
 jasmine.onComplete(function(passed) {
   mockLiquidoBackend.stopHttpServer();
 });
+
+// Merge environment variables from test.env.js into process.env
+var config = new Config();
+config.env();         // Add all existing environment variables into configuration 
+//config.argv();      // Add all command-line arguments into merged configuration 
+config.merge(require('../../config/test.env.js'));    // Merge test specific env variables
+process.env = config.get();
 
 // =================================================================================
 // Nice colorful jasmine reports for the console
@@ -46,9 +56,9 @@ loglevel.methodFactory = function (methodName, logLevel, loggerName) {
     var rawMethod = originalFactory(methodName, logLevel, loggerName);
     var logLevelNames = ['TRACE', 'DEBUG', 'INFO ', 'WARN ', 'ERROR']
     return function (...messages) {
-      rawMethod("         "+    // indent log messages under jasmine spec headers
-        chalk.cyan.underline(loggerName) + " " +
-        chalk.magenta("("+logLevel+")"+logLevelNames[logLevel]) + " " +
+      rawMethod("       "+    // indent log messages under jasmine spec headers
+        chalk.magenta(logLevelNames[logLevel]) + " " +
+        chalk.cyan.underline(("                    "+loggerName).slice(-20)  ) + " " +
         chalk.white(messages.join(" "))
       );
     };
@@ -56,15 +66,13 @@ loglevel.methodFactory = function (methodName, logLevel, loggerName) {
 
 loglevel.setLevel("trace")      // Global loglevel, trace == log everything including stack trace
 //loglevel.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
-loglevel.getLogger("BaseRestClient").setLevel("TRACE");
+loglevel.getLogger("SessionCache").setLevel("TRACE");
 
 // =================================================================================
 //   Start mock backend server
 // =================================================================================
 var mockLiquidoBackend = require('../mockLiquidoBackend/mockLiquidoBackendServer.js')
-
 mockLiquidoBackend.startHttpServer();
-
 
 // =================================================================================
 //  Execute Jasmine test runner

@@ -58,6 +58,7 @@ module.exports = {
       log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams=", loadFuncParams, "): found in CACHE")
       return Promise.resolve(this.get(key))
     } else {
+      if (loadFunc === undefined) return Promise.reject("ERROR in SessionCache: need loadFunc to load key="+key)
       return loadFunc.apply(this, loadFuncParams)
         .then(result => {
           log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams="+loadFuncParams+"): loadFunc returned: ", result)
@@ -65,8 +66,9 @@ module.exports = {
           return Promise.resolve(result)
         })
         .catch(err => {
-          log.error("ERROR in SessionCache: Cannot load key='"+key+"' with loadFunc:", err)
-          return Promise.reject("ERROR in SessionCache: Cannot load key='"+key+" "+err)
+          var msg = "ERROR in SessionCache: Cannot load key='"+key+"' with loadFunc. err="+err
+          log.error(msg)
+          return Promise.reject(msg)
         })
     }
   },

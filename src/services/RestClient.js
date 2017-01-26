@@ -33,9 +33,9 @@ const api = restful(process.env.backendBaseURL, fetchBackend(fetch));
 const ping = api.custom('_ping')
 const areasCollection = api.all('areas')
 const ideasCollection = api.all('ideas')     						            // http://localhost/liquido/v2/ideas
-const recentIdeas = api.custom('ideas/search/recentIdeas')	        // http://localhost/liquido/v2/ideas/recentIdeas
+const recentIdeas     = api.custom('ideas/search/recentIdeas')	    // http://localhost/liquido/v2/ideas/search/recentIdeas
 const usersCollection = api.all('users')                            // http://localhost/liquido/v2/users
-const lawsCollection = api.all('laws')
+const lawsCollection  = api.all('laws')
 const openForVotingProposals = api.custom('laws/search/findByStatus?status=VOTING')
 
 api.on('error', (error, config) => {

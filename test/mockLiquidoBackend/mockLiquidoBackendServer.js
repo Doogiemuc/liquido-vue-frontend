@@ -54,7 +54,7 @@ var RouteManager ={
 	// regular expression matching for dummy URL routes
 	"routes": {
 		// main.js => isAlive
-		apiBasePath+'/_ping': function(req, res) {
+		[apiBasePath+'/_ping']: function(req, res) {
 			log.debug("<= _ping")
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end("{\"Hello\":\"World\"}");

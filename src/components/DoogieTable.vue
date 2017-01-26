@@ -118,7 +118,7 @@ export default {
     // raw rowData, that will then be filtered and sorted
     rowData: { type: Array, required: true, default: function() { return [] } },
 
-    // which path in rowData is the primary key for each row (rowID)
+    // which path in rowData is the primary key for each row (only needed for editable rows)
     primaryKeyForRow: { type: String, required: true },
 
     // text snippets that can be localized
@@ -184,7 +184,7 @@ export default {
   },
 
   methods: {
-    // called when header is clicked. Reverses the sort order on each click
+    // set the column that the table is sorted by
     setSortCol(col) {
       if (typeof col == "number") col=this.columns[col]
       this.sortByCol = col
@@ -209,11 +209,6 @@ export default {
       this.invertSortOrder()
     },
 
-    // return true when this column is selected (has been clicked on)
-    isSelected(row) {
-      return row == this.selectedRow
-    },
-
     // index of last page (after applying filter)
     lastPageIndex() {
       var filteredRowData = this.getFilteredRowData()
@@ -235,8 +230,7 @@ export default {
           var cellValue = that.getFilteredCellValue(row, col.path, col.filter)
           return cellValue.toLowerCase().indexOf(filterKey) > -1
         })
-      })
-      //console.log("getFilteredRowData: ", result)      
+      })    
       return result
     },
 
@@ -253,7 +247,7 @@ export default {
       return result
     },
 
-    // get a cell value filtered by the filter with the give name
+    // get a cell value filtered through colFilter with the give name
     getFilteredCellValue(row, path, colFilter) {
       var cellValue = this.getPath(row, path)
       return this.applyFilter(cellValue, colFilter)
@@ -282,6 +276,11 @@ export default {
       return index == this.page
     },
 
+    // return true when this column is selected (has been clicked on)
+    isSelected(row) {
+      return row == this.selectedRow
+    },
+
     // emit event when a row was clicked
     rowClicked(row) {
       if (this.selectableRows) {
@@ -298,11 +297,6 @@ export default {
   },
 
   filters: {
-    // this filter returns only the data for the current page
-    paginationFilter(data) {
-      return data.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
-    },
-
     // returns a localized version of dateValue, e.g. 15.03.2016 for DE-DE
     localizeDate(dateVal) {
       return moment(dateVal).format('L');
