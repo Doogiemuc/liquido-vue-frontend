@@ -8,64 +8,59 @@ import VueRouter from 'vue-router'
 import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
-import restClient from './services/RestClient'
+import apiClient from './services/LiquidoApiClient'
 import loglevel from 'loglevel'
-
 var log = loglevel.getLogger('main.js');
-
-// Register global components: <liquido-header> is used in index.html / RootApp.vue
-//Vue.component('liquido-header', LiquidoHeader)
 
 // Vue plugins
 Vue.use(VueRouter)
 Vue.use(VueForm)
 
 // Setup Vue-router for navigation
-var router = new VueRouter({
-  routes: [
-    { 
-      path: '/', 
-      component: LiquidoHome 
-    },
-    // asyncronously require components for lazy loading, WebPack code split point
-    { path: '/login', 
-      component: function(resolve) {
-        require(['./controllers/LoginPage.vue'], resolve)
-      }
-    },
-    { path: '/areas',
-      component: function(resolve) {
-        require(['./controllers/AreasPage.vue'], resolve)
-      }
-    },
-    { path: '/ideas', 
-      component: function(resolve) {
-        require(['./controllers/Ideas.vue'], resolve)
-      }
-    },
-    { path: '/createNewIdea',
-      component: function(resolve) {
-        require(['./controllers/CreateNewIdea.vue'], resolve)
-      }
-    },
-    { path: '/userHome',
-      component: function(resolve) {
-        require(['./controllers/UserHome.vue'], resolve)
-      }
-    },
-    { path: '/proxies',
-      component: function(resolve) {
-        require(['./controllers/Proxies.vue'], resolve)
-      }
-    },
-    { path: '/editProxy',   // ?areaId=33be442...
-      component: function(resolve) {
-        require(['./controllers/ProxyEdit.vue'], resolve)
-      }
+const routes = [
+  { 
+    path: '/', 
+    component: LiquidoHome 
+  },
+  // asyncronously require components for lazy loading, WebPack code split point
+  { path: '/login', 
+    component: function(resolve) {
+      require(['./controllers/LoginPage.vue'], resolve)
     }
-  ]
-})
+  },
+  { path: '/areas',
+    component: function(resolve) {
+      require(['./controllers/AreasPage.vue'], resolve)
+    }
+  },
+  { path: '/ideas', 
+    component: function(resolve) {
+      require(['./controllers/Ideas.vue'], resolve)
+    }
+  },
+  { path: '/createNewIdea',
+    component: function(resolve) {
+      require(['./controllers/CreateNewIdea.vue'], resolve)
+    }
+  },
+  { path: '/userHome',
+    component: function(resolve) {
+      require(['./controllers/UserHome.vue'], resolve)
+    }
+  },
+  { path: '/proxies',
+    component: function(resolve) {
+      require(['./controllers/Proxies.vue'], resolve)
+    }
+  },
+  { path: '/editProxy',   // ?areaId=33be442...
+    component: function(resolve) {
+      require(['./controllers/ProxyEdit.vue'], resolve)
+    }
+  }
+]
 
+const router = new VueRouter({routes})
 
 // ==============================================================================
 // Here we actually start the app. 
@@ -77,51 +72,57 @@ var router = new VueRouter({
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
-// Starts the RootApp via vue-router
-var startApp = function() {
-  
-  //TODO: SIMPLIFY THIS!
-  var rootAppComponent = Vue.extend(RootApp)
-  var rootApp = new rootAppComponent({router}).$mount('#app')
-  
-  if (currentUser) { 
-    console.debug("DEVELOPMENT: automatically logged in user: "+currentUser.email)
-    router.app.currentUser = currentUser  // This is available in components as this.$root.currentUser
+var isBackendAlive = function() {
+  return apiClient.ping().then(() => {
+    log.debug("Backend is alive at "+process.env.backendBaseURL)
+  })  
+  .catch(err => {
+    console.error("FATAL ERROR: Backend is not available at "+process.env.backendBaseURL, err)
+    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available! Please try again later.</p>')
+    return Promsie.reject()
+  })
+}
+
+var currentUser = undefined
+var checkDevelopmentMode = function() {
+  if (process.env.NODE_ENV == "development") {
+    loglevel.setLevel("trace")                              // trace == log everything
+    var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in
+    apiClient.setLogin(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
+    return apiClient.findUserByEmail(userEmail).then(user => {
+      currentUser = user  
+      log.debug("DEVELOPMENT: auto login", user)
+    })
+  } else {
+    return Promise.resolve()
   }
-  console.log("RootApp.vue has started.")
+}
+
+var startApp = function() {
+  console.log("currentUser.email=", currentUser.email)
+
+  const rootVue = new Vue({
+    router,
+    el: '#app',
+    data: {
+      currentUser: currentUser,   // currently logged in user information
+      api: apiClient              // singleton instance, available to all (sub)components as "this.$root.api"
+    },
+    render: h => h(RootApp)       // https://vuejs.org/v2/guide/installation.html#Standalone-vs-Runtime-only-Build
+  })
+
+  console.log("Liquido web app has started.")
   //TODO: router.app.cacheWarmup()
 }
 
-// Performs automatic login (when in "development" env). This MUST be done BEFORE the RootApp is started, because many components need this.
-var currentUser = null;
-var loadDefaultUser = function() {
-  restClient.setLogin("testuser0@liquido.de", "dummyPasswordHash")
-  return restClient.getUserById(1).then(user => {
-    currentUser = user   // I need to store this is a temporary variable, because RootApp is not instantiated yet here.
-    restClient.setLogin(currentUser.email, "dummyPasswordHash")
-    log.debug("Loaded default user "+currentUser.email)
-  })
+isBackendAlive()
+  .then(checkDevelopmentMode)
+  .then(startApp)
   .catch(err => {
-    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Cannot load default user.</p>')
+    console.error("Error during startup", err)
+    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Cannot load Liquido App. Please try again later.</p>')
+    exit(1)
   })
-}
-
-restClient.ping.get()
-.then(() => {
-  console.log("Backend is alive at "+restClient.ping.url())
-  // When we are in development environment, we prepare some special things
-  if (process.env.NODE_ENV == "development") {
-    log.setLevel("trace")  // trace == log everything
-    loadDefaultUser().then(startApp)
-  } else {
-    log.setLevel("info")
-    startApp()
-  }
-})
-.catch(err => {
-  console.error("FATAL ERROR: Backend is not available at "+process.env.backendBaseURL, err)
-  $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available! Please try again later.</p>')
-})
 
 
 

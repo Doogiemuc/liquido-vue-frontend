@@ -30,7 +30,7 @@
 
 <script>
 var moment = require('moment');
-var RestClient = require('../services/RestClient.js')
+var apiClient = require('../services/LiquidoApiClient.js')
 
 export default {
 	props: ['idea'],
@@ -42,7 +42,8 @@ export default {
   
     likeToDiscuss(idea) {
       console.log("User "+this.$root.currentUser.email+", likes to discuss '"+idea.title+"'")
-      RestClient.addSupporter(idea, this.$root.currentUser).then(result => {
+      /* //TODO: REFACTOR for new apiClient
+      apiClient.addSupporter(idea, this.$root.currentUser).then(result => {
         //completely reload idea.  This will also solve the side case, when user is already a supporter
         var ideaId = RestClient.uri2Id(idea._links.self.href)
         // about projections: http://stackoverflow.com/questions/15886897/how-do-i-avoid-n1-queries-with-spring-data-rest
@@ -50,8 +51,8 @@ export default {
           this.idea = response.body().data()
           //console.log(JSON.stringify(this.idea, " ", 2))
         })
-        
       })
+      */
     }
   }
 }

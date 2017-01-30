@@ -1,10 +1,10 @@
 # liquido-vue-frontend
 
-> Frontend for my liquid democracy app writtn with Vue.js
+> Frontend for my liquid democracy app written with Vue 2.0 
 
-This is my playground for learning [Vue](https://vuejs.org). Meanwhile this grew to a medium sized "single page application" (SPA) with quite some nice features
+See [liquido-backend-spring](https://github.com/Doogiemuc/liquido-backend-spring) for the backend implementation.
 
-Currently it uses VueJS 1.0   I am eventually plannign to upgrade to VueJS 2.0 soon. That will be a larger upgrade.
+This is my playground for learning the client side Java script framework [Vue 2.0](https://vuejs.org). Meanwhile this grew to a medium sized "single page application" (SPA) with quite some nice features.
 
 # Liquido Architecture
 
@@ -12,42 +12,49 @@ Currently it uses VueJS 1.0   I am eventually plannign to upgrade to VueJS 2.0 s
 
 ## Dependencies / Tools used
 
- * Vue
- * Vue-loader
- * Vue-router
- * MongoDB
- * RESTfull webservices
-
+ * [Vue 2.0](http://vuejs.org/guide/) - Client side MVC JS lib (comparable to AngularJS but different :-)
+ * [Vue-loader](http://vuejs.github.io/vue-loader) Load components from .vue files
+ * [Vue-router](http://router.vuejs.org/) - URL navigation for single page applications
+ * Of course see [package.json](https://github.com/Doogiemuc/liquido-vue-frontend/blob/master/package.json) for full details
+ 
 ## Features
 
  * HTML, JS and CSS is packed and bundeld with Webpack
- * MongoDB backend (currently I connect to it via mlab.com REST API)
  * Local client side caching in the SPA
- * Database seed script
- * A powerfull Vue Table component
+ * Clean API client for REST full backend
+ * A powerfull homebrew Vue Table component with filtering, sorting and pagination
  * Tests, tests and more tests.  I am a big fan of TDD!
 
 ## Build Setup
 
-``` bash
-# install dependencies
-npm install
+- `npm run dev`: first-in-class development experience.
+  - Webpack + `vue-loader` for single file Vue components.
+  - State preserving hot-reload
+  - State preserving compilation error overlay
+  - Lint-on-save with ESLint
+  - Source maps
 
-# serve with hot reload at localhost:8080
-npm run dev
+- `npm run build`: Production ready build.
+  - JavaScript minified with [UglifyJS](https://github.com/mishoo/UglifyJS2).
+  - HTML minified with [html-minifier](https://github.com/kangax/html-minifier).
+  - CSS across all components extracted into a single file and minified with [cssnano](https://github.com/ben-eb/cssnano).
+  - All static assets compiled with version hashes for efficient long-term caching, and a production `index.html` is auto-generated with proper URLs to these generated assets.
 
-# build for production with minification
-npm run build
+- `npm run smoke`: Very fast smoke tests written with Jasmine.
+  - No browser involed, but blazingly fast.
 
-# run unit tests
-npm run unit
+- `npm run unit`: Unit tests run in PhantomJS with [Karma](http://karma-runner.github.io/0.13/index.html) + [Mocha](http://mochajs.org/) + [karma-webpack](https://github.com/webpack/karma-webpack).
+  - Supports ES2015 in test files.
+  - Supports all webpack loaders.
+  - Easy mock injection.
 
-# run e2e tests
-npm run e2e
+- `npm run e2e`: End-to-end tests with [Nightwatch](http://nightwatchjs.org/).
+  - Run tests in multiple browsers in parallel.
+  - Works with one command out of the box:
+    - Selenium and chromedriver dependencies automatically handled.
+    - Automatically spawns the Selenium server.
 
-# run all tests
-npm test
-```
+
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
 

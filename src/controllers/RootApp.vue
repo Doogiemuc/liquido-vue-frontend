@@ -1,6 +1,6 @@
 <template>
   <div>
-    <liquido-header :current-user="currentUser"></liquido-header>
+    <liquido-header :current-user="this.$root.currentUser"></liquido-header>
     <router-view></router-view>
   </div>
 </template>
@@ -8,31 +8,27 @@
 <script>
 /**
  * RootApp.vue - Vue component at the root of the componente tree.
- * It is available to every sub component as this.$root
+ * The only reason for this class is // https://vuejs.org/v2/guide/installation.html#Standalone-vs-Runtime-only-Build
  */
 
 import LiquidoHeader from '../components/LiquidoHeader'
-import LiquidoApiClient from '../services/LiquidoApiClient'
-
-//=========================================
-// Module private methods
-//=========================================
-
 
 //=========================================
 // RootApp - Vue component
 //=========================================
 
 export default {
-  data () {
-    return {
-      liquidoApiClient: LiquidoApiClient, // global session cache, available to all components as this.$root.liquidoCache
-      currentUser: null,          // currently logged in user,  passes as a prop to LquidoHeader
-    }
-  },
 
-  components: { LiquidoHeader }
+  components: { LiquidoHeader },
 
-  //TODO: make RootApp testable on its own:   components : { "liquido-header": LiquidoHeader }    Problem: How to hanlde <router-view> ?
+  /*
+  mounted () {
+    console.log("RootApp=", this)
+  }
+  */
+
+  //TODO: make RootApp testable on its own: Problem: How to hanlde <router-view> ?
+
+  //TODO: I could load the default user here in  beforeCreate()
 }
 </script>

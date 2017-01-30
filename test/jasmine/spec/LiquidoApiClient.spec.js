@@ -86,4 +86,15 @@ describe("LiquidoApiClient", function() {
     })
     .catch(done.fail);
   })
+
+
+
+  it('should get the number of votes that a proxy can cast (incl. transitive proxies)', function(done) {
+
+  }
+
+
+
+
+
 })

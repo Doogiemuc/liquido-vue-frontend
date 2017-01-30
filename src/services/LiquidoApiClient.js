@@ -37,6 +37,12 @@ var client = rest
    .wrap(errorCode)               // Promise.reject responses with http status code >= 400 
    .wrap(logErrorInterceptor)     // log full http response if error  in one central place
 
+// check if backend is alive.
+// @return A Promise that will reject (quickly) when the backend is not reachable.
+var ping = function() {
+  return client('/_ping')
+}
+
 // These "load..." functions load some content from the REST backend
 var loadAllAreas = function() {
   return client('/areas').then( 
@@ -49,6 +55,11 @@ var loadAllIdeas = function() {
   return client('/ideas').then( 
     response => { return response.entity._embedded.ideas },
   )
+}
+
+// add user as a supporter to an idea
+var addSupporter = function(idea, user) {
+
 }
 
 var loadAllUsers = function() {
@@ -81,9 +92,9 @@ var findUserByEmail = function(email) {
 
 module.exports = {
 
-  // login a given user
-  login(username, password) {
-    log.debug("User login "+username)
+  // login a given user. Every future request will send these credentials with HTTP BasicAuth
+  setLogin(username, password) {
+    log.debug("User login: "+username)
     client = client.wrap(basicAuth, { username: username, password: password });
   },
 
@@ -112,6 +123,7 @@ module.exports = {
   },
 
   findUserByEmail: findUserByEmail,
+  ping: ping,
 
   /** @return the internal session cache */
   getCache() {

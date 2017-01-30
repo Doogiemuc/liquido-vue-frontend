@@ -47,10 +47,12 @@
 <script>
 export default {
   props : ['currentUser'],
-
+  
   mounted () {
-    //console.log("Current User in LiquidoHeader.vue = ", this.$root.currentUser)
+    console.log("Current User in LiquidoHeader.vue = ", this.$root.currentUser)
+    console.log("$root = ", this.$root)
   }
+  
 }
 </script>
 
@@ -58,6 +60,6 @@ export default {
   .navbar-nav img {
     width: 30px;
     height: 30px;
-    margin:  -15px 15px -15px;
+    margin: -15px 15px -15px;
   }
 </style>

@@ -3,7 +3,7 @@
 <script>
 var IdeaPanel   = require('../components/IdeaPanel.vue')
 var LawPanel    = require('../components/LawPanel.vue')
-var RestClient = require('../services/RestClient.js')
+var apiClient   = require('../services/LiquidoApiClient.js')
 
 export default {
   components: {
@@ -19,10 +19,11 @@ export default {
   },
   
   created () {
-    RestClient.getRecentIdeas().then(recentIdeas => {
+    //TODO:  not yet implemented in LiquidoApiClient
+    apiClient.getRecentIdeas().then(recentIdeas => {
       this.recentIdeas = recentIdeas
     })
-    RestClient.getOpenForVotingProposals().then(openProposals => {
+    apiClient.getOpenForVotingProposals().then(openProposals => {
       this.openForVotingProposals = openProposals
     })
   },
