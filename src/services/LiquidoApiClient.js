@@ -9,13 +9,14 @@
  */
 
 // CuJoJs Rest Client  https://github.com/cujojs/rest
-// and some of its interceptors (they are cool. That's why I decided to use this REST lib)
+// and some of its interceptors (they are cool. That's why I decided to use this REST lib.
 import rest from 'rest'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 import basicAuth from 'rest/interceptor/basicAuth'
-import logErrorInterceptor from './logErrorInterceptor'
+//MAYBE: import hateoas from 'rest/interceptors/hateoas'     // Hypermedia AS the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
+//import logErrorInterceptor from './logErrorInterceptor'   // Currently not used.   thers 'nough loggin' already :-)
 
 import sessionCache from './SessionCache.js'
 
@@ -31,11 +32,10 @@ if (process.env.backendBaseURL === undefined) {
 }
 
 // The CuJoJS rest client with its interceptors
-var client = rest
-   .wrap(mime)
-   .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
-   .wrap(errorCode)               // Promise.reject responses with http status code >= 400 
-   .wrap(logErrorInterceptor)     // log full http response if error  in one central place
+var client = rest.wrap(mime, { mime: 'application/json'} )
+                 .wrap(errorCode)               // Promise.reject responses with http status code >= 400 
+                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
+              // .wrap(logErrorInterceptor)     // log full http response if error  in one central place
 
 // check if backend is alive.
 // @return A Promise that will reject (quickly) when the backend is not reachable.
@@ -47,7 +47,7 @@ var ping = function() {
 var loadAllAreas = function() {
   return client('/areas').then( 
     response => { return Promise.resolve(response.entity._embedded.areas) }
-    //not necessary any more.  See logErrorInterceptor      , errResp  => { log.error("ERROR loading ideas: "+errResp) }
+    //TODO: handle errors individually or in a central place?   logErrorInterceptor   vs.    errResp  => { log.error("ERROR loading areas: "+errResp) }
   )
 }
 
@@ -57,9 +57,28 @@ var loadAllIdeas = function() {
   )
 }
 
+/** 
+ * update an existing(!) idea.
+ * @param ideaURI the absolute REST path to the resource of the idea on the server. 
+ * @param the fields that shall be updated. (Does not need to contain all fields.)
+ * @return the response sent from the server which is normally the complete updated idea with all fields.
+ */
+var patchIdea = function(ideaURI, ideaUpdate) {
+  if (!ideaURI.startsWith('http')) log.error("ERROR in updateIdea: URI must start with http(s) !")
+  log.debug("patchIdea "+ideaURI+" updated="+JSON.stringify(ideaUpdate))
+  return client({ 
+    method: 'PATCH', 
+    path: ideaURI, 
+    header: { 'Content-Type' : 'application/json' },
+    entity: ideaUpdate
+  }).then(res => { 
+    return res.entity 
+  })
+}
+
 // add user as a supporter to an idea
 var addSupporter = function(idea, user) {
-
+  //TODO: ...
 }
 
 var loadAllUsers = function() {
@@ -108,6 +127,11 @@ module.exports = {
     return sessionCache.load('allIdeas', loadAllIdeas)
   },
 
+  /** fetches the 10 most recently updated ideas */
+  fetchRecentIdeas() {
+    return client('/ideas/search/recentIdeas').then(res => { return res.entity })
+  },
+
   /** lazy load all users (from cache is possible) */
   fetchAllUsers() {
     return sessionCache.load('allUsers', loadAllUsers)
@@ -124,6 +148,7 @@ module.exports = {
 
   findUserByEmail: findUserByEmail,
   ping: ping,
+  patchIdea: patchIdea,
 
   /** @return the internal session cache */
   getCache() {

@@ -51,7 +51,9 @@
             {{page*rowsPerPage + index + 1}}
           </th>
           <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}">
-            <editable-cell v-if="col.editable"
+            <editable-cell 
+              v-if="col.editable"
+              v-on:saveNewValue="saveNewValue"
               :row="row"
               :row-id="getPath(row, primaryKeyForRow)"
               :path="col.path"
@@ -281,6 +283,11 @@ export default {
       return row == this.selectedRow
     },
 
+    saveNewValue(row, rowId, key, value) {
+      //console.log("saveNewValue event in DoogieTable:", row, rowId, "#"+key+"#", value);
+      this.$emit('saveNewValue', row, rowId, key, value)   // let event from editable cell bubble up to parent component
+    },
+
     // emit event when a row was clicked
     rowClicked(row) {
       if (this.selectableRows) {
@@ -308,6 +315,7 @@ export default {
     },
   },
 
+  /*  This has been removed in vue 2.0  :-(   But I need it !
   events: {
     // This event is fired by editable-cell when a cell's value has been edited.
     // The value in rowData has already been synced.
@@ -316,6 +324,7 @@ export default {
       return true  // let the event bubble further up
     }
   },
+  */
 
 
 }

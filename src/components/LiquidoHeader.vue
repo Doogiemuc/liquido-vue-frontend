@@ -48,10 +48,12 @@
 export default {
   props : ['currentUser'],
   
+  /*
   mounted () {
     console.log("Current User in LiquidoHeader.vue = ", this.$root.currentUser)
     console.log("$root = ", this.$root)
   }
+  */
   
 }
 </script>

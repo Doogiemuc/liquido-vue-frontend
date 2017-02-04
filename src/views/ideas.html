@@ -11,7 +11,8 @@
     :primary-key-for-row="ideaKey"
     :loading="ideasLoading"
     :show-add-button="true"
-    ref:ideatable
+    v-on:saveNewValue="saveNewValue"
+    ref="ideatable"
   >
   </doogie-table>
 

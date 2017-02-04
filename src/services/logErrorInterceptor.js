@@ -3,6 +3,7 @@
 var interceptor = require('rest/interceptor');
 
 var logErrorInterceptor = interceptor({
+    /*
     init: function (config) {
         // do stuff with the config
         return config;
@@ -20,9 +21,10 @@ var logErrorInterceptor = interceptor({
         //console.log("========== SUCCESS ", JSON.stringify(response, ' ', 2))
         return response;
     },
+    */
     error: function (response, config, meta) {
-        console.log("HTTP ERROR", response)
         if (response.status && response.status.code >= 400) {
+            console.log("HTTP ERROR", response)
             return Promise.reject(response);
         }
         return response;

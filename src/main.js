@@ -73,7 +73,8 @@ const router = new VueRouter({routes})
 // ==============================================================================
 
 var isBackendAlive = function() {
-  return apiClient.ping().then(() => {
+  return apiClient.ping()
+  .then(() => {
     log.debug("Backend is alive at "+process.env.backendBaseURL)
   })  
   .catch(err => {
@@ -121,7 +122,6 @@ isBackendAlive()
   .catch(err => {
     console.error("Error during startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Cannot load Liquido App. Please try again later.</p>')
-    exit(1)
   })
 
 
