@@ -1,6 +1,6 @@
 
 <template>
-  k<textarea :id="textareaId" v-bind:placeholder="value"></textarea>
+  <textarea :id="textareaId" v-bind:placeholder="initialValue"></textarea>
 </template>
 
 <script>
@@ -9,7 +9,7 @@ export default {
 
   props: {
     textareaId:    { type: String, required: true },                        // id of the textarea == id of tinymce.Editor (without leading '#'!)
-    value:         { type: String, required: false, default: "" },          // Initial content of tinymce editor. (Not meant to be used with  content.sync="..." - .sync will be removed in Vue 2.0 anyway!)
+    initialValue:  { type: String, required: false, default: "" },          // Initial content of tinymce editor.
     tinyMceConfig: { type: Object, required: false, default: function() {   // TinyMCE default configuration, can be overwritten from parent component
       return {
         menubar: false,
@@ -29,40 +29,37 @@ export default {
     getContent() {
       return tinymce.get(this.textareaId).getContent()
     },
+
     /* completely overwrite and set a new content into the tinymce editor */
     setContent(newContent) {
       tinymce.get(this.textareaId).setContent(newContent)
+    },
+
+    /** 
+     * Automatically called when the content of the editor has change in any way 
+     * Content may have changed either by keypress, unde/redo or via copy&paste.
+     */
+    contentUpdated(evt) {
+      //console.log("TinyMCE contentUpdated to "+this.getContent()+" and sending event.")
+      this.$emit('contentUpdated', this.getContent());
     }
   },
 
   mounted () {
-    console.log("TinyMceComponent.mounted() id="+this.textareaId)
-    var that = this
-
-    var updateContent = function(evt) {
-      //console.log("Updating content to "+this.getContent()+" and sending event")
-      that.$emit('update-content', this.getContent());
-    }
-
+    console.log("TinyMceComponent.mounted() id="+this.textareaId+" initialValue="+this.initialValue)
     this.tinyMceConfig.selector = '#' + this.textareaId
-    this.tinyMceConfig.setup    = function(editor) {
-      that.editor = editor            // save ref to tinymce.Editor
-
-    }
-
-    //TODO: Do I need to wrap tinymce.init() in this.$nextTick(function() { ... }) ? But seems to work like this atm.
     tinymce.init(this.tinyMceConfig)
     .then(editors => {
       //console.log("Loading tinymce plugin placeholder") // Need to dynamically load this plugin from local, not from tinymce CDN.
       tinymce.PluginManager.load('placeholder', '/static/js/tinymce/plugins/tinymce-placeholder.plugin.js');
 
       //console.log("TinyMceComponent.tinymce init finished.  NumEditors=", editors.length)
-      // No need to handle any updates between textarea and tinymce's content. tinymce already keeps the text areas content in sync with its content. But need to update this.value prop
+      // No need to handle any updates between textarea and tinymce's content. tinymce already keeps the text areas content in sync with its content.
       tinymce.get(this.textareaId)
-      .on('keyup',  updateContent)
-      .on('change', updateContent)
-      .on('undo',   updateContent)
-      .on('redo',   updateContent)
+      .on('keyup',  this.contentUpdated)
+      .on('change', this.contentUpdated)
+      .on('undo',   this.contentUpdated)
+      .on('redo',   this.contentUpdated)
     })
   },
 

@@ -5,7 +5,7 @@
  */
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
+//import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
@@ -14,7 +14,7 @@ var log = loglevel.getLogger('main.js');
 
 // Vue plugins
 Vue.use(VueRouter)
-Vue.use(VueForm)
+//Vue.use(VueForm)
 
 // Setup Vue-router for navigation
 const routes = [
@@ -35,12 +35,12 @@ const routes = [
   },
   { path: '/ideas', 
     component: function(resolve) {
-      require(['./controllers/Ideas.vue'], resolve)
+      require(['./controllers/IdeasPage.vue'], resolve)
     }
   },
-  { path: '/createNewIdea',
+  { path: '/editIdea',  // optional url parameter ...?ideaId=42.  Without it a new idea can be created
     component: function(resolve) {
-      require(['./controllers/CreateNewIdea.vue'], resolve)
+      require(['./controllers/EditIdea.vue'], resolve)
     }
   },
   { path: '/userHome',
@@ -53,7 +53,7 @@ const routes = [
       require(['./controllers/Proxies.vue'], resolve)
     }
   },
-  { path: '/editProxy',   // ?areaId=33be442...
+  { path: '/editProxy',   // ?areaId=42
     component: function(resolve) {
       require(['./controllers/ProxyEdit.vue'], resolve)
     }

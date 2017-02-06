@@ -57,22 +57,39 @@ var loadAllIdeas = function() {
   )
 }
 
-/** 
- * update an existing(!) idea.
- * @param ideaURI the absolute REST path to the resource of the idea on the server. 
- * @param the fields that shall be updated. (Does not need to contain all fields.)
- * @return the response sent from the server which is normally the complete updated idea with all fields.
- */
-var patchIdea = function(ideaURI, ideaUpdate) {
-  if (!ideaURI.startsWith('http')) log.error("ERROR in updateIdea: URI must start with http(s) !")
-  log.debug("patchIdea "+ideaURI+" updated="+JSON.stringify(ideaUpdate))
-  return client({ 
-    method: 'PATCH', 
-    path: ideaURI, 
+var saveIdea = function(newIdea) {
+  log.debug("POST newIdea: "+JSON.stringify(newIdea))
+  return client({
+    method: 'POST',
+    path:   '/ideas',
     header: { 'Content-Type' : 'application/json' },
-    entity: ideaUpdate
+    entity: newIdea
   }).then(res => { 
     return res.entity 
+  }).catch(err => {
+    log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" : "+err)
+  })
+}
+
+/** 
+ * Update some fields of an existing(!) REST resource.
+ * @param URI the absolute REST path to the resource on the server. 
+ * @param the fields that shall be updated. (Does not need to contain all fields.)
+ * @return the response sent from the server which is normally the complete updated resource with all its fields.
+ */
+var patch = function(uri, update) {
+  log.debug("PATCH "+uri+" "+JSON.stringify(update))
+  if (!uri.startsWith('http')) log.error("ERROR in patch: URI must start with http(s) !")
+  if (!update) log.warn("WARNING: PATCH called with empty update")
+  return client({ 
+    method: 'PATCH', 
+    path:   uri, 
+    header: { 'Content-Type' : 'application/json' },
+    entity: update
+  }).then(res => { 
+    return res.entity 
+  }).catch(err => {
+    log.error("Cannot patch "+uri+" : "+err)
   })
 }
 
@@ -148,7 +165,8 @@ module.exports = {
 
   findUserByEmail: findUserByEmail,
   ping: ping,
-  patchIdea: patchIdea,
+  patch: patch,
+  saveIdea: saveIdea,
 
   /** @return the internal session cache */
   getCache() {

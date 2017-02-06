@@ -18,6 +18,12 @@
   >
   </doogie-table>
 
+  tableColumnsExample: [
+    { title: "Title", path: "nameOfTitleAttribute" },
+    { title: "Description", path: "description", editable: true  },
+    { title: "deepField", path: "some.deep.path.to.imgHref" ,filter: 'userAvatar', rawHTML: true },
+  ]
+  
  */
 
 <template>
@@ -283,6 +289,7 @@ export default {
       return row == this.selectedRow
     },
 
+    // emit an event when a value in an editable cell was changed.
     saveNewValue(row, rowId, key, value) {
       //console.log("saveNewValue event in DoogieTable:", row, rowId, "#"+key+"#", value);
       this.$emit('saveNewValue', row, rowId, key, value)   // let event from editable cell bubble up to parent component
@@ -298,7 +305,7 @@ export default {
 
     //emit an event so that the parent component can for example show a popup where the new entry can be created.
     addRow() {
-      this.$emit('addRow')
+      this.$emit('addButtonClicked')
     },
 
   },
@@ -314,18 +321,6 @@ export default {
       return moment(dateVal).fromNow();
     },
   },
-
-  /*  This has been removed in vue 2.0  :-(   But I need it !
-  events: {
-    // This event is fired by editable-cell when a cell's value has been edited.
-    // The value in rowData has already been synced.
-    'saveNewValue': function(rowId, key, value) {
-      console.log("saveNewValue event in DoogieTable:", rowId, "#"+key+"#", value);
-      return true  // let the event bubble further up
-    }
-  },
-  */
-
 
 }
 </script>

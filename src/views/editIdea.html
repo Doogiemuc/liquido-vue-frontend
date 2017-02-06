@@ -1,0 +1,42 @@
+<div class="container">
+
+  <h1>{{pageTitle}}</h1>
+
+  <hr>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <form name="editIdeaForm">
+        <div class="form-group" v-bind:class="{ 'form-group--error': $v.idea.title.$error }">
+          <input class="form-control" name="ideaTitle" id="ideaTitle" placeholder="Title of your idea"
+           v-model.trim="idea.title" 
+           @blur="titleTouched" />
+          <p class="form-error-msg" v-bind:class="{'invisible' : !$v.idea.title.$error}">Please provide a title (at least 5 chars)</p>
+        </div>
+        <div class="form-group">
+          <span name="ideaDescription">
+            <tinymce 
+              name="ideaDescription" 
+              textarea-id="ideaDescriptionEditor" 
+              initialValue="Describe what your idea will improve ..."
+              ref="ideaDescriptionEditor"
+              v-on:contentUpdated="descriptionTouched">
+            </tinymce>
+          </span>
+          <p class="form-error-msg" v-bind:class="{'invisible' : !$v.idea.description.$error}">Please provide a longer description.</p>
+        </div>
+
+        <div class="form-group">
+          <button id="saveIdeaButton" @click.prevent="saveIdea" class="pull-right btn btn-primary" 
+           data-loading-text="<i class='fa fa-spinner fa-spin '></i> Saving Idea ..." 
+           v-bind:disabled="$v.idea.$error">Save Idea</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+
+</div>
