@@ -32,17 +32,11 @@ export default {
         { title: "Description", path: "description", editable: true  },
         { title: "Created By", path: "createdBy" ,filter: 'userAvatar', rawHTML: true },
         { title: "Supporters", path: "numSupporters" },
-        { title: "Area", path: "area.title" },
+        { title: "Category", path: "area.title" },
         { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
         { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' },
       ],
       ideaKey: "_links.self.href",
-      /*
-      ideaTexts: {                //TODO: localize
-        addButton: "Add Idea",
-        searchFilter: "Search/Filter"
-      },
-      */
       ideasLoading: true,
       ideas: [],
     }

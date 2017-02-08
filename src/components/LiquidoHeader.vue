@@ -14,10 +14,10 @@
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
         <li><router-link to="/userHome">UserHome</router-link></li>
-        <li><router-link to="/areas">Areas</router-link></li>
+        <li><router-link to="/categories">Categories</router-link></li>
         <li><router-link to="/ideas">Ideas</router-link></li>
-        <li><router-link to="/createNewIdea">Add Idea</router-link></li>
-        <li><router-link to="/laws">Laws</router-link></li>
+        <li><router-link to="/proposals">Proposals</router-link></li>
+        <li><router-link to="/addIdea" class="btn btn-default">Add Idea</router-link></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right" v-if="currentUser">

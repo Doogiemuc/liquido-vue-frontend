@@ -31,6 +31,7 @@
     "node-rest-client": "^2.0.1",
     "rest": "^2.0.0",
     "restful.js": "^0.9.6",
+    "tinymce": "^4.5.3",
     "vue": "^2.1.0",
     "vue-router": "^2.0.0",
     "vuelidate": "^0.2.0",

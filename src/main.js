@@ -28,20 +28,34 @@ const routes = [
       require(['./controllers/LoginPage.vue'], resolve)
     }
   },
-  { path: '/areas',
+  { path: '/categories',
     component: function(resolve) {
-      require(['./controllers/AreasPage.vue'], resolve)
+      require(['./controllers/ListCategoriesPage.vue'], resolve)
     }
   },
+  /*  TODO: editCategory
+  { path: '/editCategory',  // optional url parameter ...?categoryId=...  Without it a new category can be created
+    component: function(resolve) {
+      require(['./controllers/EditCategory.vue'], resolve)
+    }
+  }
+  */
   { path: '/ideas', 
     component: function(resolve) {
       require(['./controllers/IdeasPage.vue'], resolve)
     }
   },
-  { path: '/editIdea',  // optional url parameter ...?ideaId=42.  Without it a new idea can be created
+  { path: '/addIdea',   // add a new idea
     component: function(resolve) {
       require(['./controllers/EditIdea.vue'], resolve)
-    }
+    },
+    props: { ideaId: undefined }
+  },
+  { path: '/editIdea/:ideaId',  // edit an existing idea (ideaID is the numerical ID of this idea)
+    component: function(resolve) {
+      require(['./controllers/EditIdea.vue'], resolve)
+    },
+    props: true
   },
   { path: '/userHome',
     component: function(resolve) {
@@ -56,6 +70,11 @@ const routes = [
   { path: '/editProxy',   // ?areaId=42
     component: function(resolve) {
       require(['./controllers/ProxyEdit.vue'], resolve)
+    }
+  },
+  { path: '*', 
+    component: function(resolve) {
+      require(['./controllers/PageNotFound.vue'], resolve)
     }
   }
 ]
