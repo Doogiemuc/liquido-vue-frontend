@@ -111,7 +111,7 @@ var checkDevelopmentMode = function() {
     apiClient.setLogin(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
     return apiClient.findUserByEmail(userEmail).then(user => {
       currentUser = user  
-      log.debug("DEVELOPMENT: auto login", user)
+      //log.debug("DEVELOPMENT: auto login", user)
     })
   } else {
     return Promise.resolve()
@@ -119,17 +119,31 @@ var checkDevelopmentMode = function() {
 }
 
 var startApp = function() {
-  console.log("currentUser.email=", currentUser.email)
+  console.log("Starting Vue app (with currentUser.email=", currentUser.email+")")
 
+  const rootVue = new Vue({
+    el: '#app',
+    router,
+    data: {
+      api: apiClient,             // singleton instance, available to all (sub)components as "this.$root.api"
+      currentUser: currentUser,   // currently logged in user information
+      currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
+    },
+    ...RootApp
+  }).$mount()
+
+/*
   const rootVue = new Vue({
     router,
     el: '#app',
     data: {
       currentUser: currentUser,   // currently logged in user information
+      currentUSerID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
       api: apiClient              // singleton instance, available to all (sub)components as "this.$root.api"
     },
     render: h => h(RootApp)       // https://vuejs.org/v2/guide/installation.html#Standalone-vs-Runtime-only-Build
   })
+*/
 
   console.log("Liquido web app has started.")
   //TODO: router.app.cacheWarmup()

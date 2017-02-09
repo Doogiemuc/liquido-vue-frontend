@@ -16,7 +16,8 @@ export default {
   data () {
     return {
       pageTitle: "Create new idea",
-      idea: { title: "", area: {}, description: ""  }
+      categories: [],
+      idea: { title: "", area: {}, description: "", area: undefined }
     }
   },
 
@@ -42,7 +43,9 @@ export default {
   },
 
   mounted() {
-    if (!isNaN(this.ideaId)) {  // if ideaId was passed as a number
+    this.$root.api.fetchAllCategories().then(categories => { this.categories = categories })
+
+    if (!isNaN(this.ideaId)) {  // if ideaId was passed as a number, then edit that existing idea
       console.log("Edit idea id="+this.ideaId)
       this.pageTitle = "Edit idea"
       this.$root.api.getIdea(this.ideaId).then(idea => { 
@@ -66,9 +69,25 @@ export default {
     /** set button to loading state and save idea to DB */
     saveIdea() {
       $('#saveIdeaButton').button('loading')
-      this.idea.createdBy = this.$root.currentUser
+      var that = this
+      this.idea.createdBy = this.$root.currentUserID
       console.log("Saving idea: this.idea=", JSON.stringify(this.idea));
       this.$root.api.saveIdea(this.idea)
+      .then(() => {
+        $('#saveIdeaButton').button('reset')
+        swal({
+          title: "SUCCESS",
+          text: "Your new Idea has been saved successfully. You know need at least NN supporters that like to discuss your idea.",
+          type: "success"
+        },
+        function () {
+          //TODO: how to show success flash message on user Home?   Path Parameter   or  data on root vue instance?
+          that.$router.push('/userHome')
+        })
+      }).catch(err => {
+        console.error(err)
+        $('#saveIdeaButton').button('reset')   // so that the user can try to save again
+      })
     }
   }
 
@@ -85,4 +104,9 @@ export default {
   .form-group--error input {
     border-color: #a94442;
   }
+  .control-label {
+    padding-top: 7px;
+    margin-bottom: 0;
+    text-align: right;
+}
 </style>

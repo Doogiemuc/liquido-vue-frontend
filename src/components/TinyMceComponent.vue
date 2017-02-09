@@ -23,7 +23,7 @@
   
 ********/
 
-import tinymce from 'tinymce/tinymce';
+//import tinymce from 'tinymce/tinymce';
 //import 'tinymce/plugins/placeholder';
 
 var ownChange = false
