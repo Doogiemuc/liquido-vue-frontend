@@ -50,7 +50,10 @@ var client = rest.wrap(mime, { mime: 'application/json'} )
  * @return A Promise that will reject (quickly) when the backend is not reachable.
  */
 var ping = function() {
-  return client('/_ping')
+  return client('/_ping') .then(result => {
+    if (result.error != "") return Promise.reject("Connection error")    //BUGFIX:  No error status is set on conction error???
+    return result
+  })
 }
 
 // All "load..." functions load some content from the REST backend
@@ -131,6 +134,14 @@ var findUserByEmail = function(email) {
   )
 }
 
+// Load all proposals that are currently open for voting.
+// Will return at least an empty array.
+var loadOpenForVotingProposals = function() {
+  return client('/laws/search/findByStatus?status=VOTING').then(
+    response => { return response.entity._embedded.laws}
+  )
+}
+
 //=========================================
 // Public/Exported methods
 //
@@ -179,7 +190,7 @@ module.exports = {
 
   /** fetches the 10 most recently updated ideas */
   fetchRecentIdeas() {
-    return client('/ideas/search/recentIdeas').then(res => { return res.entity })
+    return client('/ideas/search/recentIdeas').then(res => { return res.entity._embedded.ideas })
   },
 
   /** lazy load all users (from cache is possible) */
@@ -194,6 +205,10 @@ module.exports = {
   
   deleteProxyMap() {
     sessionCache.deleteKey('proxyMap')
+  },
+
+  fetchOpenForVotingProposals() {
+    return sessionCache.load('openForVotingProposals', loadOpenForVotingProposals)
   },
 
   /** 

@@ -15,7 +15,7 @@
       </div>
 
       <div class="col-sm-6">
-        <h3>Ideas and Proposals created by You</h3>
+        <h3>Ideas and Proposals created by you</h3>
         <div class="panel panel-default">
           <div class="panel-body">
             <ul>
@@ -27,14 +27,42 @@
           </div>
         </div>
 
-
-      
         <div class="panel panel-default">
-          <div class="panel-body">
-      
-            <div class="media"> <div class="media-left"> <a href="#"> <img class="media-object" data-src="holder.js/64x64" alt="64x64" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/PjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PCEtLQpTb3VyY2UgVVJMOiBob2xkZXIuanMvNjR4NjQKQ3JlYXRlZCB3aXRoIEhvbGRlci5qcyAyLjYuMC4KTGVhcm4gbW9yZSBhdCBodHRwOi8vaG9sZGVyanMuY29tCihjKSAyMDEyLTIwMTUgSXZhbiBNYWxvcGluc2t5IC0gaHR0cDovL2ltc2t5LmNvCi0tPjxkZWZzPjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+PCFbQ0RBVEFbI2hvbGRlcl8xNTU4Njg5NmJkYSB0ZXh0IHsgZmlsbDojQUFBQUFBO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1mYW1pbHk6QXJpYWwsIEhlbHZldGljYSwgT3BlbiBTYW5zLCBzYW5zLXNlcmlmLCBtb25vc3BhY2U7Zm9udC1zaXplOjEwcHQgfSBdXT48L3N0eWxlPjwvZGVmcz48ZyBpZD0iaG9sZGVyXzE1NTg2ODk2YmRhIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNFRUVFRUUiLz48Zz48dGV4dCB4PSIxMy40Njg3NSIgeT0iMzYuNSI+NjR4NjQ8L3RleHQ+PC9nPjwvZz48L3N2Zz4=" data-holder-rendered="true" style="width: 64px; height: 64px;"> </a> </div> <div class="media-body"> <h4 class="media-heading">Media heading</h4> Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus. </div> </div>
-        
+          <div class="panel-heading">
+            Recently created new Ideas
+            <i aria-hidden="true" class="pull-right fa fa-lightbulb-o ideaIcon grey"></i>
           </div>
+          <table class="table table-hover">
+            <tbody>
+              <tr v-for="idea in recentIdeas">   <!-- TODO: Maybe filter ideas created by logged in user? -->
+                <td>{{idea.title}}</td>
+                <td width="60%">{{idea.description}}</td>
+                <td>
+                  <div class="media">
+                    <div class="media-left">
+                      <img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture">
+                      <span v-if="idea.supportedByCurrentUser" class="green">
+                        <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+                      </span>
+                      <span v-else>
+                        <a v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default btn-xs" stlye="margin-top:5px">
+                          <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+                        </a>
+                      </span>
+                    </div>
+                    <div class="media-body">
+                      <div class="news_heading">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;{{idea.createdBy.profile.name}}<br/>
+                        <span class="glyphicon glyphicon-time" aria-hidden="true"></span>&nbsp;{{getFromNow(idea.createdAt)}}<br/>
+                        <span class="glyphicon glyphicon-tag"  aria-hidden="true"></span>&nbsp;{{idea.area.title}}            
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@
 <script>
 var IdeaPanel   = require('../components/IdeaPanel.vue')
 var LawPanel    = require('../components/LawPanel.vue')
-var apiClient   = require('../services/LiquidoApiClient.js')
+import moment from 'moment'
 
 export default {
   components: {
@@ -13,27 +13,36 @@ export default {
 
   data () {
     return {
-      recentIdeas: [],     // recently created ideas sorted by date desc
+      recentIdeas: [],            // recently created ideas sorted by date desc
       openForVotingProposals: []  // proposals for laws that are currently in the voting phase
     }
   },
   
   created () {
-    //TODO:  not yet implemented in LiquidoApiClient
-    apiClient.getRecentIdeas().then(recentIdeas => {
+    this.$root.api.fetchRecentIdeas().then(recentIdeas => {
       this.recentIdeas = recentIdeas
     })
-    apiClient.getOpenForVotingProposals().then(openProposals => {
+    this.$root.api.fetchOpenForVotingProposals().then(openProposals => {
       this.openForVotingProposals = openProposals
     })
   },
+
+  methods: {
+    getFromNow: function(dateVal) {
+      return moment(dateVal).fromNow();
+    },
+  }
   
 }
 </script>
 
 <style scoped>
+  .ideaIcon {
+    font-size: 30px;
+  }
   .news_heading {
     color: #999;
     font-size: 12px;
+    
   }
 </style>

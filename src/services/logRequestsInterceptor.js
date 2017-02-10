@@ -17,6 +17,7 @@ var startTime
 export default interceptor({
   
   init: function (config) {
+    config.prefix       = config.prefix       || 'logRequestsInterceptor '
     config.logErrors    = config.logErrors    || true
     config.logRequests  = config.logRequests  || true
     config.logResponses = config.logResponses || true
@@ -28,7 +29,7 @@ export default interceptor({
     if (config.logRequests) {
       startTime = new Date().getTime()
       reqId = startTime % 1000
-      log.debug("=> Request["+reqId+"]", request)
+      log.debug(config.prefix + "=> Request["+reqId+"]", request)
     }
     return request;
   },
@@ -47,7 +48,7 @@ export default interceptor({
   success: function (response, config, meta) {
     if (config.logResponses) {
       var duration = new Date().getTime() - startTime
-      log.debug("<= Response["+reqId+"]", response, "in "+duration+" ms")
+      log.debug(config.prefix + "<= Response["+reqId+"]", response, "in "+duration+" ms")
       if (config.logPayload && response.entity) 
         log.debug(JSON.stringify(response.entity))
     }
@@ -56,7 +57,7 @@ export default interceptor({
 
   error: function (response, config, meta) {
     if (config.logErrors) {
-      log.error("   ERROR", response)
+      log.error(config.prefix + "ERROR:", response)
     }
     return response;
   }

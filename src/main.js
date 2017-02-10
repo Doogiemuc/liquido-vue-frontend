@@ -105,6 +105,7 @@ var isBackendAlive = function() {
 
 var currentUser = undefined
 var checkDevelopmentMode = function() {
+  console.log("checking for development mode")
   if (process.env.NODE_ENV == "development") {
     loglevel.setLevel("trace")                              // trace == log everything
     var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in

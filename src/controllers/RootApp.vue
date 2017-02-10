@@ -14,10 +14,8 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><router-link to="/userHome">UserHome</router-link></li>
-            <li><router-link to="/categories">Categories</router-link></li>
             <li><router-link to="/ideas">Ideas</router-link></li>
             <li><router-link to="/proposals">Proposals</router-link></li>
-            <!-- <li><router-link to="/addIdea" class="btn btn-default navbar-btn">Add Idea</router-link></li> -->
           </ul>
           <button type="button" @click="$router.push('/addIdea')" class="btn btn-default navbar-btn">Add Idea</button>
 
@@ -63,5 +61,8 @@ export default {
     width: 30px;
     height: 30px;
     margin: -15px 15px -15px;
+  }
+  li.dropdown:hover {
+    background: #e7e7e7;
   }
 </style>
