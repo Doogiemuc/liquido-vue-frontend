@@ -1,5 +1,5 @@
 <div class="container">
-  <h1>Edit Proxy - '{{area.title}}'</h1>
+  <h1>Edit Proxy in '{{category.title}}'</h1>
   <hr>
   <div class="row">
 
@@ -8,7 +8,6 @@
         <div class="panel-body">
 
           <doogie-table
-            ref:voter-table
             :row-data="userList"
             :columns="usersColumns"
             :primary-key-for-row="userKey"
@@ -16,12 +15,14 @@
             :show-add-button="false"
             :show-row-numbers="false"
             :selectable-rows="true"
+            v-on:rowSelected="rowSelected"
             position-of-search='top'
+            ref="proxyTable"
           ></doogie-table>
 
           <div class="buttonWrapper">
             <router-link to="/proxies" class="btn btn-default" role="button">&laquo; Back</router-link>
-            <button type="button" class="btn btn-primary pull-right" v-bind:disabled="!isProxySelected" @click="saveProxy()">Set as your proxy</button>
+            <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.selectedProxy == null" @click="saveProxy()">Set as your proxy</button>
           </div>
 
         </div>
@@ -33,11 +34,11 @@
         <h4 style="margin-top:0">Your currently set proxy</h4>
         <img v-bind:src="proxy.profile.picture" />&nbsp;{{proxy.profile.name}} &lt;{{proxy.email}}&gt;
         <br/><br/>
-        <button v-if="proxy" type="button" class="btn btn-danger">Remove delegation to this proxy</button>
+        <button v-if="proxy" type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation to this proxy</button>
       </div>
       <div v-else>
         <h4 style="margin-top:0">No proxy assigned</h4>
-        You currently have no proxy assigned for the area '{{area.title}}'. Here you can search
+        You currently have no proxy assigned for the category '{{category.title}}'. Here you can search
         for a voter and then select him as your proxy. Click on a row in the table
         to select it.
       </div>

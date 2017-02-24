@@ -25,6 +25,12 @@ Based on the awesome [VueJs WebPack Template](http://vuejs-templates.github.io/w
       js/
     index.html          // main layout with header and footer
     
+# Backlog User Stories 
+
+ - Flash messages: 
+   - Show confirmation and error messages that disapear (like in JIRA at the top right)
+   - Show introduction at the top of pages like UserHome when visiting a packe for the first time.
+
 
 # References
 

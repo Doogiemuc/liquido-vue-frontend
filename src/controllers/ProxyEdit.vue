@@ -16,7 +16,8 @@ export default {
   data () {
     return {
       category: { title: '' },      // the category of the proxy that is currently beeing edited, will be loaded in ready()
-      proxy: null,              // user information of currently set proxy in this category (if any)
+      proxy: null,                  // user information of currently set proxy in this category (if any)
+      selectedProxy: null,          // currently selected row in the table
       // list of available users that could be assigned as proxies
       userList: [],
       usersColumns: [
@@ -24,7 +25,7 @@ export default {
         { title: "Name", path: "profile.name" },
         { title: "Email", path: "email" },
       ],
-      userKey: "_id.$oid",
+      userKey: "_links.self.href",
 
     }
   },
@@ -34,16 +35,8 @@ export default {
   },
 
   filters: {
-    userAvatar(pic) {
+    userAvatar(pic) {                   // filte for table cell
       return '<img src="'+pic+'" />'
-    }
-  },
-
-  computed: {
-    //return true if one row in the table is selected (will enable "Set Proxy" button)
-    isProxySelected: function() {
-      //console.log("isProxySelected "+JSON.stringify(this.$refs.voterTable.selectedRow) )
-      return this.$refs.voterTable.selectedRow != null
     }
   },
 
@@ -56,25 +49,24 @@ export default {
     getAssignableProxies: function() {
       return this.$root.api.fetchAllUsers().then(userList => {
         _.remove(userList, user => {
-          return user == this.$root.currentUser ||
-                 user == this.proxy
+          return user.email == this.$root.currentUser.email ||
+                 (this.proxy != null && user.email == this.proxy.email)
         })
         return userList
       })
     },
 
+    rowSelected: function(row) {
+      this.selectedProxy = row
+    },
+
     /** save the currently selected proxy */
     saveProxy: function() {
-      var chosenProxy   = this.$refs.voterTable.selectedRow
-      var currentUserId = this.$root.api.getId(this.$root.currentUser)
-      var categoryId    = this.$root.api.getId(this.category)
-      var proxyId       = this.$root.api.getId(chosenProxy)
-      log.debug("saveProxy: set '"+chosenProxy.email+"' as proxy for '"+this.$root.currentUser.email+"' in category '"+this.category.title+"'")
+      log.debug("saveProxy: set '"+this.selectedProxy.email+"' as proxy for '"+this.$root.currentUser.email+"' in category '"+this.category.title+"'")
 
-      this.$root.api.saveProxy(categoryId, proxyId)
+      this.$root.api.saveProxy(this.category, this.selectedProxy)
       .then(result => {
         log.debug("Successfully saved proxy:", result)
-        this.proxy = chosenProxy
         this.$root.liquidoCache.deleteProxyMap()   // flush the complete proxy map
       })
       .catch(err => {
@@ -85,7 +77,7 @@ export default {
     /** remove the currently set proxy */
     removeProxy: function() {
       log.debug("Removing proxy in category ", this.category)
-      delegationService.removeProxy(currentUserId, categoryId)
+      this.$root.api.removeProxy(this.category)
       .catch(err => {
         log.error("Couldn't remove proxy: ", err)
       })
@@ -107,23 +99,21 @@ export default {
       console.error("ProxyEdit.vue: Missing URL parametere categoryId!")
     }
 
-    this.$refs.voterTable.loading = true
-    this.$refs.voterTable.localizedTexts.searchFilter = 'Search for name or e-mail'
-    this.$refs.voterTable.setSortCol(this.usersColumns[1])
+    this.$refs.proxyTable.loading = true
+    this.$refs.proxyTable.localizedTexts.searchFilter = 'Search for name or e-mail'
+    this.$refs.proxyTable.setSortCol(this.usersColumns[1])
 
     Promise.all([
-      this.$root.api.getCategoryById(categoryId),
+      this.$root.api.getCategory(categoryId),
       this.getAssignableProxies(),
-      this.$root.liquidoCache.fetchProxyMap(this.$root.currentUser)
+      this.$root.api.fetchProxyMap(this.$root.currentUser)
     ])
     .then(results => {
       this.category = results[0]
-
       this.userList = results[1]
-
       var proxyMap  = results[2]
-      this.proxy    = proxyMap[categoryId]
-      this.$refs.voterTable.loading = false
+      this.proxy    = proxyMap[this.category.title]   // may be null!
+      this.$refs.proxyTable.loading = false
 
     })
     .catch(err => {

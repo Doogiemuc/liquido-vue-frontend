@@ -4,21 +4,40 @@
     <ol style="list-style: none">
       <li v-for="event in this.timelineData.events" class="timeline_event circle" 
           v-bind:style="{left: event.percent+'%'}" 
-          v-bind:class="{ selected: event.percent <= timelineData.percent }" >
+          v-bind:class="{ selected: event.percent <= timelineData.percentFilled }" >
       	<div class="event_above">{{event.above}}</div>
       	<div class="event_below">{{event.below}}</div>
       </li>
     </ol>
-    <span class="filling_line" v-bind:style="{ width: timelineData.percent+'%' }"></span>
+    <span class="filling_line" v-bind:style="{ width: timelineData.percentFilled+'%' }"></span>
     <span class="glyphicon glyphicon-play timeline_arrow_right" aria-hidden="true"></span>  
   </div>
 </template>
 
 <script>
+  /**
+
+      exampleTimelineData = {
+        percentFilled: "80",
+        events: [ 
+          { percent:  "0", above: "Proposal", below: "created"},
+          { percent: "10", above: "Quorum", below: "reached"},
+          { percent: "20", above: "Voting", below: "starts"},
+          { percent: "95", above: "Voting", below: "ends"}
+        ]
+      }
+
+   */
   export default {
   	props: {
   	  'timelineData' : { type: Object, required: true }
-  	}
+  	},
+
+    mounted () {
+      if (this.timelineData.percentFilled > 100) {
+        this.timelineData.percentFilled = 100
+      }
+    }
   }
 </script>
 

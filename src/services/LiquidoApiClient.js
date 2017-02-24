@@ -2,8 +2,8 @@
  * Client for Liquido backend API.
  *
  * This class is responsible for abstracting from the actual REST interface.
- * It may also combine several rest endpoints to gather information.
- * And it is responsible for caching application objects.
+ * It tries to abstract from the internal ID representation as far as possible.
+ * Our backend sends URIs as IDs for model objects. 
  *
  * This class is meant to be used as a singleton!
  */
@@ -38,21 +38,29 @@ if (process.env.backendBaseURL === undefined) {
 }
 
 // The CuJoJS rest client with its interceptors
+// Keep in mind that all requests to the backend must be authenticated. So you must call this.setLogin() before making the first request.
 var client = rest.wrap(mime, { mime: 'application/json'} )
-                 .wrap(errorCode)               // Promise.reject responses with http status code >= 400 
+                 .wrap(errorCode)               // Promise.reject() responses with http status code >= 400 
                  .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
                  .wrap(logRequestsInterceptor)
 
-//Keep in mind that all requests must be authenticated. So you must call setLogin() first!
+
+/** get the internal DB id of a model */
+var getId = function(model) {
+  var uri = this.getURI(model)
+  var uriRegEx = new RegExp('^https?://.*/(\d?)$')
+  var id = uri.match(uriRegEx)
+  
+}
 
 /** 
  * Check if backend is alive.
  * @return A Promise that will reject (quickly) when the backend is not reachable.
  */
 var ping = function() {
-  return client('/_ping') .then(result => {
-    if (result.error != "") return Promise.reject("Connection error")    //BUGFIX:  No error status is set on conction error???
-    return result
+  return client('/_ping').then(result => {
+    if (result.error) return Promise.reject("Connection error: "+result.error)    //BUGFIX:  No error status is set on conction error???
+    return Promise.resolve("Backend is alive")
   })
 }
 
@@ -96,7 +104,7 @@ var saveIdea = function(newIdea) {
  */
 var patch = function(uri, update) {
   log.debug("PATCH "+uri+" "+JSON.stringify(update))
-  if (!uri.startsWith('http')) log.error("ERROR in patch: URI must start with http(s)! wrong_uri="+uri)
+  if (!uri.startsWith('http')) throw new Error("ERROR in patch: URI must start with http(s)! wrong_uri="+uri)
   if (!update) log.warn("WARNING: PATCH called with empty update")
   return client({ 
     method: 'PATCH', 
@@ -107,12 +115,26 @@ var patch = function(uri, update) {
     return res.entity 
   }).catch(err => {
     log.error("Cannot patch "+uri+" : "+err)
+    throw new Error(err)
   })
 }
 
 // add user as a supporter to an idea
 var addSupporter = function(idea, user) {
-  //TODO: ...
+  if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
+  var url = idea._links.supporters.href
+  console.log("Add Supporter "+user.email+" to idea '"+idea.title+"' ("+url+")")
+  return client({
+    method: POST,
+    path:   url,
+    header: { 'Content-Type' : 'application/json' },
+    entity: user._links.self.href
+  }).then(res => {
+    return res.entity
+  }).catch(err => {
+    log.error("Cannot addSupporter: "+url+" "+err)
+    throw new Error(err)
+  })
 }
 
 var loadAllUsers = function() {
@@ -126,6 +148,34 @@ var fetchProxyMap = function(user) {
   return client(userURI+'/getProxyMap').then( 
     response => { return response.entity }
   )
+}
+
+/** add or update a delegation from the currently logged in user to a proxy */
+var saveProxy = function(category, proxy) {
+  if (!category) throw new Error("Missing category for saveProxy()")
+  if (!proxy) throw new Error("Missing proxy for saveProxy()")
+  return client({
+    method: 'PUT',
+    path: '/saveProxy',
+    header: { 'Content-Type' : 'application/json' },
+    entity: {
+      area:     this.getURI(category),   // the ID of any model is its URI, eg.  /area/4
+      toProxy:  this.getURI(proxy)
+    }
+  })
+}
+
+/** remove the proxy of the currently logged in user in the given category */
+var removeProxy = function(category) {
+  if (!category) throw new Error("Missing category for removeProxy()")
+  return client({
+    method: 'DELETE',
+    path:   process.env.backendBaseURL+'/deleteProxy/'+this.getId(category),
+    header: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  })
 }
 
 var findUserByEmail = function(email) {
@@ -163,9 +213,15 @@ module.exports = {
     return sessionCache.load('allCategories', loadAllCategories)
   },
 
-  getCategory(categoryURI) {
-    if (!uri.startsWith('http')) log.error("Cannot getCategory: CategoryURI must start with http(s)! wrong_uri="+categoryURI)
-    return client({path: categoryURI}).then(res => {return res.entity })
+  getCategory(uri) {
+    var areaRegEx = new RegExp('^https?://.*/areas/(\w?)$')           // categories are called areas on the server
+    if (areaRegEx.test(uri)) {
+      return client({path: uri}).then(res => {return res.entity })
+    } else if (!isNaN(uri)) {
+      return client('/areas/'+uri).then(res => {return res.entity })    // idea ID was passed as a number
+    } else {
+      throw "Cannot get Category from uri="+uri
+    }
   },
 
   /** lazy load all ideas */
@@ -181,7 +237,7 @@ module.exports = {
     var ideaRegEx = new RegExp('^https?://.*/ideas/(\w?)$')
     if (ideaRegEx.test(uri)) {
       return client({path: uri}).then(res => {return res.entity })
-    } else if (_.isString(uri)) {
+    } else if (!isNaN(uri)) {
       return client('/ideas/'+uri).then(res => {return res.entity })    // idea ID was passed as a number
     } else {
       throw "Cannot get Idea from uri="+uri
@@ -215,18 +271,21 @@ module.exports = {
    * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, e.g. http://localhost:8080/liquido/v2/areas/42
    * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
    */
-  getId(model) {
+  getURI(model) {
     return model._links.self.href
+  },
+
+  /** @return the internal session cache */
+  getCache() {
+    return sessionCache
   },
 
   findUserByEmail: findUserByEmail,
   ping: ping,
   patch: patch,
+  addSupporter: addSupporter,
   saveIdea: saveIdea,
-
-  /** @return the internal session cache */
-  getCache() {
-    return sessionCache
-  }
+  saveProxy: saveProxy,
+  removeProxy: removeProxy
 
 }

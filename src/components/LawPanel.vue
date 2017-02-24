@@ -1,28 +1,31 @@
 <template>
 	<div class="panel panel-default">
+    
     <div class="panel-heading">
       <i class="pull-right fa fa-university lawIcon grey" aria-hidden="true"></i>
-      <h3 class="lawTitle">{{law.title}}</h3>
+      <h4 class="lawTitle">{{law.title}}</h4>
     </div>
+
     <div class="panel-body">
       <!-- TODO: law.tagline -->
       {{law.description}}
       
       <timeline :timelineData="getTimelineDataFor(law)"></timeline>
     </div>
+
     <div class="panel-footer">
       <div class="media">
         <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></div>
         <div class="media-body">
-          <div class="news_heading">
-            <a href="#" role="button" class="btn btn-default btn-xs pull-right">Show Details &raquo;</a>
-            {{law.createdBy.profile.name}}<br>
-            <span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{getFromNow(law.createdAt)}}&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-tag" aria-hidden="true"></span> {{law.area.title}}            
+          <div class="userDataSmall">
+            <a href="#" role="button" class="btn btn-default btn-xs pull-right">&nbsp;Goto poll &raquo;</a>
+            <i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br>
+            <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}            
           </div>
         </div>
       </div>
-
     </div>
+
   </div>
 </template>
 
@@ -43,15 +46,16 @@ export default {
     getTimelineDataFor(law) {
       var now = new Date().getTime()
       var created = new Date(law.createdAt).getTime()
-      var timeForVoting = 1 * 24*3600*1000  // days in ms
+      var timeForVoting = 30 * 24*3600*1000  // days in ms
+      var percentFilled = ((now-created) / timeForVoting)*100
       //console.log((now-created)/1000+"sec since created", (now-created) / timeForVoting)
       return {
-        percent: ((now-created) / timeForVoting)*100,
+        percentFilled: percentFilled,
         events: [ 
-          { percent:  "0", above: "Created", below: ""},
-          { percent: "10", above: "Quorum", below: "reached"},
-          { percent: "20", above: "Voting", below: "starts"},
-          { percent: "95", above: "Voting", below: "ends"}
+          { percent:  "0",  above: "Proposal", below: "created"},
+          { percent: "10",  above: "Quorum", below: "reached"},
+          { percent: "20",  above: "Voting", below: "starts"},
+          { percent: "100", above: "Voting", below: "ends"}
         ]
       }
     }
@@ -60,11 +64,6 @@ export default {
 </script>
 
 <style scoped>
-  .news_heading {
-    color: #999;
-    font-size: 12px;
-    line-height: 1.1;
-  }
   .lawIcon {
   	font-size: 20px;
   }

@@ -6,58 +6,58 @@
 
       <div class="col-sm-6">
 
-        <h3>Proposals currently open for voting</h3>
+        <h2>Proposals currently open for voting</h2>
         <law-panel v-for="law in openForVotingProposals" :law="law"></law-panel>
 
-        <h3 v-if="recentIdeas">Recently created Ideas</h3>
-        <p>That you might like to discuss further</p>
+        <br/><br/>
+        <h2 v-if="recentIdeas">Recently created ideas</h2>
         <idea-panel v-for="idea in recentIdeas" :idea="idea"></idea-panel>
       </div>
 
       <div class="col-sm-6">
-        <h3>Ideas and Proposals created by you</h3>
+        <h2>Your ideas and proposals</h2>
         <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Latest activity</h4>
+          </div>
           <div class="panel-body">
             <ul>
-              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> My greatest idea</li>
-              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Second idea</li>
-              <li><i class="fa fa-university"></i> My propsal in work (elaboration, 4 alternatives)</li>
-              <li><i class="fa fa-university"></i>My proposal that did it (voting)</li>
+              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Your idea "foo bar" needs at least 8 more supporters.</li>
+              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Your idea "liasdf lkasdkl fj" reached its quorum</li>
+              <li><i class="fa fa-university"></i>"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</li>
+              <li><i class="fa fa-university"></i>"Some other proposal" currently is in voting phase until March 23rd (25 days left). 232 votes casted.</li>
             </ul>
           </div>
         </div>
 
         <div class="panel panel-default">
           <div class="panel-heading">
-            Recently created new Ideas
-            <i aria-hidden="true" class="pull-right fa fa-lightbulb-o ideaIcon grey"></i>
+            <i aria-hidden="true" class="pull-right fa fa-lightbulb-o fa-lg grey"></i>
+            <h4>WIP (expanded view of ideas)</h4>
           </div>
-          <table class="table table-hover">
+          <table class="table ideaTable">
             <tbody>
-              <tr v-for="idea in recentIdeas">   <!-- TODO: Maybe filter ideas created by logged in user? -->
-                <td>{{idea.title}}</td>
-                <td width="60%">{{idea.description}}</td>
-                <td>
-                  <div class="media">
-                    <div class="media-left">
-                      <img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture">
-                      <span v-if="idea.supportedByCurrentUser" class="green">
-                        <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-                      </span>
-                      <span v-else>
-                        <a v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default btn-xs" stlye="margin-top:5px">
-                          <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-                        </a>
-                      </span>
-                    </div>
-                    <div class="media-body">
-                      <div class="news_heading">
-                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;{{idea.createdBy.profile.name}}<br/>
-                        <span class="glyphicon glyphicon-time" aria-hidden="true"></span>&nbsp;{{getFromNow(idea.createdAt)}}<br/>
-                        <span class="glyphicon glyphicon-tag"  aria-hidden="true"></span>&nbsp;{{idea.area.title}}            
-                      </div>
-                    </div>
-                  </div>
+              <tr v-for="idea in recentIdeas">
+                <td width="80%">
+                  <h4>{{idea.title}}</h4>
+                  <p>{{idea.description}}
+                </td>
+                <td class="ideaDataRight">
+                  <img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture">
+                  <ul class="fa-ul">
+                    <li><i class="fa-li fa fa-user"></i>{{idea.createdBy.profile.name}}</li>
+                    <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(idea.createdAt)}}</li>
+                    <li><i class="fa-li fa fa-bookmark"></i>{{idea.area.title}}</li>
+                  </ul>
+
+                  <span v-if="idea.supportedByCurrentUser" class="green">
+                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+                  </span>
+                  <span v-else>
+                    <a v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default btn-xs" stlye="margin-top:5px">
+                      <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+                    </a>
+                  </span>
                 </td>
               </tr>
             </tbody>

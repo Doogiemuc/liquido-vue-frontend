@@ -19,9 +19,11 @@ export default {
 
   methods: {
     getProxyInCategory: function(category) {
-      var categoryId = this.$root.api.getId(category)
-      return this.proxyMap[categoryId].profile.name +
-        ' <'+this.proxyMap[categoryId].email+'>'
+      //var categoryId = this.$root.api.getId(category)
+      var proxy = this.proxyMap[category.title]
+      if (!proxy) return "---"
+      return '<img src="' + proxy.profile.picture + '">&nbsp;' +
+        proxy.profile.name + ' <' + proxy.email + '>'
     },
 
   },
@@ -35,5 +37,7 @@ export default {
 </script>
 
 <style>
-
+  #proxyTable td {
+    vertical-align: center;
+  }
 </style>

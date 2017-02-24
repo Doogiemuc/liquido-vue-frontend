@@ -40,9 +40,21 @@ export default {
   .ideaIcon {
     font-size: 30px;
   }
-  .news_heading {
-    color: #999;
+  .panel-heading h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .ideaDataRight {
+    padding-top: 18px;
+    color: grey;
     font-size: 12px;
     
   }
+  .ideaDataRight ul.fa-ul {
+    margin-left: 1.5em;
+  }
+  .ideaDataRight .userPicture {
+    margin-bottom: 8px;
+  }
+
 </style>

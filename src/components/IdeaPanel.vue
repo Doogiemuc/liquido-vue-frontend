@@ -1,31 +1,33 @@
 <template>
 	<div class="panel panel-default">
-      <div class="panel-body">
-        <div class="media">
-          <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object"></div>
-          <div class="media-body">
-            <div class="news_heading">
-              <i class="pull-right fa fa-lightbulb-o ideaIcon grey" aria-hidden="true"></i>
-              {{idea.createdBy.profile.name}} added a new idea.<br>
-              {{getFromNow(idea.createdAt)}}&nbsp;&nbsp;&nbsp;&nbsp;
-              <span class="glyphicon glyphicon-inbox" aria-hidden="true"></span> {{idea.area.title}}
-            </div>
-          </div>
-        </div>
-        <div>
-          <h3>{{idea.title}}</h3>
-          {{idea.description}}
-        </div>
-      </div>
-      <div style="text-align: right;" class="panel-footer">
-        supportedByCurrentUser: {{idea.supportedByCurrentUser?"true":"false"}}
-        <span v-bind:class="{ 'green' : idea.supportedByCurrentUser }" >
-          <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-          &nbsp;
-        </span>
-        <a v-if="!idea.supportedByCurrentUser" v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default btn-xs">Like to discuss this!</a>
-      </div>
+
+    <div class="panel-body">
+      <i class="pull-right fa fa-lightbulb-o ideaIcon grey" aria-hidden="true"></i>
+      <h4>{{idea.title}}</h4>
+      <p>{{idea.description}}</p>
     </div>
+
+    <div class="panel-footer">
+      <div class="media">
+        <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></div>
+        <div class="media-body userDataSmall">
+          <span v-if="idea.supportedByCurrentUser" class="green pull-right">
+            <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+          </span>
+          <span v-else>
+            <a v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default pull-right">
+              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+            </a>
+          </span>
+          <i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{idea.createdBy.profile.name}}<br>
+          <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(idea.createdAt)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-bookmark" aria-hidden="true"></i>&nbsp;{{idea.area.title}}             
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
 </template>
 
 <script>
@@ -61,8 +63,9 @@ export default {
   .green {
     font-color: green;
   }
-  div.media {
-    line-height: 1;
+  .ideaTitle {
+    margin-top: 0;
+    margin-bottom: 0;
   }
 </style>
 

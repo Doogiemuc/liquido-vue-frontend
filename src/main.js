@@ -67,7 +67,7 @@ const routes = [
       require(['./controllers/Proxies.vue'], resolve)
     }
   },
-  { path: '/editProxy',   // ?areaId=42
+  { path: '/editProxy',   // ?categoryId=42
     component: function(resolve) {
       require(['./controllers/ProxyEdit.vue'], resolve)
     }
@@ -95,11 +95,13 @@ var isBackendAlive = function() {
   return apiClient.ping()
   .then(() => {
     log.debug("Backend is alive at "+process.env.backendBaseURL)
-  })  
+    return Promise.resolve("Backend is ok")
+  })
   .catch(err => {
-    console.error("FATAL ERROR: Backend is not available at "+process.env.backendBaseURL, err)
+    var errorMsg = "FATAL ERROR: Backend is NOT available at "+process.env.backendBaseURL + ": "+err 
+    console.error(errorMsg)
     $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available! Please try again later.</p>')
-    return Promsie.reject()
+    return Promise.reject(errorMsg)
   })
 }
 
@@ -133,19 +135,6 @@ var startApp = function() {
     ...RootApp
   }).$mount()
 
-/*
-  const rootVue = new Vue({
-    router,
-    el: '#app',
-    data: {
-      currentUser: currentUser,   // currently logged in user information
-      currentUSerID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
-      api: apiClient              // singleton instance, available to all (sub)components as "this.$root.api"
-    },
-    render: h => h(RootApp)       // https://vuejs.org/v2/guide/installation.html#Standalone-vs-Runtime-only-Build
-  })
-*/
-
   console.log("Liquido web app has started.")
   //TODO: router.app.cacheWarmup()
 }
@@ -155,7 +144,7 @@ isBackendAlive()
   .then(startApp)
   .catch(err => {
     console.error("Error during startup", err)
-    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Cannot load Liquido App. Please try again later.</p>')
+    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR while loading Liquido App. Please try again later.</p>')
   })
 
 

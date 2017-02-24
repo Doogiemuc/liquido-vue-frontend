@@ -300,7 +300,7 @@ export default {
       if (this.selectableRows) {
         this.selectedRow = row
       }
-      this.$emit('rowClicked', row)
+      this.$emit('rowSelected', row)
     },
 
     //emit an event so that the parent component can for example show a popup where the new entry can be created.
