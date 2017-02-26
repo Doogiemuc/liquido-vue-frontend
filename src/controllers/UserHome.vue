@@ -43,11 +43,11 @@
             <tbody>
               <tr v-for="idea in recentIdeas">
                 <td width="80%">
-                  <h4>{{idea.title}}</h4>
+                  <img src="/static/img/Avatar_32x32.jpeg" class="userPictureLeft">
+                  <h4 class="ideaTitle">{{idea.title}}</h4>
                   <p>{{idea.description}}
                 </td>
                 <td class="ideaDataRight">
-                  <img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture">
                   <ul class="fa-ul">
                     <li><i class="fa-li fa fa-user"></i>{{idea.createdBy.profile.name}}</li>
                     <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(idea.createdAt)}}</li>
@@ -113,15 +113,18 @@ export default {
   .ideaIcon {
     font-size: 30px;
   }
-  .panel-heading h4 {
+  .userPictureLeft {
+    float: left;
+    margin-right: 8px;
+  }
+  .ideaTitle {
     margin-top: 0;
-    margin-bottom: 0;
   }
   .ideaDataRight {
     padding-top: 18px;
     color: grey;
     font-size: 12px;
-    
+    background-color: rgb(245,245,245);
   }
   .ideaDataRight ul.fa-ul {
     margin-left: 1.5em;
