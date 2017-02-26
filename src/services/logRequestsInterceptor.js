@@ -1,5 +1,5 @@
 /**
- * CuCoJS REST Client interceptor that can output a log of log information
+ * CuCoJS REST Client interceptor that log HTTP requests and responses with all details. (use for debugging)
  *
  * Usage: 
  *   import rest from 'rest'
@@ -17,11 +17,13 @@ var startTime
 export default interceptor({
   
   init: function (config) {
-    config.prefix       = config.prefix       || 'logRequestsInterceptor '
-    config.logErrors    = config.logErrors    || true
-    config.logRequests  = config.logRequests  || true
-    config.logResponses = config.logResponses || true
-    config.logPayload   = config.logPayload   || true
+    config.requestPrefix  = config.requestPrefix  || '=> '
+    config.responsePrefix = config.responsePrefix  || '<= '
+    config.logErrors      = config.logErrors    || true
+    config.logRequests    = config.logRequests  || true
+    config.logResponses   = config.logResponses || true
+    config.logPayload     = config.logPayload   || true
+    config.maxPayloadLength = config.maxPayloadLength || 400
     return config;
   },
 
@@ -29,7 +31,7 @@ export default interceptor({
     if (config.logRequests) {
       startTime = new Date().getTime()
       reqId = startTime % 1000
-      log.debug(config.prefix + "=> Request["+reqId+"]", request)
+      log.debug(config.requestPrefix + "["+reqId+"]", request, request.path)
     }
     return request;
   },
@@ -48,9 +50,18 @@ export default interceptor({
   success: function (response, config, meta) {
     if (config.logResponses) {
       var duration = new Date().getTime() - startTime
-      log.debug(config.prefix + "<= Response["+reqId+"]", response, "in "+duration+" ms")
-      if (config.logPayload && response.entity) 
-        log.debug(JSON.stringify(response.entity))
+      if (config.logPayload) {
+        log.debug(config.responsePrefix + "["+reqId+"]", response.status.code, "in "+duration+" ms ", response.entity ? response.entity : "[empty response]")
+      } else {
+        log.debug(config.responsePrefix + "["+reqId+"]", response.status.code, "in "+duration+" ms")
+      }
+      /*   doesn't work becasue response.entity is not yet filled   RACE CONDITION
+      var responseAsStr = JSON.stringify(response.entity)
+      console.log("response.entity '"+response.entity+"'")
+      console.log("responseAsStr", responseAsStr, JSON.stringify(response.entity))
+      var abreviated = (responseAsStr.length > config.maxPayloadLength) ? " [...]" : ""
+      log.debug(responseAsStr.substr(0, config.maxPayloadLength) + abreviated)
+      */
     }
     return response;
   },

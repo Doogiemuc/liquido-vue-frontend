@@ -16,14 +16,15 @@
 
 // CuJoJs Rest Client  https://github.com/cujojs/rest
 // and some of its interceptors (they are cool. That's why I decided to use this REST lib.
-import _ from 'lodash'
+//import _ from 'lodash'  
 import rest from 'rest'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 import basicAuth from 'rest/interceptor/basicAuth'
-import logRequestsInterceptor from './logRequestsInterceptor'  // A lot of logging
-//MAYBE: import hateoas from 'rest/interceptors/hateoas'     // Hypermedia AS the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
+import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list"
+import logRequestsInterceptor from './logRequestsInterceptor'   // deteiled log of HTTP requests and responses
+//MAYBE: import hateoas from 'rest/interceptors/hateoas'      // Hypermedia AS the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
 import sessionCache from './SessionCache.js'
 
 import loglevel from 'loglevel'
@@ -45,12 +46,14 @@ var client = rest.wrap(mime, { mime: 'application/json'} )
                  .wrap(logRequestsInterceptor)
 
 
-/** get the internal DB id of a model */
+/** 
+ * Get the internal DB id of a model. IDs are numbers.
+ * This is an internal method and should not be exposed.
+ */
 var getId = function(model) {
   var uri = this.getURI(model)
   var uriRegEx = new RegExp('^https?://.*/(\d?)$')
   var id = uri.match(uriRegEx)
-  
 }
 
 /** 
@@ -87,7 +90,7 @@ var saveIdea = function(newIdea) {
   return client({
     method: 'POST',
     path:   '/ideas',
-    header: { 'Content-Type' : 'application/json' },
+    headers: { 'Content-Type' : 'application/json' },
     entity: newIdea
   }).then(res => { 
     return res.entity 
@@ -109,7 +112,7 @@ var patch = function(uri, update) {
   return client({ 
     method: 'PATCH', 
     path:   uri, 
-    header: { 'Content-Type' : 'application/json' },
+    headers: { 'Content-Type' : 'application/json' },
     entity: update
   }).then(res => { 
     return res.entity 
@@ -122,17 +125,20 @@ var patch = function(uri, update) {
 // add user as a supporter to an idea
 var addSupporter = function(idea, user) {
   if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
-  var url = idea._links.supporters.href
-  console.log("Add Supporter "+user.email+" to idea '"+idea.title+"' ("+url+")")
+  var supportersURI = idea._links.supporters.href
+  var userURI       = this.getURI(user)
+  console.log("Add Supporter "+user.email+" ("+userURI+") to idea '"+idea.title+"': POST "+supportersURI)
   return client({
-    method: POST,
-    path:   url,
-    header: { 'Content-Type' : 'application/json' },
-    entity: user._links.self.href
+    method: 'POST',
+    path:   supportersURI,
+    headers: { 'Content-Type' : 'text/uri-list' },  //BUGFIX for "no String-argument constructor/factory method to deserialize from String value"   send text/uri-list !
+    entity: userURI
   }).then(res => {
-    return res.entity
+    console.log("added Supporter successfully.")
+    // returns status 204
+    return ""
   }).catch(err => {
-    log.error("Cannot addSupporter: "+url+" "+err)
+    log.error("Cannot addSupporter: "+supportersURI+": ", err)
     throw new Error(err)
   })
 }
@@ -157,7 +163,7 @@ var saveProxy = function(category, proxy) {
   return client({
     method: 'PUT',
     path: '/saveProxy',
-    header: { 'Content-Type' : 'application/json' },
+    headers: { 'Content-Type' : 'application/json' },
     entity: {
       area:     this.getURI(category),   // the ID of any model is its URI, eg.  /area/4
       toProxy:  this.getURI(proxy)
@@ -171,7 +177,7 @@ var removeProxy = function(category) {
   return client({
     method: 'DELETE',
     path:   process.env.backendBaseURL+'/deleteProxy/'+this.getId(category),
-    header: { 
+    headers: { 
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     }
@@ -230,18 +236,13 @@ module.exports = {
   },
 
   /** 
-   * load one idea from the backend
-   * @param ideaIDorURI  either the numerical ID of an idea or the absolute REST URI of the REST resource on the backend, e.g. 
+   * (re)load one idea from the backend
+   * @param ideaSelector the URI of an idea from the backend. Or you can also pass an already known idea, that needs to be reloaded.
+   * @return the idea with createdBy and area inlined
    */
-  getIdea(uri) {
-    var ideaRegEx = new RegExp('^https?://.*/ideas/(\w?)$')
-    if (ideaRegEx.test(uri)) {
-      return client({path: uri}).then(res => {return res.entity })
-    } else if (!isNaN(uri)) {
-      return client('/ideas/'+uri).then(res => {return res.entity })    // idea ID was passed as a number
-    } else {
-      throw "Cannot get Idea from uri="+uri
-    }
+  getIdea(ideaSelector) {
+    var ideaUri = this.getURI(ideaSelector)
+    return client({path: ideaUri+'?projection=ideaProjection'}).then(res => {return res.entity })
   },
 
   /** fetches the 10 most recently updated ideas */
@@ -268,11 +269,18 @@ module.exports = {
   },
 
   /** 
-   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, e.g. http://localhost:8080/liquido/v2/areas/42
+   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
+   * e.g. http://localhost:8080/liquido/v2/areas/42
+   * @param model a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
    * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
    */
   getURI(model) {
-    return model._links.self.href
+    var uriRegEx = new RegExp('^https?://.*/(\w?)/(\d?)$')
+    if (uriRegEx.test(model)) {
+      return model
+    } else {
+      return model._links.self.href   // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
+    }
   },
 
   /** @return the internal session cache */

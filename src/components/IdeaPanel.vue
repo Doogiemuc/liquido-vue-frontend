@@ -11,14 +11,12 @@
       <div class="media">
         <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></div>
         <div class="media-body userDataSmall">
-          <span v-if="idea.supportedByCurrentUser" class="green pull-right">
+          <button v-if="idea.supportedByCurrentUser" type="button" class="btn btn-default btn-sm pull-right active supportedIdeaButton">
             <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-          </span>
-          <span v-else>
-            <a v-on:click.prevent="likeToDiscuss(idea)" href="#" role="button" class="btn btn-default pull-right">
-              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-            </a>
-          </span>
+          </button>
+          <button v-else type="button" class="btn btn-default btn-sm pull-right" v-on:click="likeToDiscuss(idea)">
+            <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
+          </button>
           <i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{idea.createdBy.profile.name}}<br>
           <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(idea.createdAt)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-bookmark" aria-hidden="true"></i>&nbsp;{{idea.area.title}}             
         </div>
@@ -34,7 +32,7 @@
 var moment = require('moment');
 
 export default {
-	props: ['idea'],
+  props: ['idea'],
 
   methods: {
     getFromNow: function(dateVal) {
@@ -42,14 +40,10 @@ export default {
     },
   
     likeToDiscuss(idea) {
-      console.log("User "+this.$root.currentUser.email+", likes to discuss '"+idea.title+"'")
-      this.$root.api.addSupporter(idea, this.$root.currentUser)
-      .then(result => {
-        //completely reload idea.  This will also solve the side case, when user is already a supporter
-        // about projections: http://stackoverflow.com/questions/15886897/how-do-i-avoid-n1-queries-with-spring-data-rest
-        this.$root.api.getIdea(idea).then(res => {
-          this.idea = res
-        })
+      //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+idea.title+"'")
+      this.$root.api.addSupporter(idea, this.$root.currentUser).then(res => {
+        //BUGFIX:  cannot simply update this.idea, becasue Vue properties should not be updated. So we fire an event to parent instead:
+        this.$emit("reloadIdea", idea)  // notify parent to reload idea  
       })
     }
   }
@@ -60,12 +54,21 @@ export default {
   .ideaIcon {
   	font-size: 30px;
   }
-  .green {
-    font-color: green;
+  .supportedIdeaButton {
+    background-color: #9C9;
+  }
+  .supportedIdeaButton:hover {
+    background-color: #9C9;
+    cursor: default;
+  }
+  .supportedIdeaButton:focus {
+    background-color: #9C9;
+    cursor: default;
   }
   .ideaTitle {
     margin-top: 0;
     margin-bottom: 0;
   }
+
 </style>
 
