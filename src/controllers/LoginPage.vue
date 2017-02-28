@@ -22,6 +22,7 @@
 
 /**
  * HTML page where the user can login
+ *  Anregung:   http://bootsnipp.com/snippets/featured/custom-login-registration-amp-forgot-password
  */
 <script>
 

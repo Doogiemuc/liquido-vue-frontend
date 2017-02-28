@@ -57,6 +57,26 @@ var getId = function(model) {
 }
 
 /** 
+ * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
+ *   e.g. http://localhost:8080/liquido/v2/areas/42
+ * This method is exposed to the web app.
+ * @param model a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
+ * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
+ */
+var getURI = function(model) {
+  var uriRegEx = new RegExp('\\w+/\\d+$')
+  if (uriRegEx.test(model)) {
+    return model
+  } else {
+    try {
+      return model._links.self.href   // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
+    } catch (err) {
+      throw new Error("Cannot get URI of "+ model+" : "+err)
+    }
+  }
+}
+
+/** 
  * Check if backend is alive.
  * @return A Promise that will reject (quickly) when the backend is not reachable.
  */
@@ -134,8 +154,8 @@ var addSupporter = function(idea, user) {
     headers: { 'Content-Type' : 'text/uri-list' },  //BUGFIX for "no String-argument constructor/factory method to deserialize from String value"   send text/uri-list !
     entity: userURI
   }).then(res => {
-    console.log("added Supporter successfully.")
     // returns status 204
+    console.log("added Supporter successfully.")
     return ""
   }).catch(err => {
     log.error("Cannot addSupporter: "+supportersURI+": ", err)
@@ -198,6 +218,21 @@ var loadOpenForVotingProposals = function() {
   )
 }
 
+/** 
+ * fetch all alternative proposals of the given proposal
+ * @param proposalSelector a proposal or proposal URI (not necessarily the initial proposal itself)
+ * @return a list of alternative competing proposals
+ */
+var fetchCompetingProposals = function(proposalSelector) {
+  console.log("fetchCompetingProposals", proposalSelector)
+  var proposalURI = this.getURI(proposalSelector)
+  return client('http://localhost:8080/liquido/v2/laws/search/findCompeting?proposal='+proposalURI).then(
+    res => { return res.entity._embedded.laws }
+  )
+}
+
+
+
 //=========================================
 // Public/Exported methods
 //
@@ -245,6 +280,11 @@ module.exports = {
     return client({path: ideaUri+'?projection=ideaProjection'}).then(res => {return res.entity })
   },
 
+  getProposal(proposalSelector) {
+    var proposalUri = this.getURI(proposalSelector)
+    return client({path: proposalUri}).then(res => {return res.entity })
+  },
+
   /** fetches the 10 most recently updated ideas */
   fetchRecentIdeas() {
     return client('/ideas/search/recentIdeas').then(res => { return res.entity._embedded.ideas })
@@ -268,32 +308,19 @@ module.exports = {
     return sessionCache.load('openForVotingProposals', loadOpenForVotingProposals)
   },
 
-  /** 
-   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
-   * e.g. http://localhost:8080/liquido/v2/areas/42
-   * @param model a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
-   * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
-   */
-  getURI(model) {
-    var uriRegEx = new RegExp('^https?://.*/(\w?)/(\d?)$')
-    if (uriRegEx.test(model)) {
-      return model
-    } else {
-      return model._links.self.href   // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
-    }
-  },
-
   /** @return the internal session cache */
   getCache() {
     return sessionCache
   },
 
-  findUserByEmail: findUserByEmail,
   ping: ping,
+  getURI: getURI,
   patch: patch,
+  findUserByEmail: findUserByEmail,
   addSupporter: addSupporter,
   saveIdea: saveIdea,
   saveProxy: saveProxy,
-  removeProxy: removeProxy
+  removeProxy: removeProxy,
+  fetchCompetingProposals: fetchCompetingProposals
 
 }

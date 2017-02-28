@@ -6,13 +6,35 @@
       <h4 class="lawTitle">{{law.title}}</h4>
     </div>
 
-    <div class="panel-body">
+    <div class="panel-body lawDescription">
       <!-- TODO: law.tagline -->
       {{law.description}}
       
-      <timeline :timelineData="getTimelineDataFor(law)"></timeline>
+      <timeline v-if="showTimeline" :timelineData="getTimelineDataFor(law)"></timeline>
     </div>
+ 
+    <table class="table lawFooterTable">
+      <tbody>
+        <tr>
+          <td><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></td>
+          <td class="userDataSmall">
+            <i class="fa fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
+            <i class="fa fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}
+          </td>
+          <td class="userDataSmall">
+            <i class="fa fa-fw fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
+            <i class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numAltProposals}} alternatives<br/>
+          </td>
+          <td class="gotoPollCell">
+            <router-link v-if="showGotoPoll" :to="{ path: '/poll', query: { proposal: this.getLawURI() }}" role="button" class="btn btn-default btn-xs">
+              &nbsp;Goto poll &raquo;
+            </router-link>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
+<!--
     <div class="panel-footer">
       <div class="media">
         <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></div>
@@ -25,6 +47,7 @@
         </div>
       </div>
     </div>
+//-->
 
   </div>
 </template>
@@ -34,7 +57,11 @@ import moment from 'moment'
 import timeline from './Timeline'   // timeline component
 
 export default {
-	props: ['law'],
+	props: { 
+    'law' : { type: Object, required: true },
+    'showTimeline' : { type: Boolean, required: false, default: function() { return true } },
+    'showGotoPoll' : { type: Boolean, required: false, default: function() { return true } },
+  },
 
   components: {'timeline': timeline },
 
@@ -58,6 +85,10 @@ export default {
           { percent: "100", above: "Voting", below: "ends"}
         ]
       }
+    },
+
+    getLawURI() {
+      return this.$root.api.getURI(this.law)
     }
   }
 }
@@ -70,5 +101,18 @@ export default {
   .lawTitle {
     margin-top: 0;
     margin-bottom: 0;
+  }
+  .lawDescription {
+    /*background:  #fcfcfc;*/
+  }
+  .lawFooterTable {
+    background: #f5f5f5;
+  }
+  .lawFooterTable td {
+    padding: 3px 8px;
+  }
+  .gotoPollCell {
+    text-align: right;
+    vertical-align: middle;
   }
 </style>

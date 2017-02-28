@@ -1,10 +1,6 @@
 <template>
   <div class="container">
-    <div class="page-header">
-      <h3>Welcome {{$root.currentUser.profile.name}}</h3>
-    </div>
     <div class="row">
-
       <div class="col-sm-6">
 
         <h2>Proposals currently open for voting</h2>
@@ -17,17 +13,79 @@
 
       <div class="col-sm-6">
         <h2>Your ideas and proposals</h2>
+
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>Latest activity</h4>
+            <h4>Latest activity around your stuff</h4>
+          </div>
+          <ul class="list-group">
+            <li class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-lightbulb-o pull-left"></i>
+              <p style="overflow: hidden">This is better used for short text. Only one line of text. asdölfj asölkfja ölefjöklwef öklasdjflasdökl fl</p>
+            </li>
+            <li class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-lightbulb-o pull-left"></i>
+              <p style="overflow: hidden">Your idea "liasdf lkasdkl fj" reached its quorum</p>
+            </li>
+            <li class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-university pull-left"></i>
+              <p style="overflow: hidden">"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</p>
+            </li>
+            <li class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-university pull-left"></i>
+              <p style="overflow: hidden">"Some other proposal" currently is in voting phase until March 23rd (25 days left). 232 votes casted.</p>
+            </li>
+          </ul>
+        </div>
+
+
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+             <h4>Some other messages - v2</h4>
           </div>
           <div class="panel-body">
-            <ul>
-              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Your idea "foo bar" needs at least 8 more supporters.</li>
-              <li><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Your idea "liasdf lkasdkl fj" reached its quorum</li>
-              <li><i class="fa fa-university"></i>"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</li>
-              <li><i class="fa fa-university"></i>"Some other proposal" currently is in voting phase until March 23rd (25 days left). 232 votes casted.</li>
-            </ul>
+            <div class="media">
+              <div class="media-left">
+                <i class="fa fa-lightbulb-o fa-2x"></i>
+              </div>
+              <div class="media-body">
+                <small class="pull-right text-muted">4 hours ago</small>
+                <h4 class="media-heading">Media heading</h4>
+                <p>
+                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                </p>
+              </div>
+            </div>
+        
+            <div class="media">
+              <div class="media-left">
+                <i class="fa fa-lightbulb-o fa-2x"></i>
+              </div>
+              <div class="media-body">
+                <small class="pull-right text-muted">4 hours ago</small>
+                <h4 class="media-heading">Media heading</h4>
+                <p>
+                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                </p>
+              </div>
+            </div>
+     
+            <div class="media">
+              <div class="media-left">
+                <i class="fa fa-lightbulb-o fa-2x"></i>
+              </div>
+              <div class="media-body">
+                <small class="pull-right text-muted">4 hours ago</small>
+                <h4 class="media-heading">Media heading</h4>
+                <p>
+                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -37,7 +95,7 @@
         <div class="panel panel-default">
           <div class="panel-heading">
             <i aria-hidden="true" class="pull-right fa fa-lightbulb-o fa-lg grey"></i>
-            <h4>WIP (expanded view of ideas)</h4>
+            <h4>Condensed preview of ideas</h4>
           </div>
           <table class="table ideaTable">
             <tbody>
@@ -45,7 +103,9 @@
                 <td width="80%">
                   <img src="/static/img/Avatar_32x32.jpeg" class="userPictureLeft">
                   <h4 class="ideaTitle">{{idea.title}}</h4>
-                  <p>{{idea.description}}
+                  <div class="maxHeightPreviewWrapper">
+                    <div class="maxHeightPreview">{{idea.description}}</div>
+                  </div>
                 </td>
                 <td class="ideaDataRight">
                   <ul class="fa-ul">
@@ -91,6 +151,7 @@ export default {
   created () {
     this.loadRecentIdeas()
     this.$root.api.fetchOpenForVotingProposals().then(openProposals => {
+      console.log(openProposals);
       this.openForVotingProposals = openProposals
     })
   },
@@ -110,6 +171,10 @@ export default {
 </script>
 
 <style scoped>
+  .panel-heading h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
   .ideaIcon {
     font-size: 30px;
   }
@@ -119,6 +184,7 @@ export default {
   }
   .ideaTitle {
     margin-top: 0;
+    margin-bottom: 8px;
   }
   .ideaDataRight {
     padding-top: 18px;
@@ -132,5 +198,36 @@ export default {
   .ideaDataRight .userPicture {
     margin-bottom: 8px;
   }
-
+  .maxHeightPreviewWrapper {
+    position: relative;
+  }
+  .maxHeightPreview {
+    height:55px; 
+    overflow:hidden;  
+  }
+  .maxHeightPreview:before {
+    content:'';
+    width:100%;
+    height:100%;    
+    position:absolute;
+    left:0;
+    top:0;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */  
+    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+  }
+  .item-condensed {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .item-condensed i {
+    line-height: inherit;  /* necessary to vertically align fontawesome icons */
+  }
+  .item-condensed p {
+    margin-bottom: 0;
+  }
+  
+   
 </style>

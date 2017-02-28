@@ -71,6 +71,11 @@ const routes = [
     component: function(resolve) {
       require(['./controllers/ProxyEdit.vue'], resolve)
     }
+  },  
+  { path: '/poll',   // ?proposalId=42
+    component: function(resolve) {
+      require(['./controllers/Poll.vue'], resolve)
+    }
   },
   { path: '*', 
     component: function(resolve) {
