@@ -6,6 +6,9 @@
         Drag the proposals you want to vote for from the left into the ballot on the right. 
         Sort your favorite proposals to the top of your ballot.
       </p>
+      <p>
+        This poll will run for {{pollOpenDays}} more days until {{pollOpenUntilDateLoc}}.
+      </p>
     </div>
     <table class="table pollTable">
       <tbody>
@@ -21,8 +24,8 @@
         <tr>
           <td width="49%" id="leftContainer">
           
-            <law-panel v-for="law in competingProposals" 
-              :law="law" 
+            <law-panel v-for="proposal in proposals" 
+              :law="proposal" 
               :showTimeline="false"
               :showGotoPoll="false">  
             </law-panel>
@@ -51,27 +54,28 @@
 import LawPanel from '../components/LawPanel'
 import moment from 'moment'
 import dragula from 'dragula'
+// import bootbox from 'bootbox'
 
 export default {
   components: { LawPanel },
 
   data () {
     return {
-      competingProposals: [],
-      proposalsInBallot: [],
+      poll: {},
+      proposals: [],
       ballotIsEmpty: true
     }
   },
   
   mounted () {
-    var proposalURI = this.$route.query.proposal
-    if (proposalURI == undefined) {
-      console.error("Poll.vue: Missing URL parametere proposal!")
+    var pollURI = this.$route.query.poll
+    if (pollURI == undefined) {
+      console.error("Poll.vue: Missing URL parameter for poll!")
     }
-    this.loadCompetingProposals(proposalURI).then(() => {
+    this.loadPoll(pollURI).then(() => {
       this.$nextTick(() => {
         var drake = dragula([document.getElementById('leftContainer'), document.getElementById('rightContainer')]);
-        console.log(drake, document.getElementById('test'))
+        //console.log(drake, document.getElementById('test'))
         drake.on('drop', this.ballotDropped)
       })
     })
@@ -81,19 +85,46 @@ export default {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
-    loadCompetingProposals: function(proposalURI) {
-      return this.$root.api.fetchCompetingProposals(proposalURI).then(proposals => {
-        this.competingProposals = proposals
-      })
-      //TODO: show only one overall timeline for this poll
-      //TODO: show smaller lawPanels (eg. all proposals are in the same area)
-      //TODO: should I show number of votes?  => NO!
-    },
-    ballotDropped: function(el, target, source, sibbling) {
-      console.log("dropped onto target=", target, $('#rightContainer div.panel').length)
-      this.ballotIsEmpty = $('#rightContainer div.panel').length == 0
-    }
 
+    loadPoll: function(pollURI) {
+      return this.$root.api.fetchPoll(pollURI).then(poll => {
+        this.poll = poll
+        this.proposals = poll._embedded.proposals
+      })
+    },
+
+    ballotDropped: function(el, target, source, sibbling) {
+      //console.log("dropped onto target=", target, $('#rightContainer div.panel').length)
+      this.ballotIsEmpty = $('#rightContainer div.panel').length == 0
+    },
+
+    castVote: function(evt) {
+      //var password = prompt("Please enter your Liquido password to anonymize your vote.") 
+      var pollURI = this.poll._links.self.href   
+      var voteOrder = []
+      $('#rightContainer div.panel').each((idx, panel) => {
+        //console.log(panel.dataset.proposaluri)
+        voteOrder.push(panel.dataset.proposaluri)
+      })
+
+      var newBallot = {
+        "poll": pollURI,
+        "voteOrder": voteOrder
+      }
+
+      console.log("castVote", newBallot)
+      this.$root.api.postBallot(newBallot)
+        .then(res =>  { 
+        	console.log("Ballot posted successfully")
+        	swal({
+        		title: "Ballot saved successfully",
+        		text:  "Your vote has been cast and your ballot was saved.\n\n"+
+        		       "You can still change the sorting insinde your ballot as long as the poll is running.",
+        		type:  "success"
+        	})
+        })
+        .catch(err => { console.error("Cannot postBallot: "+err) })
+    }
   }
   
 }

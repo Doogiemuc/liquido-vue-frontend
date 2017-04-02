@@ -3,9 +3,48 @@
     <div class="row">
       <div class="col-sm-6">
 
-        <h2>Proposals currently open for voting</h2>
-        <law-panel v-for="law in openForVotingProposals" :law="law"></law-panel>
-
+        <h2>Polls currently open for voting</h2>
+        <div v-for="poll in openForVotingPolls" class="panel panel-default">
+          <div class="panel-heading">
+            <i aria-hidden="true" class="fa fa-balance-scale fa-lg pull-left"></i>
+            <h4>Poll 1</h4>
+            <timeline :timelineData="getTimelineDataFor(poll)"></timeline>
+          </div>
+          <table class="table pollTable">
+            <tbody>
+              <tr v-for="proposal in poll._embedded.proposals">
+                <td width="80%">
+                  <img src="/static/img/Avatar_32x32.jpeg" class="userPictureLeft">
+                  <h4 class="proposalTitle">{{proposal.title}}</h4>
+                  <div class="maxHeightPreviewWrapper">
+                    <div class="maxHeightPreview">{{proposal.description}}</div>
+                  </div>
+                </td>
+                <td class="greyDataRight">
+                  <ul class="fa-ul">
+                    <li><i class="fa-li fa fa-user"></i>{{proposal.createdBy.profile.name}}</li>
+                    <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(proposal.createdAt)}}</li>
+                    <li><i class="fa-li fa fa-bookmark"></i>{{proposal.area.title}}</li>
+                    <li><i class="fa-li fa fa-balance-scale"</i></li>
+                  </ul>
+                  <button v-if="proposal.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
+                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{proposal.numSupporters}}
+                  </button>
+                  <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeProposal(proposal)">
+                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> 14 {{proposal.numSupporters}}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+        </div>
+        
+        
+        
+        
+        
+        
         <br/><br/>
         <h2 v-if="recentIdeas">Recently created ideas</h2>
         <idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel>
@@ -107,13 +146,13 @@
                     <div class="maxHeightPreview">{{idea.description}}</div>
                   </div>
                 </td>
-                <td class="ideaDataRight">
+                <td class="greyDataRight">
                   <ul class="fa-ul">
                     <li><i class="fa-li fa fa-user"></i>{{idea.createdBy.profile.name}}</li>
                     <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(idea.createdAt)}}</li>
                     <li><i class="fa-li fa fa-bookmark"></i>{{idea.area.title}}</li>
                   </ul>
-                  <button v-if="idea.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active supportedIdeaButton">
+                  <button v-if="idea.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
                     <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
                   </button>
                   <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss(idea)">
@@ -131,28 +170,30 @@
 </template>
 
 <script>
-var IdeaPanel   = require('../components/IdeaPanel.vue')
-var LawPanel    = require('../components/LawPanel.vue')
+import IdeaPanel from '../components/IdeaPanel.vue'
+import LawPanel from '../components/LawPanel.vue'
+import Timeline from '../components/Timeline.vue'
 import moment from 'moment'
+
 
 export default {
   components: {
     'idea-panel' : IdeaPanel,
-    'law-panel' : LawPanel
+    'law-panel' : LawPanel,
+    'timeline' : Timeline
   },
 
   data () {
     return {
       recentIdeas: [],            // recently created ideas sorted by date desc
-      openForVotingProposals: []  // proposals for laws that are currently in the voting phase
+      openForVotingPolls: []      // polls that are currently in the voting phase
     }
   },
   
   created () {
     this.loadRecentIdeas()
-    this.$root.api.fetchOpenForVotingProposals().then(openProposals => {
-      console.log(openProposals);
-      this.openForVotingProposals = openProposals
+    this.$root.api.fetchOpenForVotingPolls().then(openPolls => {
+      this.openForVotingPolls = openPolls
     })
   },
 
@@ -160,10 +201,27 @@ export default {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
+    
     loadRecentIdeas: function() {   // We also simply call this, when a supportes is added to one idea.
       this.$root.api.fetchRecentIdeas().then(recentIdeas => {   
         this.recentIdeas = recentIdeas
       })
+    },
+    
+    getTimelineDataFor(poll) {
+    	if (poll === undefined) return {}
+    	var pollCreatedLoc   = moment(poll.createdAt).format('L')
+    	var votingStartsLoc  = moment(poll.createdAt).format('L')
+      var votingEndsLoc    = moment(poll.createdAt).format('L')
+    	var timelineData = {
+        percentFilled: 30,
+        events: [ 
+          { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
+          { percent:  "30", above: votingStartsLoc, below: "Voting<br/>starts"},
+          { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends"}
+        ]
+      }
+      return timelineData
     }
   }
   
@@ -186,16 +244,16 @@ export default {
     margin-top: 0;
     margin-bottom: 8px;
   }
-  .ideaDataRight {
+  .greyDataRight {
     padding-top: 18px;
     color: grey;
     font-size: 12px;
     background-color: rgb(245,245,245);
   }
-  .ideaDataRight ul.fa-ul {
+  .greyDataRight ul.fa-ul {
     margin-left: 1.5em;
   }
-  .ideaDataRight .userPicture {
+  .greyDataRight .userPicture {
     margin-bottom: 8px;
   }
   .maxHeightPreviewWrapper {

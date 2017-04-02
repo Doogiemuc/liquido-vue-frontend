@@ -1,5 +1,5 @@
 <template>
-	<div class="panel panel-default">
+	<div class="panel panel-default" :data-proposaluri="law._links.self.href">
     
     <div class="panel-heading">
       <i class="pull-right fa fa-university lawIcon grey" aria-hidden="true"></i>
@@ -23,7 +23,7 @@
           </td>
           <td class="userDataSmall">
             <i class="fa fa-fw fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
-            <i class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numAltProposals}} alternatives<br/>
+            <i class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numCompetingProposals}} alternatives<br/>
           </td>
           <td class="gotoPollCell">
             <router-link v-if="showGotoPoll" :to="{ path: '/poll', query: { proposal: this.getLawURI() }}" role="button" class="btn btn-default btn-xs">
@@ -33,21 +33,6 @@
         </tr>
       </tbody>
     </table>
-
-<!--
-    <div class="panel-footer">
-      <div class="media">
-        <div class="media-left"><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></div>
-        <div class="media-body">
-          <div class="userDataSmall">
-            <a href="#" role="button" class="btn btn-default btn-xs pull-right">&nbsp;Goto poll &raquo;</a>
-            <i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br>
-            <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}            
-          </div>
-        </div>
-      </div>
-    </div>
-//-->
 
   </div>
 </template>
@@ -72,19 +57,40 @@ export default {
 
     getTimelineDataFor(law) {
       var now = new Date().getTime()
-      var created = new Date(law.createdAt).getTime()
-      var timeForVoting = 30 * 24*3600*1000  // days in ms
-      var percentFilled = ((now-created) / timeForVoting)*100
+      var createdMs = new Date(law.createdAt).getTime()
+      var createdLoc = moment(law.createdAt).format('L')
+      console.log(law)
+      var elaborationStartsLoc = moment(law.elaborationStartsAt).format('L')
+      var quorumReachedLoc     = moment(law.reachedQuorumAt).format('L')
+      var votingStartsLoc      = moment(law.votingStartsAt).format('L')
+      var votingEndsLoc        = moment(law.votingEndsAt).format('L')
+      var timeForVoting = 30 * 24*3600*1000  // days in ms    //TODO: load timeForVoting from server (from profile)
+      var percentFilled = ((now-createdMs) / timeForVoting)*100
       //console.log((now-created)/1000+"sec since created", (now-created) / timeForVoting)
-      return {
-        percentFilled: percentFilled,
-        events: [ 
-          { percent:  "0",  above: "Proposal", below: "created"},
-          { percent: "10",  above: "Quorum", below: "reached"},
-          { percent: "20",  above: "Voting", below: "starts"},
-          { percent: "100", above: "Voting", below: "ends"}
-        ]
+      var timelineData = {}
+      if (law.initialProposal) {
+      	timelineData = {
+	        percentFilled: percentFilled,
+	        events: [ 
+	          { percent:  "0",  above: elaborationStartsLoc, below: "Initial<br/>created" },
+	          { percent: "30",  above: quorumReachedLoc, below: "Quorum<br/>reached"},
+	          { percent: "45",  above: votingStartsLoc, below: "Voting<br/>starts"},
+	          { percent: "100", above: votingEndsLoc, below: "Voting<br/>ends"}
+	        ]
+	      }
+      } else {
+      	timelineData = {
+	        percentFilled: percentFilled,
+	        events: [ 
+	          { percent:  "0",  above: elaborationStartsLoc, below: "Elaboration<br/>starts" },
+	          { percent: "15",  above: createdLoc, below: "Proposal<br/>created" },
+	          { percent: "30",  above: quorumReachedLoc, below: "Quorum<br/>reached"},
+	          { percent: "45",  above: votingStartsLoc, below: "Voting<br/>starts"},
+	          { percent: "100", above: votingEndsLoc, below: "Voting<br/>ends"}
+	        ]
+	      }
       }
+      return timelineData
     },
 
     getLawURI() {

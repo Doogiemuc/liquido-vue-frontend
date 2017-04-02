@@ -15,6 +15,7 @@ This is my playground for learning the client side Java script framework [Vue 2.
  * [Vue 2.0](http://vuejs.org/guide/) - Client side MVC JS lib (comparable to AngularJS but different :-)
  * [Vue-loader](http://vuejs.github.io/vue-loader) Load components from .vue files
  * [Vue-router](http://router.vuejs.org/) - URL navigation for single page applications
+ * Based on the [Vue Webpack Boilerplate](https://github.com/vuejs-templates/webpack) project template
  * Of course see [package.json](https://github.com/Doogiemuc/liquido-vue-frontend/blob/master/package.json) for full details
  
 ## Features

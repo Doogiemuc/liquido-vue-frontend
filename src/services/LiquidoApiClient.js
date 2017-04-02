@@ -64,12 +64,14 @@ var getId = function(model) {
  * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
  */
 var getURI = function(model) {
-  var uriRegEx = new RegExp('\\w+/\\d+$')
+  var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'\\w*/\\d+$')
   if (uriRegEx.test(model)) {
     return model
   } else {
     try {
-      return model._links.self.href   // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
+    	var uri = model._links.self.href     // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
+    	//TODO: remove "{?projection}" from the end
+      return uri    
     } catch (err) {
       throw new Error("Cannot get URI of "+ model+" : "+err)
     }
@@ -147,7 +149,7 @@ var addSupporter = function(idea, user) {
   if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
   var supportersURI = idea._links.supporters.href
   var userURI       = this.getURI(user)
-  console.log("Add Supporter "+user.email+" ("+userURI+") to idea '"+idea.title+"': POST "+supportersURI)
+  log.debug("Add Supporter "+user.email+" ("+userURI+") to idea '"+idea.title+"': POST "+supportersURI)
   return client({
     method: 'POST',
     path:   supportersURI,
@@ -155,7 +157,7 @@ var addSupporter = function(idea, user) {
     entity: userURI
   }).then(res => {
     // returns status 204
-    console.log("added Supporter successfully.")
+    log.debug("added Supporter successfully.")
     return ""
   }).catch(err => {
     log.error("Cannot addSupporter: "+supportersURI+": ", err)
@@ -210,11 +212,14 @@ var findUserByEmail = function(email) {
   )
 }
 
-// Load all proposals that are currently open for voting.
-// Will return at least an empty array.
-var loadOpenForVotingProposals = function() {
-  return client('/laws/search/findByStatus?status=VOTING').then(
-    response => { return response.entity._embedded.laws}
+/** 
+ * Load all polls that are currently in the voting phase
+ * @return a list of polls in the _embedded attribute. Each poll will already include all its proposals.
+ *         Will return at least an empty array.
+ */
+var loadOpenForVotingPolls = function() {
+  return client('/polls/search/findByStatus?status=VOTING').then(
+    response => { return response.entity._embedded.polls}
   )
 }
 
@@ -223,15 +228,48 @@ var loadOpenForVotingProposals = function() {
  * @param proposalSelector a proposal or proposal URI (not necessarily the initial proposal itself)
  * @return a list of alternative competing proposals
  */
-var fetchCompetingProposals = function(proposalSelector) {
-  console.log("fetchCompetingProposals", proposalSelector)
-  var proposalURI = this.getURI(proposalSelector)
-  return client('http://localhost:8080/liquido/v2/laws/search/findCompeting?proposal='+proposalURI).then(
-    res => { return res.entity._embedded.laws }
+var fetchPoll = function(pollSelector) {
+  log.debug("fetchPoll", pollSelector)
+  var pollURI = this.getURI(pollSelector)
+  return client(pollURI).then(
+    response => { return response.entity }
   )
+  /*
+  return client('/laws/search/findCompeting?proposal='+proposalURI).then(
+    response => { return response.entity._embedded.laws }
+  )
+  */
 }
 
+/** called when a user casts a vote. Will either insert a new ballot or update the existing one .
+ * Exmaple payload for newBallot:
+ *   {
+ *    "initialProposal": "/liquido/v2/laws/42",
+ *     "voteOrder": [
+ *       "/liquido/v2/laws/42",
+ *       "/liquido/v2/laws/43"
+ *     ]
+ *   }
+ */
+var postBallot = function(newBallot) {
+	log.debug("postBallot: "+JSON.stringify(newBallot))
+  return client({
+    method: 'POST',
+    path: '/postBallot',
+    headers: { 'Content-Type' : 'application/json' },
+    entity: newBallot
+  })
+	.then(
+	  response => { return response.entity }
+	)
+}
 
+var loadGlobalProperties = function() {
+	log.debug("loading global properties")
+	return client('/globalProperties').then(
+	  response => { return response.entity }
+	)
+}
 
 //=========================================
 // Public/Exported methods
@@ -304,10 +342,14 @@ module.exports = {
     sessionCache.deleteKey('proxyMap')
   },
 
-  fetchOpenForVotingProposals() {
-    return sessionCache.load('openForVotingProposals', loadOpenForVotingProposals)
+  fetchOpenForVotingPolls() {
+    return sessionCache.load('openForVotingPolls', loadOpenForVotingPolls)
   },
-
+  
+  fetchGlobalProperties() {
+  	return sessionCache.load('globalProperties', loadGlobalProperties)
+  },
+  
   /** @return the internal session cache */
   getCache() {
     return sessionCache
@@ -321,6 +363,7 @@ module.exports = {
   saveIdea: saveIdea,
   saveProxy: saveProxy,
   removeProxy: removeProxy,
-  fetchCompetingProposals: fetchCompetingProposals
+  fetchPoll: fetchPoll,
+  postBallot: postBallot
 
 }

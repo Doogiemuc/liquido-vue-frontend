@@ -5,8 +5,8 @@
       <li v-for="event in this.timelineData.events" class="timeline_event circle" 
           v-bind:style="{left: event.percent+'%'}" 
           v-bind:class="{ selected: event.percent <= timelineData.percentFilled }" >
-      	<div class="event_above">{{event.above}}</div>
-      	<div class="event_below">{{event.below}}</div>
+      	<div class="event_above" v-html="event.above"></div>
+      	<div class="event_below" v-html="event.below"></div>
       </li>
     </ol>
     <span class="filling_line" v-bind:style="{ width: timelineData.percentFilled+'%' }"></span>
