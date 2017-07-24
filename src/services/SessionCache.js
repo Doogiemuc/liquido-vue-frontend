@@ -3,11 +3,8 @@
  *
  * This module is meant to be used as a singleton!
  *
- * Planned feature: Let keys automatically expire
+ * Planned feature: Also store time for each key in cache and then let keys automatically expire. 
  */
-
-
-//TODO: check https://www.npmjs.com/package/apicache  as alternative
 
 import _ from 'lodash'
 import loglevel from 'loglevel'
@@ -58,7 +55,7 @@ module.exports = {
       log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams=", loadFuncParams, "): found in CACHE")
       return Promise.resolve(this.get(key))
     } else {
-      if (loadFunc === undefined) return Promise.reject("ERROR in SessionCache: need loadFunc to load key="+key)
+      if (loadFunc === undefined) return Promise.reject("ERROR in SessionCache: need a loadFunc to load key="+key)
       return loadFunc.apply(this, loadFuncParams)
         .then(result => {
           log.debug("<= " + logId + " SessionCache.load(key='"+key+"', loadFuncParams="+loadFuncParams+"): loadFunc returned: ", result)
@@ -66,7 +63,7 @@ module.exports = {
           return Promise.resolve(result)
         })
         .catch(err => {
-          var msg = "ERROR in SessionCache: Cannot load key='"+key+"' with loadFunc. err="+err
+          var msg = "ERROR in SessionCache: Cannot load key='"+key+"' via loadFunc. err="+err
           log.error(msg)
           return Promise.reject(msg)
         })

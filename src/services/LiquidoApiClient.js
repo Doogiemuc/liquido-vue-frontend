@@ -6,17 +6,15 @@
  * Our backend sends URIs as IDs for model objects. 
  *
  * This class is meant to be used as a singleton!
+ *
  */
-
 
 //Implementation note: 
 //The server sends "areas". Here on the client we rename them to "categories".
 //But there is one catch: The inlined child references coming from the server are still named "areas".
 //But I wanted to test the  separation between client and server. So I use this as a test case. Maybe also a preview on future localisation support
 
-// CuJoJs Rest Client  https://github.com/cujojs/rest
-// and some of its interceptors (they are cool. That's why I decided to use this REST lib.
-//import _ from 'lodash'  
+// CuJoJs Rest Client  https://github.com/cujojs/rest and some of its interceptors (they are cool. That's why I decided to use this REST lib.
 import rest from 'rest'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
@@ -24,82 +22,30 @@ import pathPrefix from 'rest/interceptor/pathPrefix'
 import basicAuth from 'rest/interceptor/basicAuth'
 import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list"
 import logRequestsInterceptor from './logRequestsInterceptor'   // deteiled log of HTTP requests and responses
-//MAYBE: import hateoas from 'rest/interceptors/hateoas'      // Hypermedia AS the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
+//MAYBE: import hateoas from 'rest/interceptors/hateoas'      // Hypermedia as the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
+//TODO: think about a CacheInterceptor as described here: https://github.com/cujojs/rest/issues/29
 import sessionCache from './SessionCache.js'
 
+//import _ from 'lodash'  
 import loglevel from 'loglevel'
+
 var log = loglevel.getLogger("LiquidoApiClient");
 
 //=========================================
-// Module private fields and methods
+// All "load..." functions load some content from the REST backend.
+// Furhter down there are "fetch..." functions that are exported and load data from the cache.
 //=========================================
 
-if (process.env.backendBaseURL === undefined) {
-  throw new Error("process.env.backendBaseURL must be defined!")
-}
-
-// The CuJoJS rest client with its interceptors
-// Keep in mind that all requests to the backend must be authenticated. So you must call this.setLogin() before making the first request.
-var client = rest.wrap(mime, { mime: 'application/json'} )
-                 .wrap(errorCode)               // Promise.reject() responses with http status code >= 400 
-                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
-                 .wrap(logRequestsInterceptor)
-
-
-/** 
- * Get the internal DB id of a model. IDs are numbers.
- * This is an internal method and should not be exposed.
- */
-var getId = function(model) {
-  var uri = this.getURI(model)
-  var uriRegEx = new RegExp('^https?://.*/(\d?)$')
-  var id = uri.match(uriRegEx)
-}
-
-/** 
- * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
- *   e.g. http://localhost:8080/liquido/v2/areas/42
- * This method is exposed to the web app.
- * @param model a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
- * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
- */
-var getURI = function(model) {
-  var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'\\w*/\\d+$')
-  if (uriRegEx.test(model)) {
-    return model
-  } else {
-    try {
-    	var uri = model._links.self.href     // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
-    	//TODO: remove "{?projection}" from the end
-      return uri    
-    } catch (err) {
-      throw new Error("Cannot get URI of "+ model+" : "+err)
-    }
-  }
-}
-
-/** 
- * Check if backend is alive.
- * @return A Promise that will reject (quickly) when the backend is not reachable.
- */
-var ping = function() {
-  return client('/_ping').then(result => {
-    if (result.error) return Promise.reject("Connection error: "+result.error)    //BUGFIX:  No error status is set on conction error???
-    return Promise.resolve("Backend is alive")
-  })
-}
-
-// All "load..." functions load some content from the REST backend
 var loadAllCategories = function() {
   return client('/areas').then(                                      // <=== here we rename from ideas to categories!
-    response => { return Promise.resolve(response.entity._embedded.areas) }    
+    response => { return response.entity._embedded.areas }    
     //TODO: handle errors individually or in a central place?   logErrorInterceptor   vs.    errResp  => { log.error("ERROR loading categories: "+errResp) }
   )
 }
 
 var loadAllIdeas = function() {
-  return client('/ideas').then( 
-    response => { return response.entity._embedded.ideas },
+  return client('/laws/search/findAllIdeas').then( 
+    response => { return response.entity._embedded.laws }    // ideas are laws in status IDEA
   )
 }
 
@@ -111,13 +57,14 @@ var saveIdea = function(newIdea) {
   log.debug("POST newIdea: "+JSON.stringify(newIdea))
   return client({
     method: 'POST',
-    path:   '/ideas',
+    path:   '/laws',
     headers: { 'Content-Type' : 'application/json' },
     entity: newIdea
   }).then(res => { 
     return res.entity 
   }).catch(err => {
     log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
+	throw new Error(err)
   })
 }
 
@@ -208,9 +155,25 @@ var removeProxy = function(category) {
 
 var findUserByEmail = function(email) {
   return client('/users/search/findByEmail?email='+email).then(
-    response => { return response.entity }
+    response => { 
+    	return response.entity 
+    }
   )
 }
+
+
+/**
+ * Load proposals that a user liked
+ * @param user currently logged in user 
+ */
+var loadSupportedProposals = function(user) {
+  var userURI = getURI(user)
+  log.debug("loadSupportedProposals(user="+user.email+")")
+  return client('/laws/search/findSupported?status=PROPOSAL&user='+userURI).then(
+    response => { return response.entity._embedded.laws }
+  )	
+}
+
 
 /** 
  * Load all polls that are currently in the voting phase
@@ -218,6 +181,12 @@ var findUserByEmail = function(email) {
  *         Will return at least an empty array.
  */
 var loadOpenForVotingPolls = function() {
+  /*
+  client('/laws/search/findSupported?status=PROPOSAL&user=/users/2').then(
+    response => { log.info("got =", response.entity._embedded.laws) }
+  )
+  */
+  
   return client('/polls/search/findByStatus?status=VOTING').then(
     response => { return response.entity._embedded.polls}
   )
@@ -228,8 +197,8 @@ var loadOpenForVotingPolls = function() {
  * @param proposalSelector a proposal or proposal URI (not necessarily the initial proposal itself)
  * @return a list of alternative competing proposals
  */
-var fetchPoll = function(pollSelector) {
-  log.debug("fetchPoll", pollSelector)
+var loadPoll = function(pollSelector) {
+  log.debug("loadPoll", pollSelector)
   var pollURI = this.getURI(pollSelector)
   return client(pollURI).then(
     response => { return response.entity }
@@ -264,12 +233,76 @@ var postBallot = function(newBallot) {
 	)
 }
 
+/** These "global properties" are values that come from the backend */
 var loadGlobalProperties = function() {
 	log.debug("loading global properties")
 	return client('/globalProperties').then(
 	  response => { return response.entity }
 	)
 }
+
+
+/** 
+ * Check if backend is alive.
+ * @return A Promise that will reject (quickly) when the backend is not reachable.
+ */
+var ping = function() {
+  return client('/_ping').then(result => {
+    if (result.error) return Promise.reject("Connection error: "+result.error)    //BUGFIX:  No error status is set on conction error???
+    return Promise.resolve("Backend is alive")
+  })
+}
+
+//=========================================
+// Module private fields and methods
+//=========================================
+
+if (process.env.backendBaseURL === undefined) {
+  throw new Error("process.env.backendBaseURL must be defined!")
+}
+
+// The CuJoJS rest client with its interceptors
+// Keep in mind that all requests to the backend must be authenticated. So you must call this.setLogin() before making the first request.
+log.debug("Creating HTTP client for server at "+process.env.backendBaseURL)
+var client = rest.wrap(mime, { mime: 'application/json'} )
+                 .wrap(errorCode)               // Promise.reject() responses with http status code >= 400 
+				 .wrap(logRequestsInterceptor)
+                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
+                 
+
+
+/** 
+ * Get the internal DB id of a model. IDs are numbers.
+ * This is an internal method and should not be exposed.
+ */
+var getId = function(model) {
+  var uri = this.getURI(model)
+  var uriRegEx = new RegExp('^https?://.*/(\d?)$')
+  var id = uri.match(uriRegEx)
+}
+
+/** 
+ * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
+ *   e.g. http://localhost:8080/liquido/v2/areas/42
+ * @param model a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
+ * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
+ */
+var getURI = function(model) {
+  var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'[\\w/]*/\\d+$')
+  if (uriRegEx.test(model)) {
+    return model
+  } else {
+    try {
+      var uri = model._links.self.href     // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
+      //TODO: remove "{?projection}" from the end
+      return uri    
+    } catch (err) {
+      throw new Error("Cannot get URI of "+ model+" : "+err)
+    }
+  }
+}
+
+
 
 //=========================================
 // Public/Exported methods
@@ -325,7 +358,7 @@ module.exports = {
 
   /** fetches the 10 most recently updated ideas */
   fetchRecentIdeas() {
-    return client('/ideas/search/recentIdeas').then(res => { return res.entity._embedded.ideas })
+    return client('/laws/search/recentIdeas').then(res => { return res.entity._embedded.laws })
   },
 
   /** lazy load all users (from cache is possible) */
@@ -342,12 +375,21 @@ module.exports = {
     sessionCache.deleteKey('proxyMap')
   },
 
+  fetchSupportedProposals(user) {
+	return sessionCache.load('supportedProposals', loadSupportedProposals, user)
+  },
+  
   fetchOpenForVotingPolls() {
     return sessionCache.load('openForVotingPolls', loadOpenForVotingPolls)
   },
   
   fetchGlobalProperties() {
-  	return sessionCache.load('globalProperties', loadGlobalProperties)
+	  return sessionCache.load('globalProperties', loadGlobalProperties)
+  },
+  
+  getProp(propKey) {
+  	var props = sessionCache.get('globalProperties')
+  	return props[propKey]
   },
   
   /** @return the internal session cache */
@@ -363,7 +405,7 @@ module.exports = {
   saveIdea: saveIdea,
   saveProxy: saveProxy,
   removeProxy: removeProxy,
-  fetchPoll: fetchPoll,
-  postBallot: postBallot
+  postBallot: postBallot,
+  loadPoll: loadPoll
 
 }

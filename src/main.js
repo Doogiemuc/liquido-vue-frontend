@@ -3,6 +3,7 @@
  *
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
+
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 //import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
@@ -10,7 +11,7 @@ import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
 import loglevel from 'loglevel'
-var log = loglevel.getLogger('main.js');
+var log = loglevel.getLogger('main.js')
 
 // Vue plugins
 Vue.use(VueRouter)
@@ -126,26 +127,28 @@ var checkDevelopmentMode = function() {
   }
 }
 
-var startApp = function() {
-  console.log("Starting Vue app (with currentUser.email=", currentUser.email+")")
+var startApp = function(props) {
+  //log.debug("Starting Vue app (with currentUser.email=", currentUser.email+" and props="+props+") ")
 
   const rootVue = new Vue({
     el: '#app',
     router,
     data: {
       api: apiClient,             // singleton instance, available to all (sub)components as "this.$root.api"
+      props: props,
       currentUser: currentUser,   // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
     },
     ...RootApp
   }).$mount()
 
-  console.log("===== Liquido web app has started.")
+  log.info("===== Liquido web app has started.")
   //TODO: router.app.cacheWarmup()
 }
 
 isBackendAlive()
   .then(checkDevelopmentMode)
+  .then(apiClient.fetchGlobalProperties)
   .then(startApp)
   .catch(err => {
     console.error("Error during startup", err)

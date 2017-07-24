@@ -1,30 +1,34 @@
 /**
- * Smoke tests for IdeaService (and BaseRestClient)
+ * Smoke tests for LiquidoApiClient.js
  * These tests will run with jasmin as plain node javascript - no browser involved
  * So you cannot test any real HTML DOM frontend here. But you can do unit tests of backend services very quickly.
  */
 
 /*global expect, jasmine, iit, fail*/
 
+import loglevel from 'loglevel'
+var log = loglevel.getLogger("LiquidoApiClient");
+
 var handleError = function(err) {
-  console.error("ERROR in test", err);
+  console.error("ERROR in LiquidoApiClient.spec jasmine test", err);
   done.fail(err);
 }
 
 var liquidoApiClient = require('../../../src/services/LiquidoApiClient.js');
-liquidoApiClient.login('testuser0@liquido.de', 'dummyPasswordHash')
+liquidoApiClient.setLogin('testuser0@liquido.de', 'dummyPasswordHash')
 
 describe("LiquidoApiClient", function() {
 
   beforeAll(function(done) {
     var email = "testuser0@liquido.de"
-    console.log("Fetch default user "+email)
+    log.debug("Fetch default user "+email)
     liquidoApiClient.findUserByEmail(email).then(
-      user => { 
+      user => {
+      	log.debug("received user "+user) 
         this.currentUser = user 
         done()
       }
-    )
+    ).catch(handleError)
   })
 
   beforeEach(function() {
@@ -88,10 +92,11 @@ describe("LiquidoApiClient", function() {
   })
 
 
-
+  /*
   it('should get the number of votes that a proxy can cast (incl. transitive proxies)', function(done) {
 
-  }
+  })
+  */
 
 
 

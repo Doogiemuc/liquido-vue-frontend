@@ -31,7 +31,7 @@ export default interceptor({
     if (config.logRequests) {
       startTime = new Date().getTime()
       reqId = startTime % 1000
-      log.debug(config.requestPrefix + "["+reqId+"]", request, request.path)
+      log.debug(config.requestPrefix + "["+reqId+"] " + request.path)
     }
     return request;
   },
@@ -67,8 +67,9 @@ export default interceptor({
   },
 
   error: function (response, config, meta) {
+  	
     if (config.logErrors) {
-      log.error(config.prefix + "ERROR:", response)
+      log.error(config.responsePrefix + "["+reqId+"]" + " ERROR in response: " + JSON.stringify(response))
     }
     return response;
   }

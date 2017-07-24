@@ -6,9 +6,14 @@
         <h2>Polls currently open for voting</h2>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
+            <router-link :to="{ path: '/poll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
+              Goto poll &raquo;
+            </router-link>
             <i aria-hidden="true" class="fa fa-balance-scale fa-lg pull-left"></i>
-            <h4>Poll 1</h4>
-            <timeline :timelineData="getTimelineDataFor(poll)"></timeline>
+            <h4>Poll</h4>
+            <div style="padding: 10px">
+              <timeline :timelineData="getTimelineDataFor(poll)"></timeline>
+            </div>
           </div>
           <table class="table pollTable">
             <tbody>
@@ -24,25 +29,16 @@
                   <ul class="fa-ul">
                     <li><i class="fa-li fa fa-user"></i>{{proposal.createdBy.profile.name}}</li>
                     <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(proposal.createdAt)}}</li>
-                    <li><i class="fa-li fa fa-bookmark"></i>{{proposal.area.title}}</li>
-                    <li><i class="fa-li fa fa-balance-scale"</i></li>
+                    <!-- <li><i class="fa-li fa fa-check-circle-o"></i>{{getFromNow(proposal.reachedQuorumAt)}} </li> -->
+                    <li><i class="fa-li fa fa-bookmark"></i>{{proposal.area.title}}</li>                  
+                    <li><i class="fa-li fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}</li> 
                   </ul>
-                  <button v-if="proposal.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
-                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{proposal.numSupporters}}
-                  </button>
-                  <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeProposal(proposal)">
-                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> 14 {{proposal.numSupporters}}
-                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
           
         </div>
-        
-        
-        
-        
         
         
         <br/><br/>
@@ -76,9 +72,7 @@
             </li>
           </ul>
         </div>
-
-
-
+		
         <div class="panel panel-default">
           <div class="panel-heading">
              <h4>Some other messages - v2</h4>
@@ -130,41 +124,27 @@
 
 
         <br/><br/>
-        <h2>Some other list</h2>
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <i aria-hidden="true" class="pull-right fa fa-lightbulb-o fa-lg grey"></i>
-            <h4>Condensed preview of ideas</h4>
-          </div>
-          <table class="table ideaTable">
-            <tbody>
-              <tr v-for="idea in recentIdeas">
-                <td width="80%">
-                  <img src="/static/img/Avatar_32x32.jpeg" class="userPictureLeft">
-                  <h4 class="ideaTitle">{{idea.title}}</h4>
-                  <div class="maxHeightPreviewWrapper">
-                    <div class="maxHeightPreview">{{idea.description}}</div>
-                  </div>
-                </td>
-                <td class="greyDataRight">
-                  <ul class="fa-ul">
-                    <li><i class="fa-li fa fa-user"></i>{{idea.createdBy.profile.name}}</li>
-                    <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(idea.createdAt)}}</li>
-                    <li><i class="fa-li fa fa-bookmark"></i>{{idea.area.title}}</li>
-                  </ul>
-                  <button v-if="idea.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
-                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-                  </button>
-                  <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss(idea)">
-                    <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{idea.numSupporters}}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-        </div>
-      </div>
+		
+		
+
+		<h2>Trending proposals (Demo for LawPanel)</h2>
+		
+		<law-panel v-for="proposal in trendingProposals" 
+		  :law="proposal" 
+		  :showTimeline="false">  
+		</law-panel> 
+		
+				
+		
+    <h2>Ideas and proposals supported by you</h2>
+		<p>Demo for LawListCondensed</p>
+		
+		<law-list 
+		  :laws="supportedIdeasAndProps"
+		  title="">
+		</law-list>
+		
+	  </div>
     </div>
   </div>
 </template>
@@ -172,6 +152,7 @@
 <script>
 import IdeaPanel from '../components/IdeaPanel.vue'
 import LawPanel from '../components/LawPanel.vue'
+import LawList from '../components/LawList.vue'
 import Timeline from '../components/Timeline.vue'
 import moment from 'moment'
 
@@ -180,18 +161,27 @@ export default {
   components: {
     'idea-panel' : IdeaPanel,
     'law-panel' : LawPanel,
+	  'law-list' : LawList,
     'timeline' : Timeline
   },
 
   data () {
     return {
       recentIdeas: [],            // recently created ideas sorted by date desc
-      openForVotingPolls: []      // polls that are currently in the voting phase
+      openForVotingPolls: [],     // polls that are currently in the voting phase
+	    trendingProposals: [],      // 
+	    supportedIdeasAndProps: []  // ideas and proposals that this user liked
     }
   },
   
   created () {
     this.loadRecentIdeas()
+    this.$root.api.fetchSupportedProposals(this.$root.currentUser).then(proposals => {
+      this.supportedIdeasAndProps = proposals
+    })
+    this.$root.api.fetchSupportedProposals(this.$root.currentUser).then(proposals => {
+      this.trendingProposals = proposals
+    })
     this.$root.api.fetchOpenForVotingPolls().then(openPolls => {
       this.openForVotingPolls = openPolls
     })
@@ -202,22 +192,38 @@ export default {
       return moment(dateVal).fromNow();
     },
     
-    loadRecentIdeas: function() {   // We also simply call this, when a supportes is added to one idea.
+    getPollURI: function(poll) {
+    	return this.$root.api.getURI(poll)
+    },
+    
+    loadRecentIdeas: function() {   // We also simply call this everytime, when a supporter is added to one idea.
       this.$root.api.fetchRecentIdeas().then(recentIdeas => {   
         this.recentIdeas = recentIdeas
       })
     },
     
+    /** a lot of data calculations for our pretty timeline
+	    SEE ALSO   LawPanel!  Same funcction ?!?!??!
+    	*/
     getTimelineDataFor(poll) {
+      //TODO: simply past dates into timeline and let all the calculation be done in the timeline class */
     	if (poll === undefined) return {}
-    	var pollCreatedLoc   = moment(poll.createdAt).format('L')
-    	var votingStartsLoc  = moment(poll.createdAt).format('L')
-      var votingEndsLoc    = moment(poll.createdAt).format('L')
+      var daysUntilVotingStarts = this.$root.api.getProp("liquido.days.until.voting.starts")     // number of days
+      var durationOfVotingPhase = this.$root.api.getProp("liquido.duration.of.voting.phase")     // also in days
+      var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
+      var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
+
+      var pollCreatedLoc        = moment(poll.createdAt).format('L')
+      var votingStartsLoc       = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
+      var votingEndsLoc         = moment(poll.createdAt).add(durationInDays, 'days').format('L')
+      var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
+      var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
+      
     	var timelineData = {
-        percentFilled: 30,
+        percentFilled: percentFilled,
         events: [ 
           { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
-          { percent:  "30", above: votingStartsLoc, below: "Voting<br/>starts"},
+          { percent: percentVotingStarts, above: votingStartsLoc, below: "Voting<br/>starts"},
           { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends"}
         ]
       }

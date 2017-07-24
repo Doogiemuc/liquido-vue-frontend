@@ -7,7 +7,7 @@
         Sort your favorite proposals to the top of your ballot.
       </p>
       <p>
-        This poll will run for {{pollOpenDays}} more days until {{pollOpenUntilDateLoc}}.
+        This poll will run for {{1111}} more days until {{votingEndsAtLoc}}.
       </p>
     </div>
     <table class="table pollTable">
@@ -63,6 +63,7 @@ export default {
     return {
       poll: {},
       proposals: [],
+      votingEndsAtLoc: "",
       ballotIsEmpty: true
     }
   },
@@ -87,9 +88,10 @@ export default {
     },
 
     loadPoll: function(pollURI) {
-      return this.$root.api.fetchPoll(pollURI).then(poll => {
+      return this.$root.api.loadPoll(pollURI).then(poll => {
         this.poll = poll
         this.proposals = poll._embedded.proposals
+        this.votingEndsAtLoc = moment(this.proposals[0].votingEndsAt).format('L')
       })
     },
 

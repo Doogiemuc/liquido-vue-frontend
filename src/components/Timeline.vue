@@ -20,7 +20,7 @@
       exampleTimelineData = {
         percentFilled: "80",
         events: [ 
-          { percent:  "0", above: "Proposal", below: "created"},
+          { percent:  "0", above: "Proposal", below: "created"},  //TODO: make it possible to pass dates instead of percentage values
           { percent: "10", above: "Quorum", below: "reached"},
           { percent: "20", above: "Voting", below: "starts"},
           { percent: "95", above: "Voting", below: "ends"}

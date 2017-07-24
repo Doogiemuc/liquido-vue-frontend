@@ -2,7 +2,7 @@
 	<div class="panel panel-default" :data-proposaluri="law._links.self.href">
     
     <div class="panel-heading">
-      <i class="pull-right fa fa-university lawIcon grey" aria-hidden="true"></i>
+      <i class="pull-right fa lawIcon grey" v-bind:class="getIconFor(law)" aria-hidden="true"></i>
       <h4 class="lawTitle">{{law.title}}</h4>
     </div>
 
@@ -23,7 +23,15 @@
           </td>
           <td class="userDataSmall">
             <i class="fa fa-fw fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
-            <i class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numCompetingProposals}} alternatives<br/>
+            <i v-if="law.numCompetingProposals > 0" class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numCompetingProposals}} alternatives<br/>
+          </td>
+          <td class="likeButtonCell">
+            <button v-if="law.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
+              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{law.numSupporters}}
+            </button>
+            <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss(law)">
+              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{law.numSupporters}}
+            </button>
           </td>
           <td class="gotoPollCell">
             <router-link v-if="showGotoPoll" :to="{ path: '/poll', query: { proposal: this.getLawURI() }}" role="button" class="btn btn-default btn-xs">
@@ -38,21 +46,43 @@
 </template>
 
 <script>
+/*
+  A lawPanel shows one idea, proposal or law.
+  It shows three rows: title, description with timeline and some attributes in the footer.
+
+ */
 import moment from 'moment'
 import timeline from './Timeline'   // timeline component
 
 export default {
-	props: { 
+  props: { 
     'law' : { type: Object, required: true },
     'showTimeline' : { type: Boolean, required: false, default: function() { return true } },
-    'showGotoPoll' : { type: Boolean, required: false, default: function() { return true } },
+    'showGotoPoll' : { type: Boolean, required: false, default: function() { return false } },
   },
 
   components: {'timeline': timeline },
 
-	methods: {
+  methods: {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
+    },
+    
+    // dynamically set icon depending on law.status
+    getIconFor: function(law) {
+      return {
+        "fa-lightbulb-o": law.status == "IDEA",
+        "fa-file-text-o": law.status == "PROPOSAL",
+        "fa-university":  law.status == "LAW"
+      }
+    },
+    
+    likeToDiscuss(law) {
+      //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+idea.title+"'")
+      this.$root.api.addSupporter(law, this.$root.currentUser).then(res => {
+        //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
+        this.$emit("reloadLaw", law)  // notify parent to reload this law
+      })
     },
 
     getTimelineDataFor(law) {
@@ -116,6 +146,9 @@ export default {
   }
   .lawFooterTable td {
     padding: 3px 8px;
+  }
+  .likeButtonCell {
+    vertical-align: middle;
   }
   .gotoPollCell {
     text-align: right;
