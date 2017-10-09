@@ -1,0 +1,21 @@
+### Happy test case
+
+User creates a new Idea
+This idea gets some likes.
+Idea reaches quorum.
+Creator of idea starts a new poll.
+
+A second idea is created, gets likes and reaches its quorum.
+This second idea is merged into the above poll as alternative proposal.
+
+Some more ideas are also merged into the poll.)
+
+(Proposals can still be edited in the elaboration phase.)
+
+The creator of the initial proposal starts the voting phase.
+
+(Proposals in this poll cannot be edited anymore.)
+
+Users cast their votes.
+
+One proposal wins.

@@ -8,11 +8,20 @@
  */
 
 import loglevel from 'loglevel'
+import MD5 from 'crypto-js/md5'
 var log = loglevel.getLogger("logRequestsInterceptor");
 var interceptor = require('rest/interceptor');
 
-var reqId
-var startTime
+var reqId = ""
+var startTime = {}
+
+// One disatvantage of this central interceptor is that the Chrome developer console will always show this class
+// as the source of the log output. The interesting information would be the calling funciton(s).
+// But this can be shown in Chrome, when you replace the log.debug() calls with log.trace() calls which 
+// shows the full callstack in Chrome developer console.
+
+// MAYBE: https://github.com/stacktracejs/stacktrace.js
+
 
 export default interceptor({
   
@@ -22,57 +31,58 @@ export default interceptor({
     config.logErrors      = config.logErrors    || true
     config.logRequests    = config.logRequests  || true
     config.logResponses   = config.logResponses || true
-    config.logPayload     = config.logPayload   || true
+    config.logPayload     = config.logPayload   || false
     config.maxPayloadLength = config.maxPayloadLength || 400
     return config;
   },
 
   request: function (request, config, meta) {
     if (config.logRequests) {
-      startTime = new Date().getTime()
-      reqId = startTime % 1000
-      log.debug(config.requestPrefix + "["+reqId+"] " + request.path)
+      this.reqId = MD5(request.path)
+      startTime[reqId] = new Date().getTime()
+      log.debug(config.requestPrefix + request.path)
     }
-    return request;
+    return request
   },
 
-  /*
+  /* This would be called for successfull AND error responses 
   response: function (response, config, meta) {
+    log.debug("RESPONSE")
     if (config.logResponses) {
-      log.debug("RESPONSE")
       log.debug(response)
     }
-    log.debug("RESPONSE")
     return response;
   },
   */
 
   success: function (response, config, meta) {
     if (config.logResponses) {
-      var duration = new Date().getTime() - startTime
+      var  reqId = MD5(response.request.path)
+      var duration = new Date().getTime() - startTime[reqId]
       if (config.logPayload) {
-        log.debug(config.responsePrefix + "["+reqId+"]", response.status.code, "in "+duration+" ms ", response.entity ? response.entity : "[empty response]")
+        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms ", response.entity ? response.entity : "[empty response]")
       } else {
-        log.debug(config.responsePrefix + "["+reqId+"]", response.status.code, "in "+duration+" ms")
+        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms")
       }
-      /*   doesn't work becasue response.entity is not yet filled   RACE CONDITION
-      var responseAsStr = JSON.stringify(response.entity)
-      console.log("response.entity '"+response.entity+"'")
-      console.log("responseAsStr", responseAsStr, JSON.stringify(response.entity))
-      var abreviated = (responseAsStr.length > config.maxPayloadLength) ? " [...]" : ""
-      log.debug(responseAsStr.substr(0, config.maxPayloadLength) + abreviated)
-      */
     }
-    return response;
+    return response
   },
 
+  /**
+   * Log errors to the console (if configured)
+   * Keep ind mind that there also might be errors during the request phase already, e.g. connection errors.
+   */
   error: function (response, config, meta) {
-  	
-    if (config.logErrors) {
-      log.error(config.responsePrefix + "["+reqId+"]" + " ERROR in response: " + JSON.stringify(response))
+    if (!config.logErrors) return Promise.reject(response)
+    if (response.error) {
+      log.error(config.requestPrefix + "["+this.reqId+"] request ERROR ", response.error.code, JSON.stringify(response))
+    } else if (response.status) {
+      log.error(config.responsePrefix + "["+this.reqId+"] response ERROR ", response.status.code, JSON.stringify(response))
+    } else {
+      log.error(config.responsePrefix + "["+this.reqId+"] response ERROR ", JSON.stringify(response))
     }
-    return response;
+    return Promise.reject(response)  // BUGFIX: An interceptor must return a rejected promise to keep the state of error
   }
 
-});
+})
 

@@ -70,7 +70,8 @@ export default {
     saveIdea() {
       $('#saveIdeaButton').button('loading')
       var that = this
-      this.idea.createdBy = this.$root.currentUserID
+      //this.idea.createdBy = this.$root.currentUserID
+      this.idea.area = ""  // force an ERROR   FIXME
       console.log("Saving idea: this.idea=", JSON.stringify(this.idea));
       this.$root.api.saveIdea(this.idea)
       .then(() => {
@@ -81,7 +82,6 @@ export default {
           type: "success"
         },
         function () {
-          //TODO: how to show success flash message on user Home?   Path Parameter   or  data on root vue instance?
           that.$router.push('/userHome')
         })
       }).catch(err => {

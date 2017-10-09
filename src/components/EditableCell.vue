@@ -86,7 +86,6 @@ export default {
   },
 
   mounted () {
-    //console.log("cell is ready:", this.row, this.rowId, this.path, '"'+this.value+'"');
     $("#"+this.cellId).editable({
       send: 'never',
       toggle: 'manual',
@@ -100,6 +99,7 @@ export default {
         return "Cannot save "+this.path;  //TODO: localize (on the client!)
       }
     })
+    //console.log("cell is ready:", this.row, this.rowId, this.path, '"'+this.value+'"');
   }
 }
 </script>

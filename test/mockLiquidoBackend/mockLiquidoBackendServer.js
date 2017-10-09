@@ -66,6 +66,16 @@ var RouteManager ={
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end('5');
 	  },
+    
+    '/laws/search/reachedQuorumSince\\?since=': function(req, res) {
+      var fileData = 'test/testData/reachedQuorumSince.json'
+	  	var responseJson = fs.readFileSync(fileData, 'utf8');
+	  	log.debug("<= MockLiquidoBackend: "+fileData)
+			res.writeHead(200, {'Content-Type': 'application/json'})
+			res.write(responseJson)
+      res.end()
+	  },
+    
 	  /*
 		"/json":function(req,res){
 			//this.sleep(5000);

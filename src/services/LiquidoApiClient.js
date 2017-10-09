@@ -21,7 +21,7 @@ import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 import basicAuth from 'rest/interceptor/basicAuth'
 import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list"
-import logRequestsInterceptor from './logRequestsInterceptor'   // deteiled log of HTTP requests and responses
+import logRequestsInterceptor from './logRequestsInterceptor'   // very detailed loging of all HTTP requests and responses incl. payload
 //MAYBE: import hateoas from 'rest/interceptors/hateoas'      // Hypermedia as the Engine of State HATEOAS. Test this. Could be useful with spring-hateoas.
 //TODO: think about a CacheInterceptor as described here: https://github.com/cujojs/rest/issues/29
 import sessionCache from './SessionCache.js'
@@ -64,7 +64,8 @@ var saveIdea = function(newIdea) {
     return res.entity 
   }).catch(err => {
     log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
-	throw new Error(err)
+	  return Promise.reject(err)
+    //throw new Error(err)
   })
 }
 
@@ -144,7 +145,7 @@ var saveProxy = function(category, proxy) {
 var removeProxy = function(category) {
   if (!category) throw new Error("Missing category for removeProxy()")
   return client({
-    method: 'DELETE',
+    method: 'DELETE', 
     path:   process.env.backendBaseURL+'/deleteProxy/'+this.getId(category),
     headers: { 
       'Content-Type': 'application/json',
@@ -266,10 +267,8 @@ if (process.env.backendBaseURL === undefined) {
 log.debug("Creating HTTP client for server at "+process.env.backendBaseURL)
 var client = rest.wrap(mime, { mime: 'application/json'} )
                  .wrap(errorCode)               // Promise.reject() responses with http status code >= 400 
-				 .wrap(logRequestsInterceptor)
+                 .wrap(logRequestsInterceptor)
                  .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
-                 
-
 
 /** 
  * Get the internal DB id of a model. IDs are numbers.

@@ -39,9 +39,7 @@
             @click="clickHeader(col)"
             :class="{active: sortByCol == col}">
             {{ col.title }}
-            <span v-if="sortByCol == col" class="arrow"
-              :class="sortOrder > 0 ? 'asc' : 'dsc'">
-            </span>
+            <span v-if="sortByCol == col" class="arrow" :class="sortOrder > 0 ? 'asc' : 'dsc'"></span>
           </th>
         </tr>
       </thead>
@@ -52,7 +50,7 @@
         <tr v-if="message">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
         </tr>
-        <tr v-for="(row, index) in getRowDataForCurrentPage()" @click="rowClicked(row)">
+        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)">
           <th v-if="showRowNumbers">
             {{page*rowsPerPage + index + 1}}
           </th>
@@ -63,7 +61,7 @@
               :row="row"
               :row-id="getPath(row, primaryKeyForRow)"
               :path="col.path"
-              :value="getPath(row, col.path)" >
+              :value="getFilteredCellValue(row, col.path, col.filter)" >
             </editable-cell>
             <span v-if="!col.editable && !col.rawHTML">
               {{ getFilteredCellValue(row, col.path, col.filter) }}
@@ -165,7 +163,7 @@ export default {
     return {
       searchQuery: '',                 // filter by searching every cell's content by partial text match
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
-      sortOrder: 1,
+      sortOrder: 1,										 // initial sort order is ascending
       page: 0,                         // currently shown page. 0 is first page!
       message: '',                     // message shown in the first row, e.g "loading" or for error messages
       selectedRow: null
@@ -176,6 +174,7 @@ export default {
     'editable-cell' : require("./EditableCell")
   },
 
+  //see https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
     // Array of current page indexes that are shown in the middle of the pagination component
     // (A field with first and last page is always shown at the very left and right of my pager.)
@@ -189,42 +188,9 @@ export default {
       }
       return result
     },
-  },
-
-  methods: {
-    // set the column that the table is sorted by
-    setSortCol(col) {
-      if (typeof col == "number") col=this.columns[col]
-      this.sortByCol = col
-    },
-
-    // invert the sort order of the current column sort (ascending/descending)
-    invertSortOrder() {
-      this.sortOrder = this.sortOrder * -1
-    },
-
-    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
-    comparator(row1,row2) {
-      if (!this.sortByCol) return 0;
-      var val1 = _.get(row1, this.sortByCol.path)
-      var val2 = _.get(row2, this.sortByCol.path)
-      return val1.localeCompare(val2, 'lookup', { numeric: true } ) * this.sortOrder // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
-    },
-
-    // called when header is clicked: Will sort by this column and invert sort order on subsequent clicks
-    clickHeader(col) {
-      this.setSortCol(col)
-      this.invertSortOrder()
-    },
-
-    // index of last page (after applying filter)
-    lastPageIndex() {
-      var filteredRowData = this.getFilteredRowData()
-      return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
-    },
-
+    
     // Get filtered row data (if any searchQuery is set).
-    // Matches on the cell values as the user sees them!
+    // Matches on the cell values as the user sees them! (ignoring case)
     // adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
     // and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
     getFilteredRowData() {
@@ -245,17 +211,60 @@ export default {
     // get filtered and sorted row data for current page only
     getRowDataForCurrentPage() {
       // apply filter (if any)
-      var result = this.getFilteredRowData()
+      var result = this.getFilteredRowData
       // sort
       if (this.sortByCol) {
         result = result.slice().sort(this.comparator)   // need to make a copy of the array!
       }
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
+      if (result.length > 1) {
+        console.log("getRowDataForCurrentPage", result[0].title, " 0<1 ", result[1].title)
+      }
       return result
+    }
+
+  },
+
+  methods: {
+    // set the column that the table is sorted by
+    setSortCol(col) {
+      if (typeof col == "number") col=this.columns[col]
+      this.sortByCol = col
     },
 
-    // get a cell value filtered through colFilter with the give name
+    // invert the sort order of the current column sort (ascending/descending)
+    invertSortOrder() {
+      this.sortOrder = this.sortOrder * -1
+    },
+
+    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
+    comparator(row1,row2) {
+      if (!this.sortByCol) return 0;
+      var val1 = _.get(row1, this.sortByCol.path)
+      var val2 = _.get(row2, this.sortByCol.path)
+      if (_.isString(val1)) {
+        return val1.localeCompare(val2, 'lookup', { numeric: true } ) * this.sortOrder // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+      } else {
+      	return (val1 < val2) * this.sortOrder
+      }
+    },
+
+    // called when header is clicked: Will sort by this column and invert sort order on subsequent clicks
+    clickHeader(col) {
+      this.setSortCol(col)
+      this.invertSortOrder()
+      console.log("$forceUpdate")
+      this.$forceUpdate()
+    },
+
+    // index of last page (after applying filter)
+    lastPageIndex() {
+      var filteredRowData = this.getFilteredRowData
+      return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
+    },
+
+    // get a cell value for viewing in table cell. Will Apply the colFilter with the give name
     getFilteredCellValue(row, path, colFilter) {
       var cellValue = this.getPath(row, path)
       return this.applyFilter(cellValue, colFilter)

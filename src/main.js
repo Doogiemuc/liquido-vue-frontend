@@ -3,13 +3,14 @@
  *
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
-
+ 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 //import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
+import ideaAndProposalApiClient from './services/IdeaAndProposalApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('main.js')
 
@@ -58,6 +59,7 @@ const routes = [
     },
     props: true
   },
+  //TODO:  showIdea/:ideaId  (with link, depending on status => createPoll or joinPoll)
   { path: '/userHome',
     component: function(resolve) {
       require(['./controllers/UserHome.vue'], resolve)
@@ -73,11 +75,18 @@ const routes = [
       require(['./controllers/ProxyEdit.vue'], resolve)
     }
   },  
-  { path: '/poll',   // ?proposalId=42
+  { path: '/showPoll',   // ?proposalId=42
     component: function(resolve) {
       require(['./controllers/Poll.vue'], resolve)
     }
   },
+  /*
+  { path: '/createPoll',  // ?proposalId=42
+    component: function(resolve) {
+      require(['./controllers/createPoll.vue'], resolve)
+    }
+  },
+  */
   { path: '*', 
     component: function(resolve) {
       require(['./controllers/PageNotFound.vue'], resolve)
@@ -112,29 +121,31 @@ var isBackendAlive = function() {
 }
 
 var currentUser = undefined
+
 var checkDevelopmentMode = function() {
-  //console.log("checking for development mode")
   if (process.env.NODE_ENV == "development") {
+    log.info("Running in development mode. Increase log level and automatically log in a default user.")
     loglevel.setLevel("trace")                              // trace == log everything
     var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in
     apiClient.setLogin(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
+    ideaAndProposalApiClient.setLogin(userEmail, "dummyPasswordHash")
     return apiClient.findUserByEmail(userEmail).then(user => {
       currentUser = user  
-      //log.debug("DEVELOPMENT: auto login", user)
     })
   } else {
-    return Promise.resolve()
+    return Promise.resolve() 
   }
 }
 
 var startApp = function(props) {
-  //log.debug("Starting Vue app (with currentUser.email=", currentUser.email+" and props="+props+") ")
+  log.debug("Starting Vue app (with currentUser.email=", currentUser.email+" and props="+props+") ")
 
   const rootVue = new Vue({
     el: '#app',
     router,
     data: {
-      api: apiClient,             // singleton instance, available to all (sub)components as "this.$root.api"
+      api: apiClient,                        // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"
+      ideas: ideaAndProposalApiClient,       // reference to API client for LawModels (handles ideas, proposals and laws)
       props: props,
       currentUser: currentUser,   // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
@@ -145,6 +156,8 @@ var startApp = function(props) {
   log.info("===== Liquido web app has started.")
   //TODO: router.app.cacheWarmup()
 }
+
+//JS Promises at its best :-)
 
 isBackendAlive()
   .then(checkDevelopmentMode)

@@ -51,24 +51,33 @@
 
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>Latest activity around your stuff</h4>
+            <h4>Newsfeed</h4>
           </div>
           <ul class="list-group">
-            <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-lightbulb-o pull-left"></i>
-              <p style="overflow: hidden">This is better used for short text. Only one line of text. asdölfj asölkfja ölefjöklwef öklasdjflasdökl fl</p>
+            <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-balance-scale pull-left"></i>
+              <p style="overflow: hidden">Your idea 
+                <router-link :to="{ path: '/ideas/31' }">'{{proposal.title}}'</router-link> reached its quorum. You can now 
+                <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or 
+                <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
+              </p>
             </li>
+            
             <li class="list-group-item item-condensed">
               <i class="fa fa-fw fa-lightbulb-o pull-left"></i>
               <p style="overflow: hidden">Your idea "liasdf lkasdkl fj" reached its quorum</p>
             </li>
             <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-university pull-left"></i>
+              <i class="fa fa-fw fa-balance-scale pull-left"></i>
               <p style="overflow: hidden">"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</p>
             </li>
             <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-university pull-left"></i>
+              <i class="fa fa-fw fa-balance-scale pull-left"></i>
               <p style="overflow: hidden">"Some other proposal" currently is in voting phase until March 23rd (25 days left). 232 votes casted.</p>
+            </li>
+            <li class="list-group-item item-condensed">
+              <i class="fa fa-fw fa-university pull-left"></i>
+              <p style="overflow: hidden">"Best proposal" became a law</p>
             </li>
           </ul>
         </div>
@@ -168,6 +177,7 @@ export default {
   data () {
     return {
       recentIdeas: [],            // recently created ideas sorted by date desc
+      reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
 	    trendingProposals: [],      // 
 	    supportedIdeasAndProps: []  // ideas and proposals that this user liked
@@ -175,7 +185,10 @@ export default {
   },
   
   created () {
+    this.loadReachedQuorum()
+        
     this.loadRecentIdeas()
+    
     this.$root.api.fetchSupportedProposals(this.$root.currentUser).then(proposals => {
       this.supportedIdeasAndProps = proposals
     })
@@ -194,6 +207,13 @@ export default {
     
     getPollURI: function(poll) {
     	return this.$root.api.getURI(poll)
+    },
+    
+    loadReachedQuorum: function() {
+      
+      this.$root.ideas.getReachedQuorumSince("2017-09-18").then(proposals => {
+        this.reachedQuorum = proposals
+      })
     },
     
     loadRecentIdeas: function() {   // We also simply call this everytime, when a supporter is added to one idea.

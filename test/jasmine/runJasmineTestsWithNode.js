@@ -43,30 +43,34 @@ var reporter = new JasmineConsoleReporter({
     colors: 1,           // (0|false)|(1|true)|2
     cleanStack: 1,       // (0|false)|(1|true)|2|3
     verbosity: 4,        // (0|false)|1|2|(3|true)|4
-    listStyle: 'indent', // "flat"|"indent"
     activity: false
+    listStyle: 'indent', // "flat"|"indent"
 });
 jasmine.addReporter(reporter);
 
 // =================================================================================
 //  'loglevel' plugin to create colorfull log output using 'chalk'
+//  https://github.com/pimterry/loglevel
 // =================================================================================
+// Yes I know, I am a logging fanatic :-)
 var originalFactory = loglevel.methodFactory;
 loglevel.methodFactory = function (methodName, logLevel, loggerName) {
     var rawMethod = originalFactory(methodName, logLevel, loggerName);
     var logLevelNames = ['TRACE', 'DEBUG', 'INFO ', 'WARN ', 'ERROR']
     return function (...messages) {
-      rawMethod("       "+    // indent log messages under jasmine spec headers
+      rawMethod("       " +logLevel+" "+    // indent log messages under jasmine spec headers
         chalk.magenta(logLevelNames[logLevel]) + " " +
-        chalk.cyan.underline(("                    "+loggerName).slice(-20)  ) + " " +
+        chalk.cyan.underline(("                    "+loggerName).slice(-25)  ) + " " +
         chalk.white(messages.join(" "))
       );
     };
 };
+loglevel.setLevel(loglevel.getLevel()); // Be sure to call setLevel method in order to apply plugin
+
 
 loglevel.setLevel("trace")      // Global loglevel, trace == log everything including stack trace
 //loglevel.getLogger("DelegationService").setLevel("TRACE");  // enable per module logging
-loglevel.getLogger("SessionCache").setLevel("TRACE");
+//loglevel.getLogger("SessionCache").setLevel("TRACE");
 
 // =================================================================================
 //   Start mock backend server

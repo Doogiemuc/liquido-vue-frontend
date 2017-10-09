@@ -1,0 +1,119 @@
+{
+    "_embedded": {
+        "laws": [
+            {
+                "id": 53,
+                "status": "PROPOSAL",
+                "description": "Alternative proposal #0 for initial proposal (Initial Proposal of course with quorum)\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse c",
+                "reachedQuorumAt": "2017-09-22T07:32:15.460+0000",
+                "initialProposal": false,
+                "title": "New Alternative Proposal (without quorum)0",
+                "area": {
+                    "createdAt": "2017-09-22T07:32:15.023+0000",
+                    "updatedAt": "2017-09-22T07:32:15.023+0000",
+                    "id": 25,
+                    "title": "Area 0",
+                    "description": "Nice description for test area #0"
+                },
+                "numSupporters": 19,
+                "createdBy": {
+                    "createdAt": "2017-09-22T07:32:14.461+0000",
+                    "updatedAt": "2017-09-22T07:32:14.461+0000",
+                    "id": 1,
+                    "email": "testuser0@liquido.de",
+                    "profile": {
+                        "name": "Test User0",
+                        "website": "http://www.liquido.de",
+                        "picture": "/static/img/Avatar_32x32.jpeg"
+                    }
+                },
+                "updatedAt": "2017-09-22T07:32:15.611+0000",
+                "createdAt": "2017-10-12T00:35:02.765+0000",
+                "votingEndsAt": "2017-09-26T07:32:15.443+0000",
+                "supportedByCurrentUser": true,
+                "numCompetingProposals": 3,
+                "votingStartsAt": "2017-09-19T07:32:15.443+0000",
+                "_links": {
+                    "self": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53"
+                    },
+                    "law": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53{?projection}",
+                        "templated": true
+                    },
+                    "area": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53/area"
+                    },
+                    "poll": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53/poll"
+                    },
+                    "supporters": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53/supporters"
+                    },
+                    "createdBy": {
+                        "href": "http://localhost:8080/liquido/v2/laws/53/createdBy"
+                    }
+                }
+            },
+            {
+                "id": 54,
+                "status": "PROPOSAL",
+                "description": "Alternative proposal #1 for initial proposal (Initial Proposal of course with quorum)\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in re",
+                "reachedQuorumAt": "2017-09-21T07:32:15.469+0000",
+                "initialProposal": false,
+                "title": "New Alternative Proposal (without quorum)1",
+                "area": {
+                    "createdAt": "2017-09-22T07:32:15.023+0000",
+                    "updatedAt": "2017-09-22T07:32:15.023+0000",
+                    "id": 25,
+                    "title": "Area 0",
+                    "description": "Nice description for test area #0"
+                },
+                "numSupporters": 19,
+                "createdBy": {
+                    "createdAt": "2017-09-22T07:32:14.461+0000",
+                    "updatedAt": "2017-09-22T07:32:14.461+0000",
+                    "id": 1,
+                    "email": "testuser0@liquido.de",
+                    "profile": {
+                        "name": "Test User0",
+                        "website": "http://www.liquido.de",
+                        "picture": "/static/img/Avatar_32x32.jpeg"
+                    }
+                },
+                "updatedAt": "2017-09-22T07:32:15.613+0000",
+                "createdAt": "2017-10-13T00:35:02.777+0000",
+                "votingEndsAt": "2017-09-26T07:32:15.443+0000",
+                "supportedByCurrentUser": true,
+                "numCompetingProposals": 3,
+                "votingStartsAt": "2017-09-19T07:32:15.443+0000",
+                "_links": {
+                    "self": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54"
+                    },
+                    "law": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54{?projection}",
+                        "templated": true
+                    },
+                    "area": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54/area"
+                    },
+                    "poll": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54/poll"
+                    },
+                    "supporters": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54/supporters"
+                    },
+                    "createdBy": {
+                        "href": "http://localhost:8080/liquido/v2/laws/54/createdBy"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "http://localhost:8080/liquido/v2/laws/search/reachedQuorumSince?since=2017-09-18"
+        }
+    }
+}
