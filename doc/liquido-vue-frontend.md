@@ -4,7 +4,7 @@
 
  - Flash messages: 
    - Show confirmation and error messages that disapear (like in JIRA at the top right)
-   - Show introduction at the top of pages like UserHome when visiting a packe for the first time.
+   - Show introduction at the top of pages like UserHome when visiting a page for the first time.
 
 ## Thoughts about IDs
 
