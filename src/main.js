@@ -138,14 +138,14 @@ var checkDevelopmentMode = function() {
 }
 
 var startApp = function(props) {
-  log.debug("Starting Vue app (with currentUser.email=", currentUser.email+" and props="+props+") ")
+  log.debug("Starting Vue app (with currentUser.email="+currentUser.email+" and props=", props)
 
   const rootVue = new Vue({
     el: '#app',
     router,
     data: {
-      api: apiClient,                        // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"
-      ideas: ideaAndProposalApiClient,       // reference to API client for LawModels (handles ideas, proposals and laws)
+      api: apiClient,                        // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
+      ideas: ideaAndProposalApiClient,       // reference to API client for LawModels (handles ideas, proposals and laws)                   => NEW VERSION
       props: props,
       currentUser: currentUser,   // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")

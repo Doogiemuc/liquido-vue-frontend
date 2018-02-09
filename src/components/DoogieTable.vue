@@ -3,7 +3,7 @@
 
   Features:
     - Each row is represented by one object. The keys can have any format.
-    - Cell values can be converted from the source object before shown in a cell.
+    - Cell values can be converted/filtered from the source object before shown in a cell.
     - Sortable by each column
     - Optional Row numbers
     - Search/Filter input (client side filtering!)
@@ -50,18 +50,17 @@
         <tr v-if="message">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
         </tr>
-        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)">
+        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
             {{page*rowsPerPage + index + 1}}
           </th>
           <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}">
             <editable-cell 
               v-if="col.editable"
-              v-on:saveNewValue="saveNewValue"
-              :row="row"
-              :row-id="getPath(row, primaryKeyForRow)"
-              :path="col.path"
-              :value="getFilteredCellValue(row, col.path, col.filter)" >
+              :pk="getPath(row, primaryKeyForRow)"
+              :column="col"
+              :value="getFilteredCellValue(row, col.path, col.filter)" 
+              v-on:saveNewValue="saveNewValue">
             </editable-cell>
             <span v-if="!col.editable && !col.rawHTML">
               {{ getFilteredCellValue(row, col.path, col.filter) }}
@@ -124,7 +123,7 @@ export default {
     // raw rowData, that will then be filtered and sorted
     rowData: { type: Array, required: true, default: function() { return [] } },
 
-    // which path in rowData is the primary key for each row (only needed for editable rows)
+    // which path in rowData is the primary key for each row (only needed when columns are editable)
     primaryKeyForRow: { type: String, required: true },
 
     // text snippets that can be localized
@@ -219,7 +218,7 @@ export default {
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
       if (result.length > 1) {
-        console.log("getRowDataForCurrentPage", result[0].title, " 0<1 ", result[1].title)
+        console.log("getRowDataForCurrentPage: ", result[0].title)
       }
       return result
     }
@@ -254,8 +253,8 @@ export default {
     clickHeader(col) {
       this.setSortCol(col)
       this.invertSortOrder()
-      console.log("$forceUpdate")
-      this.$forceUpdate()
+      //console.log("$forceUpdate")
+      //this.$forceUpdate()
     },
 
     // index of last page (after applying filter)
@@ -298,10 +297,28 @@ export default {
       return row == this.selectedRow
     },
 
-    // emit an event when a value in an editable cell was changed.
-    saveNewValue(row, rowId, key, value) {
-      //console.log("saveNewValue event in DoogieTable:", row, rowId, "#"+key+"#", value);
-      this.$emit('saveNewValue', row, rowId, key, value)   // let event from editable cell bubble up to parent component
+    getRowByPk(pk) {
+      for (var i = 0; i < this.rowData.length; i++) {
+        if (this.getPath(this.rowData[i], this.primaryKeyForRow) === pk) {
+          return this.rowData[i]
+        }
+      }
+      return undefined
+    },
+
+    /**
+     * Event callback when cell was edited. Will update our internal data and then let event bubble further up.
+     * @param pk  primary key for entity in this row
+     * @param col The column configuration (we need the path)
+     * @param value the newly entered value
+     */
+    saveNewValue(pk, col, value) {
+      console.log("saveNewValue event in DoogieTable:", pk, col, value);
+      // MAYBE: pass row to EditableCell and get it back here?
+      var row = this.getRowByPk(pk)
+      console.log("updating row ", row)
+      if (row !== undefined) row[col.path] = value
+      this.$emit('saveNewValue', pk, col, value)   // let event from editable cell bubble up to parent component
     },
 
     // emit event when a row was clicked

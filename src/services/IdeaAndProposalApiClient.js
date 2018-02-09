@@ -1,6 +1,8 @@
 /**
  * Client for Liquido backend API for LawModels (ideas, proposals and laws)
  *
+ * @version 2.0 This is the new REST client with cachingInterceptor.js
+ *
  * This is the client side for the spring data jpa rest data repository in
  * org.doogie.liquido.datarepos.LawRepo
  *
@@ -11,14 +13,13 @@
 //TODO:  'require' this in the main LiquidoApiClient, so that the exported methods get merged into $root.api ref
 //The same was as cujorestjs does it here in this example: https://github.com/cujojs/rest/blob/master/browser.js
  
- 
 // CuJoJs Rest Client  https://github.com/cujojs/rest and some of its interceptors (they are cool. That's why I decided to use this REST lib.
 import rest       from 'rest'
 import mime       from 'rest/interceptor/mime'
 import errorCode  from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 import basicAuth  from 'rest/interceptor/basicAuth'
-import cachingInterceptor     from './cachingInterceptor'           // cache requests by URL (with TTL)
+import cachingInterceptor     from './cachingInterceptor'       // cache requests by URL (with TTL)
 import logRequestsInterceptor from './logRequestsInterceptor'   // very detailed loging of all HTTP requests and responses incl. payload
 
 import loglevel from 'loglevel'
@@ -103,6 +104,24 @@ module.exports = {
     client = client.wrap(basicAuth, { username: username, password: password });
   },
   
+  /** 
+   * get recently created ideas
+   * @param since date in the format "yyyy-MM-dd"
+   * @return (a Promise that will resolve to) a list of LawModels of type == IDEA
+   */
+  getRecentIdeas(since) {
+    log.debug("getRecentIdeas("+since+")")
+    return client('/laws/search/recentIdeas')
+    .then(res => {
+      return res.entity._embedded.laws
+    })
+    .catch(err => {
+      log.error("ERROR in apiClient: ", JSON.stringify(err))
+      return Promise.reject("IdeaAndProposalApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
+    }) 
+  },
+  
+
   /**
    * get proposals that reached their quorum since a given date.
    * @param since date in the format "yyyy-MM-dd"
@@ -117,6 +136,6 @@ module.exports = {
       log.error("ERROR in apiClient: ", JSON.stringify(err))
       return Promise.reject("IdeaAndProposalApiClient: Cannot getReachedQuorumSince(since="+since+")")
     })
-  }
+  },
 
 }

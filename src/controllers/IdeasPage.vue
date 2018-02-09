@@ -29,7 +29,7 @@ export default {
       // Data for DoogieTable.vue
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
-        { title: "Description", path: "description", editable: true  },
+        { title: "Description", path: "description", editable: false },
         { title: "Created By", path: "createdBy" ,filter: 'userAvatar', rawHTML: true },
         { title: "Supporters", path: "numSupporters" },
         { title: "Category", path: "area.title" },
@@ -57,14 +57,20 @@ export default {
   },
 
   methods: {
-    // the full ideaURI is the rowId in DoogieTable!
-    saveNewValue(updatedIdea, ideaURI, key, value) {
-      //console.log("saveNewValue event in IdeasPage.vue:", ideaURI, "#"+key+"#", value);
+    /**
+     * save an updated value of an Idea
+     * This is called when the EditableCell component fires the "saveNewValue" event
+     * @param ideaURI the full ideaURI which shall be updated (which is the rowId in IdeaTable!)
+     * @param path
+     */
+    saveNewValue(ideaURI, column, value) {
+      console.log("saveNewValue event in IdeasPage.vue:", ideaURI, column, value);
       var patchedIdea = {} 
-      patchedIdea[key] = value    // only send the updated key, e.g. { title: "new title" } in a PATCH request
+      patchedIdea[column.path] = value    // only send the updated key, e.g. { title: "new title" } in a PATCH request
       this.$root.api.patch(ideaURI, patchedIdea)
     },
-    'addButtonClicked': function() {
+
+    addButtonClicked() {
       console.log('addButtonClicked in Ideas.vue')
       this.$router.push('/editIdea')
     },
@@ -73,12 +79,19 @@ export default {
   mounted () {
     this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
 
-    //load remote data and replace users
+    var oneWeekAgo = "2018-01-01"
+    this.$root.ideas.getRecentIdeas(oneWeekAgo).then(ideas => {
+      this.ideas = ideas
+      this.ideasLoading = false
+    })
+
+    /*
     this.$root.api.fetchAllIdeas().then(ideas => {
       this.ideas = ideas
       this.ideasLoading = false
     })
-    .catch(function(err) {
+    */
+    .catch(err  => {
       console.log("ERROR loading Ideas: ", err)
       //TODO: show error to user, e.g. in ideatable
     })
