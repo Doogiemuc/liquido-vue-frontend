@@ -1,12 +1,13 @@
 /**
   Localizable boostrap table with sorting, filtering and paging.
+  Cells can be edited in-place.
 
   Features:
     - Each row is represented by one object. The keys can have any format.
-    - Cell values can be converted/filtered from the source object before shown in a cell.
-    - Sortable by each column
-    - Optional Row numbers
-    - Search/Filter input (client side filtering!)
+    - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
+    - The table is sortable by each column.
+    - Optionally row numbers can be shown
+    - A Search/Filter input field for client side filtering can be enabled. 
     - Localisatzion support
 
   Usage:
@@ -117,11 +118,17 @@ import moment from 'moment'
 
 export default {
   props: {
+
+    //TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
+
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
     columns: { type: Array, required: true },
 
     // raw rowData, that will then be filtered and sorted
     rowData: { type: Array, required: true, default: function() { return [] } },
+
+    // this callback will be called, when a cell value has been edited.
+    updateHandler: { type: Function, required: false },
 
     // which path in rowData is the primary key for each row (only needed when columns are editable)
     primaryKeyForRow: { type: String, required: true },
@@ -164,7 +171,7 @@ export default {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,										 // initial sort order is ascending
       page: 0,                         // currently shown page. 0 is first page!
-      message: '',                     // message shown in the first row, e.g "loading" or for error messages
+      message: '',                     // A message that is shown in the first row, e.g "loading" or can be used for error messages
       selectedRow: null
     }
   },
@@ -173,7 +180,7 @@ export default {
     'editable-cell' : require("./EditableCell")
   },
 
-  //see https://vuejs.org/v2/guide/computed.html#Computed-Properties
+  //These computed properties are cached. See https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
     // Array of current page indexes that are shown in the middle of the pagination component
     // (A field with first and last page is always shown at the very left and right of my pager.)
@@ -297,6 +304,11 @@ export default {
       return row == this.selectedRow
     },
 
+    /**
+     * Get a row from rowData by its primary ky
+     * @param pk the primaryKey (ID) of a row in rowData
+     * @return the row from rowData with that primary key or undefind in no row has that ID.
+     */
     getRowByPk(pk) {
       for (var i = 0; i < this.rowData.length; i++) {
         if (this.getPath(this.rowData[i], this.primaryKeyForRow) === pk) {
@@ -316,8 +328,8 @@ export default {
       console.log("saveNewValue event in DoogieTable:", pk, col, value);
       // MAYBE: pass row to EditableCell and get it back here?
       var row = this.getRowByPk(pk)
-      console.log("updating row ", row)
       if (row !== undefined) row[col.path] = value
+      this.updateHandler(pk, col, value)
       this.$emit('saveNewValue', pk, col, value)   // let event from editable cell bubble up to parent component
     },
 
