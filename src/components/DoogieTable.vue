@@ -224,9 +224,6 @@ export default {
       }
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
-      if (result.length > 1) {
-        console.log("getRowDataForCurrentPage: ", result[0].title)
-      }
       return result
     }
 

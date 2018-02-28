@@ -10,7 +10,7 @@ import VueRouter from 'vue-router'
 import RootApp from './controllers/RootApp'
 import LiquidoHome from './controllers/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
-import ideaAndProposalApiClient from './services/IdeaAndProposalApiClient'
+import ideaProposalLawApiClient from './services/IdeaProposalLawApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('main.js')
 
@@ -44,9 +44,26 @@ const routes = [
   */
   { path: '/ideas', 
     component: function(resolve) {
-      require(['./controllers/IdeasPage.vue'], resolve)
+      require(['./pages/IdeasPage.vue'], resolve)
     }
   },
+  { path: '/proposals', 
+    component: function(resolve) {
+      require(['./pages/ProposalsPage.vue'], resolve)
+    }
+  },
+  /*
+  { path: '/polls', 
+    component: function(resolve) {
+      require(['./pages/PollsPage.vue'], resolve)
+    }
+  },
+  { path: '/laws', 
+    component: function(resolve) {
+      require(['./pages/LawsPage.vue'], resolve)
+    }
+  },
+  */
   { path: '/addIdea',   // add a new idea
     component: function(resolve) {
       require(['./controllers/EditIdea.vue'], resolve)
@@ -128,8 +145,8 @@ var checkDevelopmentMode = function() {
     loglevel.setLevel("trace")                              // trace == log everything
     var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in
     apiClient.setLogin(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
-    ideaAndProposalApiClient.setLogin(userEmail, "dummyPasswordHash")
-    return apiClient.findUserByEmail(userEmail).then(user => {
+    ideaProposalLawApiClient.setLogin(userEmail, "dummyPasswordHash")   // new version of API clients
+    return apiClient.findUserByEmail(userEmail).then(user => {    //TODO: refactor to userApiClient.vue
       currentUser = user  
     })
   } else {
@@ -144,10 +161,10 @@ var startApp = function(props) {
     el: '#app',
     router,
     data: {
-      api: apiClient,                        // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
-      ideas: ideaAndProposalApiClient,       // reference to API client for LawModels (handles ideas, proposals and laws)                   => NEW VERSION
-      props: props,
-      currentUser: currentUser,   // currently logged in user information
+      api: apiClient,                       // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
+      ipl: ideaProposalLawApiClient,        // reference to API client for LawModels (handles Ideas, Proposals and Laws => "i.p.l."")           => NEW VERSION
+      props: props,                         // application wide properties (read from backend DB)
+      currentUser: currentUser,             // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
     },
     ...RootApp

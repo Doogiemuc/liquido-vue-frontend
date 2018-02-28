@@ -13,10 +13,10 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav nav-arrows">
-            <li><a href="#">Ideas</a></li>
-            <li class="active"><a href="#">Proposals</a></li>
-            <li><a href="#">Polls</a></li>
-            <li><a href="#">Laws</a></li>
+            <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
+            <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
+            <li><router-link active-class="active" to="/polls">Polls</router-link></li>
+            <li><router-link active-class="active" to="/laws">Laws</router-link></li>
           </ul>
 
           <ul class="nav navbar-nav navbar-right" v-if="currentUser">
@@ -108,19 +108,19 @@ export default {
   }
 
   /* Special colors for active link */
-  ul.nav.navbar-nav.nav-arrows > .active > a {
+  ul.nav.navbar-nav.nav-arrows a.active {
     color: #FFF;
     background-color: #337ab7;
   }
-  .navbar-nav.nav-arrows > .active a:after {
+  .navbar-nav.nav-arrows a.active:after {
     border-color: transparent transparent transparent #337ab7;
   }
-  .navbar-nav.nav-arrows > .active a:before {
+  .navbar-nav.nav-arrows a.active:before {
     border-color: #337ab7  #337ab7  #337ab7 transparent ;
   }
 
   /* highlight on hover */
-  ul.nav.navbar-nav.nav-arrows > :not(.active) > a:hover {
+  ul.nav.navbar-nav.nav-arrows a:not(.active) {
     color: #FFF;
     background-color: #e7e7e7;
   }

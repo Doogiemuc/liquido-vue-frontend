@@ -38,13 +38,13 @@ log.debug("Creating HTTP client for server at "+process.env.backendBaseURL)
 
 /** 
  * The CuJoJS rest client with its interceptors
- * The order of these interceptors is EXTREMELY important!!!
+ * !!!!! The order of these interceptors is EXTREMELY important !!!!!
  */
-var client = rest.wrap(logRequestsInterceptor)
-                 .wrap(cachingInterceptor)
-                 .wrap(mime, { mime: 'application/json'} )
+var client = rest.wrap(mime, { mime: 'application/json'} )  // then convert entity according to mime type
+                 .wrap(cachingInterceptor)      // caching interceptor must be BEFORE the mime interceptor!
                  .wrap(errorCode)               // Promise.reject() responses with http status code >= 400 
-                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })
+                 .wrap(logRequestsInterceptor, { logPayload: true })  // first of all log the request
+                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })  // add path prefix to request
                  
                  
 // Keep in mind that all requests to the backend must be authenticated. So you must call this.setLogin() before making the first request.
@@ -111,7 +111,11 @@ module.exports = {
    */
   getRecentIdeas(since) {
     log.debug("getRecentIdeas("+since+")")
-    return client('/laws/search/recentIdeas')
+    var requestURL = '/laws/search/recentIdeas'
+    if (since !== undefined) {
+      requestURL += "?since="+since
+    }
+    return client(requestURL)
     .then(res => {
       return res.entity._embedded.laws
     })
@@ -121,6 +125,22 @@ module.exports = {
     }) 
   },
   
+  /**
+   * Get all ideas, propsals or laws (paged)
+   * @param status IDEA|PROPOSAL|LAW
+   * @return list of ideas, proposals or laws 
+   */
+  findByStatus(status) {
+    log.debug("findByStatus(status="+status+")")
+    return client('/laws/search/findByStatus?status='+status)
+    .then(res => { 
+      return res.entity._embedded.laws
+    })
+    .catch(err => {
+      log.error("ERROR in apiClient: ", JSON.stringify(err))
+      return Promise.reject("IdeaAndProposalApiClient: Cannot findByStatus(status="+status+")")
+    })
+  },
 
   /**
    * get proposals that reached their quorum since a given date.

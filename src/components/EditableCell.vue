@@ -117,7 +117,7 @@ export default {
   },
 
   mounted () {
-    console.log("cell ", this.cellId, " is ready:", this.value);
+    //console.log("cell ", this.cellId, " is ready:", this.value);
   }
 }
 </script>

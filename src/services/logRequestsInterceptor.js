@@ -13,7 +13,7 @@ var log = loglevel.getLogger("logRequestsInterceptor");
 var interceptor = require('rest/interceptor');
 
 var reqId = ""
-var startTime = {}
+var startTime = 0
 
 // One disatvantage of this central interceptor is that the Chrome developer console will always show this class
 // as the source of the log output. The interesting information would be the calling funciton(s).
@@ -39,8 +39,8 @@ export default interceptor({
   request: function (request, config, meta) {
     if (config.logRequests) {
       this.reqId = MD5(request.path)
-      startTime[reqId] = new Date().getTime()
-      log.debug(config.requestPrefix + request.path)
+      this.startTime = new Date().getTime()
+      log.debug(config.requestPrefix + "[" + this.reqId + "]", request.path)
     }
     return request
   },
@@ -57,12 +57,12 @@ export default interceptor({
 
   success: function (response, config, meta) {
     if (config.logResponses) {
-      var  reqId = MD5(response.request.path)
-      var duration = new Date().getTime() - startTime[reqId]
+      //var  reqId = MD5(response.request.path)
+      var duration = new Date().getTime() - this.startTime
       if (config.logPayload) {
-        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms ", response.entity ? response.entity : "[empty response]")
+        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms", response.fromLocalCache ? "from cache" : "", response.entity ? response.entity : "[empty response]")
       } else {
-        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms")
+        log.debug(config.responsePrefix + "["+this.reqId+"]", response.url, response.status.code, "in "+duration+" ms", response.fromLocalCache ? "from cache" : "")
       }
     }
     return response

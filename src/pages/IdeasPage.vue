@@ -79,18 +79,11 @@ export default {
   mounted () {
     this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
 
-    var oneWeekAgo = "2018-01-01"
-    this.$root.ideas.getRecentIdeas(oneWeekAgo).then(ideas => {
+    //var oneWeekAgo = "2018-01-01"
+    this.$root.ipl.getRecentIdeas().then(ideas => {
       this.ideas = ideas
       this.ideasLoading = false
     })
-
-    /*
-    this.$root.api.fetchAllIdeas().then(ideas => {
-      this.ideas = ideas
-      this.ideasLoading = false
-    })
-    */
     .catch(err  => {
       console.log("ERROR loading Ideas: ", err)
       //TODO: show error to user, e.g. in ideatable
