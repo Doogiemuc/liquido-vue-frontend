@@ -1,6 +1,6 @@
 <template>
 <div class="container-fluid">
-  <h1>Liquido - Ideas</h1>
+  <h1>Ideas</h1>
   <p class="lead">Spontaneous suggestions for improvement</p>
   <p>Here you can see all currently active ideas. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least NN supporters, hen it is moved onto the table and can be voted upon.</p>
 
@@ -23,6 +23,11 @@
 <script>
 import DoogieTable from '../components/DoogieTable'
 
+/** compare user names of createdBy */
+var createdByComparator = function(val1, val2) {
+  return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
+}
+
 export default {
   data () {
     return {
@@ -30,7 +35,7 @@ export default {
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
-        { title: "Created By", path: "createdBy" ,filter: 'userAvatar', rawHTML: true },
+        { title: "Created By", path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
         { title: "Supporters", path: "numSupporters" },
         { title: "Category", path: "area.title" },
         { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
@@ -49,10 +54,6 @@ export default {
   filters: {
     userAvatar(user) {
       return '<img src="'+user.profile.picture+'" />&nbsp;' + user.profile.name
-    },
-    
-    userProfileName(user) {     //TODO: use this when sorting in row "Created By"
-    	return user.profile.name
     }
   },
 

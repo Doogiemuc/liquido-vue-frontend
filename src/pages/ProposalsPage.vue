@@ -1,8 +1,8 @@
 <template>
 <div class="container-fluid">
   <h1>Proposals</h1>
-  <p class="lead">Proposals for a law that can be discussed</p>
-  <p>After an idea reached its quorum it becomes a proposal, is moved onto the table and can be discussed. You can vote for a proposal and add comments to it.</p>
+  <p class="lead">Proposals for a law that can be discussed.</p>
+  <p>After an idea reaches its quorum it becomes a proposal. It is moved onto the table and can be discussed. You can vote for a proposal and add comments to it.</p>
 
   <doogie-table
     :row-data="proposals"
@@ -21,6 +21,11 @@
 <script>
 import DoogieTable from '../components/DoogieTable'
 
+/** compare user names of createdBy */
+var createdByComparator = function(val1, val2) {
+  return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
+}
+
 export default {
   data () {
     return {
@@ -28,11 +33,11 @@ export default {
       proposalColumns: [
         { title: "Title", path: "title", editable: false },
         { title: "Description", path: "description", editable: false },
-        { title: "Created By", path: "createdBy" ,filter: 'userAvatar', rawHTML: true },
-        { title: "Supporters", path: "numSupporters" },
+        { title: "Created By", path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
+        { title: "Likes", path: "numSupporters" },
         { title: "Category", path: "area.title" },
-        { title: "Updated At", path: "updatedAt.$date", filter: 'fromNow' },
-        { title: "Created At", path: "createdAt.$date", filter: 'localizeDate' },
+        { title: "Created", path: "createdAt.$date", filter: 'localizeDate' },
+        { title: "Last activity", path: "updatedAt.$date", filter: 'fromNow' },
       ],
       proposalKey: "_links.self.href",
       proposalsLoading: true,
@@ -56,6 +61,7 @@ export default {
 
   methods: {
     //MAYBE: addCommentToProposal() ...
+   
   },
 
   mounted () {

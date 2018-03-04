@@ -1,16 +1,17 @@
 /**
-  Localizable boostrap table with sorting, filtering and paging.
-  Cells can be edited in-place.
-
-  Features:
-    - Each row is represented by one object. The keys can have any format.
+  # Localizable boostrap table with sorting, filtering and paging.
+  
+  ### Features
+    - Cells can be edited in-place with x-editable.
+    - Each row is represented by one object. Any attribute of this object can be the primary key for each row.
     - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
-    - The table is sortable by each column.
-    - Optionally row numbers can be shown
-    - A Search/Filter input field for client side filtering can be enabled. 
-    - Localisatzion support
+    - The table is sortable by each column. The sorting is local aware and correct for number with leading zeros.
+    - A Search/Filter input field for client side filtering can be enabled and shown at the top or bottom.
+    - Intelligent pager
+    - Localisation support
 
-  Usage:
+  ### Usage
+  ````
   <doogie-table
     :rowData="dataArray"
     :columns="columnsArray"
@@ -22,9 +23,32 @@
   tableColumnsExample: [
     { title: "Title", path: "nameOfTitleAttribute" },
     { title: "Description", path: "description", editable: true  },
-    { title: "deepField", path: "some.deep.path.to.imgHref" ,filter: 'userAvatar', rawHTML: true },
+    { title: "deepField", path: "some.deep.path.to.imgHref", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
   ]
-  
+  ````
+
+  ### Properties of DoogieTable vue component
+  * rowData: array of row objects
+  * columns: configuration of columns, see below
+  * primary-key-for-row: name of (or path to) attribute that is the primary key for each row. Values must be unique! 
+  * rows-per-page: How many rows shall be shown on each page. If there is more data, then a pager will allow the user to navigate to other pages.
+  * adjacent-pages: How many page numbers shall be shown in the middle of the pager. Default is 2.
+  * position-of-search: (Optional) top|bottom|none. Default is "bottom"
+  * show-add-button: (Optional) should an add button be shown at the bottom right of the table.
+  * updateHandler: (Function) will be called when cell was edited.
+
+  ### Configuration of columns
+   * title: The (localized) title that is shown at the top of that column
+   * path: name of attribute or path to the value in row object for each cell in this column, e.g  "profile.name"
+   * rawHTML: (Optional) wether the value shall be shown as rawHTML. HTML tags won't be escaped. This way you can for example show images or buttons in cells.
+   * filter: (Optional) name of custom vue filter that converts the raw value from row object to the HTML representation that is shown in the cell.
+   * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
+
+  ### Roadmap
+
+   * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
+   * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
+
  */
 
 <template>
@@ -119,8 +143,6 @@ import moment from 'moment'
 export default {
   props: {
 
-    //TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
-
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
     columns: { type: Array, required: true },
 
@@ -214,14 +236,22 @@ export default {
       return result
     },
 
-    // get filtered and sorted row data for current page only
+    /** 
+     Get filtered and sorted row data for current page only.
+     Here this.sortOrder is used when sorting.
+    */
     getRowDataForCurrentPage() {
       // apply filter (if any)
       var result = this.getFilteredRowData
       // sort
       if (this.sortByCol) {
-        result = result.slice().sort(this.comparator)   // need to make a copy of the array!
+        var compFunc = this.sortByCol.comparator || this.localAwareComparator;
+        var compFuncWithOrder = (row1, row2) => {
+          return compFunc(row1, row2) * this.sortOrder
+        }
+        result = result.slice().sort(compFuncWithOrder)   // need to make a copy of the array!
       }
+
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
       return result
@@ -241,15 +271,25 @@ export default {
       this.sortOrder = this.sortOrder * -1
     },
 
-    // comparing two rows for sorting. (needs some massaging in javascript when localized.)
-    comparator(row1,row2) {
-      if (!this.sortByCol) return 0;
+    /** 
+     * Compare two rows for sorting. Needs some massaging in javascript when localized.)
+     * Even _.sortBy does not correctly sort localized strings, but sorting is a religion anyway.
+     * E.g. how would you sort "03", "025" and "000"  ?
+     * @param row1, row2  the two rows to compare by the current value of their key `sortByCol.path`
+     * @return -1, 0 or 1  depending of the comparison of row[sortByCol.path] values.
+     */
+    localAwareComparator(row1,row2) {
+      if (!this.sortByCol || row1 === undefined || row2 === undefined) return 0
       var val1 = _.get(row1, this.sortByCol.path)
       var val2 = _.get(row2, this.sortByCol.path)
+      if (val1 === undefined || val2 == undefined) return 0
       if (_.isString(val1)) {
-        return val1.localeCompare(val2, 'lookup', { numeric: true } ) * this.sortOrder // 'lookup' stands for: lookup current locale  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+        // 'lookup' - lookup current locale   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+        // {numeric: true} - Use numeric collation, so that "1" < "2" < "10"
+        return val1.localeCompare(val2, 'lookup', { numeric: true } )
       } else {
-      	return (val1 < val2) * this.sortOrder
+      	return (val1 < val2) ? -1 : (val1 > val2) ? 1 : 0
       }
     },
 
@@ -277,7 +317,7 @@ export default {
     applyFilter(val, filterName) {
       if (!filterName) return val;
       var filterFunc = undefined, vueComp = this
-      //walk up the chain of $parent components and try to find filter by filterName
+      //walk up the chain of $parent components and try to find filterFunc by filterName
       while (filterFunc === undefined && vueComp != null && vueComp != vueComp.$parent) {
         filterFunc = vueComp.$options.filters[filterName]
         if (_.isFunction(filterFunc)) {
