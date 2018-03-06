@@ -4,7 +4,7 @@
 
  - Flash messages: 
    - Show confirmation and error messages that disapear (like in JIRA at the top right)
-   - Show introduction at the top of pages like UserHome when visiting a packe for the first time.
+   - Show introduction at the top of pages like UserHome when visiting a page for the first time.
 
 ## Thoughts about IDs
 
@@ -13,7 +13,6 @@ URIs are nice as IDs to reference models. But they are bad for passing them as U
 # References
 
  - [Bootstrap](http://getbootstrap.com/)
-
  - [VueJS Guide](http://vuejs.org/guide/)
  - [Awesome Vue](https://github.com/vuejs/awesome-vue)  Links to further Vue resources
  - [Vue Webpack Template Doc](http://vuejs-templates.github.io/webpack/index.html)
@@ -22,7 +21,7 @@ URIs are nice as IDs to reference models. But they are bad for passing them as U
     
 ## Acess Codes
 
-### Mongo Database as mlab.com
+### Mongo Database at mlab.com
 
 [Node.js Mongo Driver Reference Documentation](http://mongodb.github.io/node-mongodb-native/2.1/api/)
 
