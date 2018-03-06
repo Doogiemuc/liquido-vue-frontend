@@ -12,14 +12,15 @@
           <router-link to="/" class="navbar-brand"><i class="fa fa-university"></i> Liquido</router-link>
         </div>
         <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li><router-link to="/userHome">UserHome</router-link></li>
-            <li><router-link to="/ideas">Ideas</router-link></li>
-            <li><router-link to="/proposals">Proposals</router-link></li>
+          <ul class="nav navbar-nav nav-arrows">
+            <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
+            <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
+            <li><router-link active-class="active" to="/polls">Polls</router-link></li>
+            <li><router-link active-class="active" to="/laws">Laws</router-link></li>
           </ul>
-          <button type="button" @click="$router.push('/addIdea')" class="btn btn-default navbar-btn">Add Idea</button>
 
           <ul class="nav navbar-nav navbar-right" v-if="currentUser">
+            <button type="button" @click="$router.push('/addIdea')" class="btn btn-default navbar-btn">Add Idea</button>
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle">
                 <img v-bind:src="currentUser.profile.picture" alt="Avatar Image">
@@ -28,6 +29,7 @@
               <ul class="dropdown-menu">
                 <li><router-link to="/proxies">My Proxies</router-link></li>
                 <li><router-link to="/account">My Account</router-link></li>
+                <li><router-link to="/messages">Messages</router-link></li>
                 <li class="divider"></li>
                 <li><router-link to="/logout'">Logout</router-link></li>
               </ul>
@@ -62,7 +64,69 @@ export default {
     height: 30px;
     margin: -15px 15px -15px;
   }
-  li.dropdown:hover {
-    background: #e7e7e7;
+  .navbar-brand {
+    font-size: 25px;
   }
+  
+  /* Arrows for nav links */
+  .navbar-nav.nav-arrows {
+    margin-left: 25px;
+  }
+  .navbar-nav.nav-arrows > li {
+    margin-right: 30px;
+  }
+  .navbar-nav.nav-arrows > li > a {
+    margin-top: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #e7e7e7;
+  }
+  .navbar-nav.nav-arrows a:after {
+    position: absolute;
+    content: "";
+    top: 0px;
+    right: -20px;
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 20px 0 20px 20px;
+    border-color: transparent transparent transparent #e7e7e7;
+    z-index: 150;
+  }
+  /* .navbar-nav.nav-arrows > :not(:first-child) a:before { */
+  .navbar-nav.nav-arrows a:before {
+    position: absolute;
+    content: "";
+    top: 0px;
+    left: -20px;
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 20px 0 20px 20px;
+    border-color: #e7e7e7 #e7e7e7 #e7e7e7 transparent;
+    z-index: 150;
+  }
+
+  /* Special colors for active link */
+  ul.nav.navbar-nav.nav-arrows a.active {
+    color: #FFF;
+    background-color: #337ab7;
+  }
+  .navbar-nav.nav-arrows a.active:after {
+    border-color: transparent transparent transparent #337ab7;
+  }
+  .navbar-nav.nav-arrows a.active:before {
+    border-color: #337ab7  #337ab7  #337ab7 transparent ;
+  }
+
+  /* highlight on hover */
+  ul.nav.navbar-nav.nav-arrows a:not(.active) {
+    color: #FFF;
+    background-color: #e7e7e7;
+  }
+  /*
+  .nav.navbar-nav.navbar-right > li > a {
+    background-color: transparent;
+  }
+  */
 </style>

@@ -1,6 +1,26 @@
 # Frontend for Liquido written in Vue.js with WebPack
     
-# Backlog User Stories 
+# User Stories
+
+## Happy Case
+
+Make this work first
+
+ # Login
+ # Create new idea
+ # Simulate getting enough supporters => Idea becomes a proposal
+ # START a new poll
+ # Simulate second idea, add supportes to it, becomes a proposal and then JOINS poll
+ # User gets message (on UserHome) that he can now start the voting phase
+ # Start voting phase
+
+# Backlog / Roadmap
+
+ - Bootstrap [Nav Pills as Arrows](https://benjii.me/2014/03/wizard-style-navigation-tabs-for-bootstrap/)
+ 
+ - Try [vue2-datatable-component](https://onewaytech.github.io/vue2-datatable/examples/dist/#)  supports folding and grouping
+
+ - How to handle events that should buuble up [My Forum post](https://forum.vuejs.org/t/a-call-for-bringing-back-broadcast-events/6067)
 
  - Flash messages: 
    - Show confirmation and error messages that disapear (like in JIRA at the top right)

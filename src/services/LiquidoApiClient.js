@@ -375,7 +375,7 @@ module.exports = {
   },
 
   fetchSupportedProposals(user) {
-	return sessionCache.load('supportedProposals', loadSupportedProposals, user)
+	  return sessionCache.load('supportedProposals', loadSupportedProposals, user)
   },
   
   fetchOpenForVotingPolls() {

@@ -14,37 +14,38 @@ var interceptor = require('rest/interceptor');
 /** the cache is an Object. So you can practically store up to 1 million responses in here. */
 var cache = {}
 
-export function getCache() {
+function getCache() {
   return cache
 }
 
 /** clear the cache completely */
-export function flush() {
+function flush() {
   cache = {}
 }
 
 /** remove all elements from the cache that are expired */
-export function purgeExpired() {
+function purgeExpired() {
   Object.keys(cache).forEach(key => {
     if (isExpired(key)) delete cache[key]
   })
 }
 
 /** Forcefully remove all cache elements that match a given pattern. No matter if they are expired or not. */
-export function deleteByPattern(keyPattern) {
+function deleteByPattern(keyPattern) {
   Object.keys(cache).forEach(key => {
     if (keyPattern.test(key)) delete cache[key]
   })
 }
 
 /** @return true if a cache elem is expired */
-export function isExpired(key) {
-  if (!cache.hasOwnProperty(key)) return false
-  return Date.now() - cache[key].timestamp > config.ttl*1000
+function isExpired(key) {
+  return false;
+  if (!cache.hasOwnProperty(key)) return true
+  return Date.now() - cache[key].timestamp > 1000 //config.ttl*1000
 }
 
 /** get one element from the cache. Used for testing */
-export function getFromCache(key) {
+function getFromCache(key) {
   return cache[key]
 }
 
@@ -69,6 +70,7 @@ export default interceptor({
    *   otherwise send a normal request
    */
   request: function (request, config, meta) {
+    //log.debug("========== checking for cache", request)
     if (request.entity) return request   // Do not cache PUT, POST or PATCH requests. (request.method is empty in this phase !)
     if (!config.urlFilter.test(request.path)) return request
     var key = request.path
@@ -76,9 +78,7 @@ export default interceptor({
     if (!cachedElem) return request       // If not found in cache, send normal request.
     if (!isExpired(key)) {
       cachedElem.response.fromLocalCache = true
-      log.info("=> "+ key, "from CACHE", cachedElem.response)
-      //request.response = cachedElem.response
-      //return request
+      //log.info("=> "+ key, "returning response from CACHE:", cachedElem.response)  // will be logged in loqRequestInterceptor
       return new interceptor.ComplexRequest({ response: cachedElem.response });
     } else {
       log.debug("Cached key "+key+" is expired. Will refetch.")
@@ -89,7 +89,7 @@ export default interceptor({
 
   /**
    * If this is a successfull response to a GET request, 
-   * then cache the returned response (incl. its entity if any) in the cache with a timestamp.
+   * then cache the returned response (incl. its response.entity if any) in the cache with a timestamp.
    */
   success: function (response, config, meta) {
     //TODO: check HTTP 1.0 Pragma:"no-cache" or HTTP 1.1 Cache-Control headers if we are allowed to cache.
@@ -97,14 +97,13 @@ export default interceptor({
     if (response.fromLocalCache) return response   // do not cache already cached responses. Do not update timestamp.  (success is actually not called when request returns a ComplexRequest. Which is also fine.)
     var auth    = response.request.headers.Authorization
     var key     = response.request.path   //TODO: Should auth be appended to the key?
-    var entity  = response.entity
     cache[key] = {
       timestamp: Date.now(),
       response:  response
     }
-    log.info("cached response for GET ", key);
+    //log.debug("added response for GET", key, "into cache");
     return response;
-  }
+  }  
   
 })
   

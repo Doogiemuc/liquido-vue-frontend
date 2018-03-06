@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <span v-bind:id="cellId">{{currentValue}}</span>
+    <span v-bind:id="cellId">{{value}}</span>
     <span class="glyphicon glyphicon-edit pull-right invisible" style="cursor:pointer" @click="startEdit"></span>
   </div>
 </template>
@@ -15,46 +15,31 @@ import Vue from 'vue'
   Usage:
 
    <editable-cell
-    :row="row"
-    :row-id="getPath(row, primaryKeyForRow)"
-    :path="col.path"
-    :value="getPath(row, col.path)" >
+    pk="some.id"
+    path:"deep.path.to.value"
+    :value="Initial Value that can be edited" >
    </editable-cell>
 */
 
 
-// Helper function that sets a path (given as string) inside an object to a value
-function setPath(obj, prop, value) {
-    if (typeof prop === "string")
-        prop = prop.split(".");
-
-    if (prop.length > 1) {
-        var e = prop.shift();
-        setPath(obj[e] = Object.prototype.toString.call(obj[e]) === "[object Object]" ? obj[e] : {},
-                prop,
-                value);
-    } else
-        obj[prop[0]] = value;
-}
-
-
 export default {
   props: {
-    row: Object,        // row from table data
-    rowId: String,      // primary key for this document (=row in table)
-    path: String,       // path to attribue in row Object, e.g. "user.profile.email"
+    pk: String,         // Value of primary key / ID of current entity
+    column: Object,     // column that is beeing edited. "col.path" is JSON path to value in entity!
     value: String,      // INITIAL value of the editable cell  (props should not be mutated in vue!)
   },
 
-  data () {
+  /*
+  data: function() {
     return {
-      currentValue: this.value
+      currentValue: this.initialValue
     }
   },
+  */
 
   computed: {
-    cellId: function() {                    // unique ID for this cell (hashed value of rowId+path)
-      var str = this.rowId + this.path;
+    cellId: function() {                    // unique ID for this cell (hash of initialValue)
+      var str = this.value
       var hash = 0, i, chr, len;
       if (str.length === 0) return hash;
       for (i = 0, len = str.length; i < len; i++) {
@@ -66,10 +51,57 @@ export default {
     }
   },
 
+  watch: {
+    value: function(newVal) {
+      console.log("Value of "+this.cellId+" changed to "+newVal)
+    }
+  },
+
   methods: {
     // show x-editable popup when user clicks on the edit icon
     startEdit: function(evt) {
       evt.stopPropagation();
+      /*
+      console.log("Creating x-editable for value "+this.value + " in cellId "+this.cellId)
+
+      if ($("#"+this.cellId).hasClass('editable')) {
+        var oldVal = $("#"+this.cellId).editable('getValue', true)
+        console.log("==== cell is already editable. oldVal=", oldVal)
+        //$("#"+this.cellId).editable('destroy')
+      }
+      */
+
+      $("#"+this.cellId).editable({
+        //send: 'never',
+        toggle: 'manual',
+        type: 'text',
+        title: 'Edit cell',
+        value: this.value,
+        success: (response, newValue) => {
+          //console.log("x-editable success", response, newValue)
+          this.saveNewValue(this.pk, this.column, newValue)
+        },
+        //name: this.path,
+        //url: this.saveNewValue, // Call our own function, instead of sending an AJAX request.
+        //pk: this.rowId,
+        error: function(errors) {
+          console.log("Cannot save value in x-editable:", errors);
+          return "Cannot save edited cell";  //TODO: localize (on the client!)
+        }
+      })
+
+      /*
+      $('#'+this.cellId).on('hidden', (e, reason) => {
+        console.log("hidden "+reason)
+        if (reason === 'onblur' || reason === 'cancel') {
+          //$("#"+this.cellId).editable('destroy')
+        }
+      })
+      var editableVal = $('#'+this.cellId).editable('getValue', true);
+      console.log("Editable value = ", editableVal, this.cellId)
+      */
+
+
       $("#"+this.cellId).editable('show');
     },
 
@@ -78,28 +110,14 @@ export default {
     // Since this is a reference into our parents rowData, this will automatically be up to date.
     // At last we emit an event that will bubble up to our parent table component.
     // We will not do any database updates here. This is the responsibility of the parent component.
-    saveNewValue: function(params) {
-      this.currentValue = params.value
-      setPath(this.row, this.path, this.currentValue)  // set currentValue in row object (this will also update parent rowdata!)
-      this.$emit('saveNewValue', this.row, this.rowId, this.path, this.currentValue)    
+    saveNewValue: function(pk, column, newValue) {
+      console.log("saveNewValue in EditableCell", pk, column, newValue)
+      this.$emit('saveNewValue', pk, column, newValue)    
     }
   },
 
   mounted () {
-    $("#"+this.cellId).editable({
-      send: 'never',
-      toggle: 'manual',
-      type: 'text',
-      name: this.path,
-      url: this.saveNewValue, // Call our own function, instead of sending an AJAX request.
-      pk: this.rowId,
-      title: 'Edit '+this.path,
-      error: function(errors) {
-        console.log("Cannot save value in x-editable:", errors);
-        return "Cannot save "+this.path;  //TODO: localize (on the client!)
-      }
-    })
-    //console.log("cell is ready:", this.row, this.rowId, this.path, '"'+this.value+'"');
+    //console.log("cell ", this.cellId, " is ready:", this.value);
   }
 }
 </script>
