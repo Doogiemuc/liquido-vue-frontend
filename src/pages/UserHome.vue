@@ -211,7 +211,7 @@ export default {
     
     loadReachedQuorum: function() {
       
-      this.$root.ideas.getReachedQuorumSince("2017-09-18").then(proposals => {
+      this.$root.ipl.getReachedQuorumSince("2017-09-18").then(proposals => {
         this.reachedQuorum = proposals
       })
     },

@@ -27,7 +27,8 @@
                 {{currentUser.profile.name}}<i class="caret"></i>
               </a>
               <ul class="dropdown-menu">
-                <li><router-link to="/proxies">My Proxies</router-link></li>
+							  <li><router-link to="/userHome">User Home</router-link></li>
+                <li><router-link to="/proxies">Proxies</router-link></li>
                 <li><router-link to="/account">My Account</router-link></li>
                 <li><router-link to="/messages">Messages</router-link></li>
                 <li class="divider"></li>

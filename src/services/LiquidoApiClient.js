@@ -1,5 +1,5 @@
 /**
- * Client for Liquido backend API.
+ * DEPRECATED:  Client for Liquido backend API.
  *
  * This class is responsible for abstracting from the actual REST interface.
  * It tries to abstract from the internal ID representation as far as possible.

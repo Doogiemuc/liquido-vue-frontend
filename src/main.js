@@ -7,8 +7,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 //import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
-import RootApp from './controllers/RootApp'
-import LiquidoHome from './controllers/LiquidoHome'
+import RootApp from './pages/RootApp'
+import LiquidoHome from './pages/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
 import ideaProposalLawApiClient from './services/IdeaProposalLawApiClient'
 import loglevel from 'loglevel'
@@ -27,18 +27,18 @@ const routes = [
   // asyncronously require components for lazy loading, WebPack code split point
   { path: '/login', 
     component: function(resolve) {
-      require(['./controllers/LoginPage.vue'], resolve)
+      require(['./pages/LoginPage.vue'], resolve)
     }
   },
   { path: '/categories',
     component: function(resolve) {
-      require(['./controllers/ListCategoriesPage.vue'], resolve)
+      require(['./pages/ListCategoriesPage.vue'], resolve)
     }
   },
   /*  TODO: editCategory
   { path: '/editCategory',  // optional url parameter ...?categoryId=...  Without it a new category can be created
     component: function(resolve) {
-      require(['./controllers/EditCategory.vue'], resolve)
+      require(['./pages/EditCategory.vue'], resolve)
     }
   }
   */
@@ -66,47 +66,47 @@ const routes = [
   */
   { path: '/addIdea',   // add a new idea
     component: function(resolve) {
-      require(['./controllers/EditIdea.vue'], resolve)
+      require(['./pages/EditIdea.vue'], resolve)
     },
     props: { ideaId: undefined }
   },
   { path: '/editIdea/:ideaId',  // edit an existing idea (ideaID is the numerical ID of this idea)
     component: function(resolve) {
-      require(['./controllers/EditIdea.vue'], resolve)
+      require(['./pages/EditIdea.vue'], resolve)
     },
     props: true
   },
   //TODO:  showIdea/:ideaId  (with link, depending on status => createPoll or joinPoll)
   { path: '/userHome',
     component: function(resolve) {
-      require(['./controllers/UserHome.vue'], resolve)
+      require(['./pages/UserHome.vue'], resolve)
     }
   },
   { path: '/proxies',
     component: function(resolve) {
-      require(['./controllers/Proxies.vue'], resolve)
+      require(['./pages/Proxies.vue'], resolve)
     }
   },
   { path: '/editProxy',   // ?categoryId=42
     component: function(resolve) {
-      require(['./controllers/ProxyEdit.vue'], resolve)
+      require(['./pages/ProxyEdit.vue'], resolve)
     }
   },  
   { path: '/showPoll',   // ?proposalId=42
     component: function(resolve) {
-      require(['./controllers/Poll.vue'], resolve)
+      require(['./pages/Poll.vue'], resolve)
     }
   },
   /*
   { path: '/createPoll',  // ?proposalId=42
     component: function(resolve) {
-      require(['./controllers/createPoll.vue'], resolve)
+      require(['./pages/createPoll.vue'], resolve)
     }
   },
   */
   { path: '*', 
     component: function(resolve) {
-      require(['./controllers/PageNotFound.vue'], resolve)
+      require(['./pages/PageNotFound.vue'], resolve)
     }
   }
 ]
@@ -161,7 +161,7 @@ var startApp = function(props) {
     el: '#app',
     router,
     data: {
-      api: apiClient,                       // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
+      //DEPRECATED   api: apiClient,                       // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
       ipl: ideaProposalLawApiClient,        // reference to API client for LawModels (handles Ideas, Proposals and Laws => "i.p.l."")           => NEW VERSION
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information
