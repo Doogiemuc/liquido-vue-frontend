@@ -1,4 +1,6 @@
 /**
+ * DEPRECATED   replaced by CachingInterceptor.js
+ *
  * Simple cache that can store key = value pairs
  *
  * This module is meant to be used as a singleton!

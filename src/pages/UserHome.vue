@@ -133,24 +133,24 @@
 
 
         <br/><br/>
-		
-		
+				
 
-		<h2>Trending proposals (Demo for LawPanel)</h2>
+		<h2>Trending proposals</h2>
+    <p>(Demo for LawPanel)</p>
 		
 		<law-panel v-for="proposal in trendingProposals" 
 		  :law="proposal" 
-		  :showTimeline="false">  
+		  :showTimeline="true">  
 		</law-panel> 
 		
 				
 		
     <h2>Ideas and proposals supported by you</h2>
-		<p>Demo for LawListCondensed</p>
+		<p>Demo for LawList</p>
 		
 		<law-list 
 		  :laws="supportedIdeasAndProps"
-		  title="">
+		  title="LawList Title">
 		</law-list>
 		
 	  </div>
@@ -185,17 +185,22 @@ export default {
   },
   
   created () {
-    this.loadReachedQuorum()
+    this.$root.lawApi.getReachedQuorumSince("2017-09-18").then(proposals => {
+        this.reachedQuorum = proposals
+      })
         
     this.loadRecentIdeas()
     
-    this.$root.api.fetchSupportedProposals(this.$root.currentUser).then(proposals => {
+    this.$root.lawApi.findSupportedBy(this.$root.currentUser).then(proposals => {
+      console.log("findSupportedBy returned", proposals)
       this.supportedIdeasAndProps = proposals
     })
-    this.$root.api.fetchSupportedProposals(this.$root.currentUser).then(proposals => {
+
+    this.$root.lawApi.findSupportedBy(this.$root.currentUser).then(proposals => {
       this.trendingProposals = proposals
     })
-    this.$root.api.fetchOpenForVotingPolls().then(openPolls => {
+
+    this.$root.pollApi.getOpenForVotingPolls().then(openPolls => {
       this.openForVotingPolls = openPolls
     })
   },
@@ -209,21 +214,14 @@ export default {
     	return this.$root.api.getURI(poll)
     },
     
-    loadReachedQuorum: function() {
-      
-      this.$root.ipl.getReachedQuorumSince("2017-09-18").then(proposals => {
-        this.reachedQuorum = proposals
-      })
-    },
-    
     loadRecentIdeas: function() {   // We also simply call this everytime, when a supporter is added to one idea.
-      this.$root.api.fetchRecentIdeas().then(recentIdeas => {   
+      this.$root.lawApi.getRecentIdeas().then(recentIdeas => {   
         this.recentIdeas = recentIdeas
       })
     },
     
     /** a lot of data calculations for our pretty timeline
-	    SEE ALSO   LawPanel!  Same funcction ?!?!??!
+	    SEE ALSO   LawPanel!  Same function ?!?!??!
     	*/
     getTimelineDataFor(poll) {
       //TODO: simply past dates into timeline and let all the calculation be done in the timeline class */

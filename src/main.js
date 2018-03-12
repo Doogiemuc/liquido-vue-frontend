@@ -11,6 +11,7 @@ import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
 import ideaProposalLawApiClient from './services/IdeaProposalLawApiClient'
+import pollApiClient from './services/pollApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('main.js')
 
@@ -161,8 +162,9 @@ var startApp = function(props) {
     el: '#app',
     router,
     data: {
-      //DEPRECATED   api: apiClient,                       // reference to apiClient (singleton), available to all (sub)components as "this.$root.api"    => OLD VERSION
-      ipl: ideaProposalLawApiClient,        // reference to API client for LawModels (handles Ideas, Proposals and Laws => "i.p.l."")           => NEW VERSION
+      userApi: apiClient,                   // API client for Liquido Backend available to all compents as $root.lawApi
+      lawApi: ideaProposalLawApiClient,     
+      pollApi: pollApiClient,
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")

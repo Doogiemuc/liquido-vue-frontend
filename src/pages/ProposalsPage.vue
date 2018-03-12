@@ -65,7 +65,7 @@ export default {
   },
 
   mounted () {
-    this.$root.ipl.findByStatus("PROPOSAL").then(proposals => {
+    this.$root.api.findByStatus("PROPOSAL").then(proposals => {
       this.proposals = proposals
       this.proposalsLoading = false
     })

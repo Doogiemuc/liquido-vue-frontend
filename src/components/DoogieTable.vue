@@ -45,7 +45,8 @@
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
 
   ### Roadmap
-
+   
+   * TODO: Sophisticated filter funcionality, with pre-defind filters as in JIRA
    * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
    * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
 
