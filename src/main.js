@@ -10,8 +10,6 @@ import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
-import ideaProposalLawApiClient from './services/IdeaProposalLawApiClient'
-import pollApiClient from './services/pollApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('main.js')
 
@@ -145,8 +143,7 @@ var checkDevelopmentMode = function() {
     log.info("Running in development mode. Increase log level and automatically log in a default user.")
     loglevel.setLevel("trace")                              // trace == log everything
     var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in
-    apiClient.setLogin(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
-    ideaProposalLawApiClient.setLogin(userEmail, "dummyPasswordHash")   // new version of API clients
+    apiClient.login(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
     return apiClient.findUserByEmail(userEmail).then(user => {    //TODO: refactor to userApiClient.vue
       currentUser = user  
     })
@@ -162,9 +159,7 @@ var startApp = function(props) {
     el: '#app',
     router,
     data: {
-      userApi: apiClient,                   // API client for Liquido Backend available to all compents as $root.lawApi
-      lawApi: ideaProposalLawApiClient,     
-      pollApi: pollApiClient,
+      api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information
       currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")

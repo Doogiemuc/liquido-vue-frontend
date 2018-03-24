@@ -81,7 +81,7 @@ export default {
     this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
 
     //var oneWeekAgo = "2018-01-01"
-    this.$root.ipl.getRecentIdeas().then(ideas => {
+    this.$root.api.getRecentIdeas().then(ideas => {
       this.ideas = ideas
       this.ideasLoading = false
     })

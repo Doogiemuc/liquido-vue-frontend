@@ -4,6 +4,51 @@
       <div class="col-sm-6">
 
         <h2>Polls currently open for voting</h2>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+            <div class="col-xs-4">
+              <h4><i class="fa fa-fw fa-balance-scale"></i> Poll</h4>
+            </div>
+            <div class="col-xs-4 text-center">
+              <small class="poll-timeleft">24 days lef to vote</small>
+            </div>
+            <div class="col-xs-4 text-right">
+              
+                <button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
+                   Details
+                </button>
+                <button type="button" class="btn btn-primary btn-xs">Go to poll</button>
+              
+            </div>
+            </div>
+          </div>
+          <div class="panel-body poll-list">
+            <h4>This is the long title of the first proposal in this poll</h4>
+            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+            Duis aute irure dolor in reprehenderiasdf asdf asdf asdf asdf asf adf asdf wer vewf </p>
+            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1 &nbsp;&nbsp;
+              <i class="fa fa-thumbs-o-up"></i> 15</p>
+            <hr/>
+            <h4>This is the long title of the first proposal in this poll that might run over two lines of text</h4>
+            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+            Duis aute irure dolor in reprehenderi</p>
+            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1&nbsp;&nbsp;
+              <i class="fa fa-thumbs-o-up"></i> 10</p>
+            <hr/>
+            <h4>This is the long title of the first proposal in this poll</h4>
+            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+            Duis aute irure dolor in reprehenderi</p>
+            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1&nbsp;&nbsp;
+              <i class="fa fa-thumbs-o-up"></i> 8</p>
+                        
+          </div>
+        </div>
+
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
             <router-link :to="{ path: '/poll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
@@ -37,15 +82,15 @@
               </tr>
             </tbody>
           </table>
-          
         </div>
         
         
-        <br/><br/>
         <h2 v-if="recentIdeas">Recently created ideas</h2>
         <idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel>
+
       </div>
 
+      <!-- right column -->
       <div class="col-sm-6">
         <h2>Your ideas and proposals</h2>
 
@@ -82,6 +127,7 @@
           </ul>
         </div>
 		
+       
         <div class="panel panel-default">
           <div class="panel-heading">
              <h4>Some other messages - v2</h4>
@@ -132,7 +178,9 @@
         </div>
 
 
-        <br/><br/>
+    
+
+    <br/><br/>
 				
 
 		<h2>Trending proposals</h2>
@@ -185,22 +233,23 @@ export default {
   },
   
   created () {
-    this.$root.lawApi.getReachedQuorumSince("2017-09-18").then(proposals => {
-        this.reachedQuorum = proposals
-      })
-        
     this.loadRecentIdeas()
+
+    this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
+      this.reachedQuorum = proposals
+    })
     
-    this.$root.lawApi.findSupportedBy(this.$root.currentUser).then(proposals => {
+    this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       console.log("findSupportedBy returned", proposals)
       this.supportedIdeasAndProps = proposals
     })
 
-    this.$root.lawApi.findSupportedBy(this.$root.currentUser).then(proposals => {
+    this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.trendingProposals = proposals
     })
 
-    this.$root.pollApi.getOpenForVotingPolls().then(openPolls => {
+    this.$root.api.getOpenForVotingPolls().then(openPolls => {
+      console.log("========= openForVotingPolls", openPolls)
       this.openForVotingPolls = openPolls
     })
   },
@@ -214,8 +263,8 @@ export default {
     	return this.$root.api.getURI(poll)
     },
     
-    loadRecentIdeas: function() {   // We also simply call this everytime, when a supporter is added to one idea.
-      this.$root.lawApi.getRecentIdeas().then(recentIdeas => {   
+    loadRecentIdeas: function() {
+      this.$root.api.getRecentIdeas().then(recentIdeas => {   
         this.recentIdeas = recentIdeas
       })
     },
@@ -226,8 +275,8 @@ export default {
     getTimelineDataFor(poll) {
       //TODO: simply past dates into timeline and let all the calculation be done in the timeline class */
     	if (poll === undefined) return {}
-      var daysUntilVotingStarts = this.$root.api.getProp("liquido.days.until.voting.starts")     // number of days
-      var durationOfVotingPhase = this.$root.api.getProp("liquido.duration.of.voting.phase")     // also in days
+      var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
+      var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
       var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
       var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
 
@@ -253,6 +302,24 @@ export default {
 </script>
 
 <style scoped>
+  .poll-list h4 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  .poll-list hr {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .poll-list p {
+    margin: 0;
+  }
+  .poll-list .pfooter {
+    text-align: right;
+    color: #999;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
   .panel-heading h4 {
     margin-top: 0;
     margin-bottom: 0;

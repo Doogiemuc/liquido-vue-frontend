@@ -43,7 +43,7 @@ export default {
   },
 
   mounted() {
-    this.$root.api.fetchAllCategories().then(categories => { this.categories = categories })
+    this.$root.api.getAllCategories().then(categories => { this.categories = categories })
 
     if (!isNaN(this.ideaId)) {  // if ideaId was passed as a number, then edit that existing idea
       console.log("Edit idea id="+this.ideaId)

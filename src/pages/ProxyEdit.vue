@@ -47,7 +47,7 @@ export default {
      * @return (A Promise that will resolve to) a list of users that could be assigned as proxy
      */
     getAssignableProxies: function() {
-      return this.$root.api.fetchAllUsers().then(userList => {
+      return this.$root.api.getAllUsers().then(userList => {
         _.remove(userList, user => {
           return user.email == this.$root.currentUser.email ||
                  (this.proxy != null && user.email == this.proxy.email)
@@ -89,10 +89,8 @@ export default {
    *  - category
    *  - assignable proxies
    *  - the proxy map of the currenlty logged in useer
-   * from remote source of from caches if possible.
    */
   mounted () {
-    log.trace('ProxyEdit.vue: mounted')
     //TODO: checkMandatoryQueryParam('categoryId', 'Missing mandatory URL parameter categoryId', /proxies')  // will redirect to proxies page if query param categoryId is not set
     var categoryId = this.$route.query.categoryId
     if (categoryId == undefined || categoryId == null) {
@@ -103,10 +101,11 @@ export default {
     this.$refs.proxyTable.localizedTexts.searchFilter = 'Search for name or e-mail'
     this.$refs.proxyTable.setSortCol(this.usersColumns[1])
 
+    // Here we send three parallel requests to our backend. Javascript Promises are cool :-)
     Promise.all([
       this.$root.api.getCategory(categoryId),
       this.getAssignableProxies(),
-      this.$root.api.fetchProxyMap(this.$root.currentUser)
+      this.$root.api.getProxyMap(this.$root.currentUser)
     ])
     .then(results => {
       this.category = results[0]

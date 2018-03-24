@@ -29,8 +29,8 @@ export default {
   },
  
   mounted () {
-    this.$root.api.fetchAllCategories().then(categories => { this.categories = categories })
-    this.$root.api.fetchProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
+    this.$root.api.getAllCategories().then(categories => { this.categories = categories })
+    this.$root.api.getProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
   }
 
 }

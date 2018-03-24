@@ -1,12 +1,13 @@
 <div class="container">
   <h1>Edit Proxy in '{{category.title}}'</h1>
-  <hr>
+  <p>Here you can delegate your vote to a proxy. You can delegate to different proxies per category. You can revoke this delegation at any time!</p>
+  <p>&nbsp;</p>
+
   <div class="row">
 
-    <div class="col-sm-6">
+    <div class="col-sm-8">
       <div class="panel panel-default">
         <div class="panel-body">
-
           <doogie-table
             :row-data="userList"
             :columns="usersColumns"
@@ -21,26 +22,33 @@
           ></doogie-table>
 
           <div class="buttonWrapper">
-            <router-link to="/proxies" class="btn btn-default" role="button">&laquo; Back</router-link>
-            <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.selectedProxy == null" @click="saveProxy()">Set as your proxy</button>
+            <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.selectedProxy == null" @click="saveProxy()">Set selected as your proxy</button>
           </div>
 
         </div>
       </div>
     </div>
 
-    <div class="col-sm-6">
-      <div v-if="proxy">
-        <h4 style="margin-top:0">Your currently set proxy</h4>
-        <img v-bind:src="proxy.profile.picture" />&nbsp;{{proxy.profile.name}} &lt;{{proxy.email}}&gt;
-        <br/><br/>
-        <button v-if="proxy" type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation to this proxy</button>
-      </div>
-      <div v-else>
-        <h4 style="margin-top:0">No proxy assigned</h4>
-        You currently have no proxy assigned for the category '{{category.title}}'. Here you can search
-        for a voter and then select him as your proxy. Click on a row in the table
-        to select it.
+    <div class="col-sm-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Your proxy in '{{category.title}}'</h4>
+        </div>
+        <div class="panel-body">
+          <div v-if="proxy">
+            <img v-bind:src="proxy.profile.picture" />&nbsp;{{proxy.profile.name}} &lt;{{proxy.email}}&gt;
+            <br/><br/>
+            <button v-if="proxy" type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation to this proxy</button>
+          </div>
+          <div v-else>
+            <h4>Currently no proxy is assigned</h4>
+            <p>You currently have no proxy assigned for the category '{{category.title}}'. Here you can search
+            for a voter and then select him as your proxy. Click on a row in the table
+            to select it.</p>
+          </div>
+          <br/><br/>
+          <router-link to="/proxies" class="btn btn-default pull-right" role="button">&laquo; Back</router-link>
+        </div>
       </div>
     </div>
 
