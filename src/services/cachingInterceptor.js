@@ -5,6 +5,7 @@
  * Configuration
  * - urlFilter: regex for url that shall be cached, by default cache every http or https GET request.
  * - ttl: max time to live for elements in the cache. After that time elements will be refreshed. Default: 60 seconds
+ * - forceNoCache: do not use the cache for the next request.
  */
 
 import loglevel from 'loglevel'
@@ -67,6 +68,7 @@ export default interceptor({
   init: function (config) {
     config.urlFilter      = config.urlFilter  || /http.*/   // by default cache every http request
     config.ttl            = config.ttl || 5   // in seconds!
+    config.forceNoCache   = false             // force no cache *for the next request* only
     cache                 = {}
     return config;
   },
@@ -80,6 +82,10 @@ export default interceptor({
   request: function (request, config, meta) {
     //log.debug("========== checking for cache", config.urlFilter)
     if (request.entity) return request   // Do not cache PUT, POST or PATCH requests. (request.method is empty in this phase !)
+    if (config.forceNoCache) {
+      config.forceNoCache = false
+      return request
+    }
     if (!config.urlFilter.test(request.path)) return request   // Do not cache if urlFilter does not match
     var key = request.path
     var cachedElem = cache[key]
@@ -88,7 +94,7 @@ export default interceptor({
       cachedElem.response.fromLocalCache = true     // add an attribute that response came from local cache
       var ageSecs = (Date.now() - cache[key].timestamp) / 1000
       log.info("=> "+ key, "returning "+ageSecs+" secs old data from CACHE:", cachedElem.response) 
-      return new interceptor.ComplexRequest({ response: cachedElem.response });
+      return new interceptor.ComplexRequest({ response: cachedElem.response });   // return response from cache
     } else {
       log.debug("Cached key "+key+" is expired. Will refetch.")
       delete cache[key]

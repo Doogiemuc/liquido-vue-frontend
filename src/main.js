@@ -51,12 +51,12 @@ const routes = [
       require(['./pages/ProposalsPage.vue'], resolve)
     }
   },
-  /*
   { path: '/polls', 
     component: function(resolve) {
       require(['./pages/PollsPage.vue'], resolve)
     }
   },
+  /*
   { path: '/laws', 
     component: function(resolve) {
       require(['./pages/LawsPage.vue'], resolve)

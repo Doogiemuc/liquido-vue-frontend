@@ -57,12 +57,16 @@ module.exports = {
   },
 
   disableCache() {
-    httpClient.setCacheUrlFilter('DO_NOT_CACHE');
+    httpClient.setCacheUrlFilter('DO_NOT_CACHE')
   },
 
   enableCache() {
     // only cache requests when searching for ideas, proposals or laws
-    httpClient.setCacheUrlFilter(process.env.backendBaseURL+'/laws/search/');
+    httpClient.setCacheUrlFilter(process.env.backendBaseURL+'/laws/search/')
+  },
+
+  noCacheForNextRequest() {
+    httpClient.noCacheForNextRequest()
   },
 
   /** 
@@ -341,25 +345,22 @@ module.exports = {
 // Polls
 //==================================================================================================================
 
-
-
   /**
-   * get polls that are currently in their voting phase
-   * @return a list of polls that can be voted on
+   * find polls by their status
+   * @param status {string} ELABORATION|VOTING|FINISHED
+   * @return List of polls in this status
    */
-  getOpenForVotingPolls() {
-    log.debug("getOpenForVotingPolls()")
-    return client('/polls/search/findByStatus?status=VOTING')
+  findPollsByStatus(status) {
+    log.debug("findPollsByStatus()")
+    return client('/polls/search/findByStatus?status='+status)
     .then(
       response => { return response.entity._embedded.polls }
     )
     .catch(err => {
       log.error("ERROR in LiquidoApiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot getOpenForVotingPolls()")
-    }) 
+      return Promise.reject("LiquidoApiClient: Cannot findPollsByStatus()")
+    })
   },
-
-
 
   /** 
    * Get a poll with all its proposals

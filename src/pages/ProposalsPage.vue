@@ -33,9 +33,9 @@ export default {
       proposalColumns: [
         { title: "Title", path: "title", editable: false },
         { title: "Description", path: "description", editable: false },
-        { title: "Created By", path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { title: "Likes", path: "numSupporters" },
-        { title: "Category", path: "area.title" },
+        { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
+        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters" },
+        { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title" },
         { title: "Created", path: "createdAt.$date", filter: 'localizeDate' },
         { title: "Last activity", path: "updatedAt.$date", filter: 'fromNow' },
       ],
@@ -51,7 +51,7 @@ export default {
 
   filters: {
     userAvatar(user) {
-      return '<img src="'+user.profile.picture+'" />&nbsp;' + user.profile.name
+      return '<img src="'+user.profile.picture+'" />'
     },
     
     userProfileName(user) {     //TODO: use this when sorting in row "Created By"

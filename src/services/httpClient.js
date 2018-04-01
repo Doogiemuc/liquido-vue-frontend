@@ -56,6 +56,13 @@ export default {
   },  
 
   /**
+   * disable cache for next request only
+   */
+  noCacheForNextRequest() {
+    cacheConfig.forceNoCache = true
+  },
+
+  /**
    * Set the maximum age for cached data. After this time that request will be refetched from the backend.
    * @param ttl {integer} time to live in seconds
    */

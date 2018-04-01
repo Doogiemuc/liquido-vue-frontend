@@ -89,7 +89,6 @@ export default {
       var now = new Date().getTime()
       var createdMs = new Date(law.createdAt).getTime()
       var createdLoc = moment(law.createdAt).format('L')
-      console.log(law)
       var elaborationStartsLoc = moment(law.elaborationStartsAt).format('L')
       var quorumReachedLoc     = moment(law.reachedQuorumAt).format('L')
       var votingStartsLoc      = moment(law.votingStartsAt).format('L')

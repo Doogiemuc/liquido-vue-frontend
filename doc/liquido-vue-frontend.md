@@ -14,9 +14,37 @@ Make this work first
  # User gets message (on UserHome) that he can now start the voting phase
  # Start voting phase
 
+## Pages
+
+### Proposals
+
+Do I want to have the same page for ideas and proposals?
+
+What can be done with a proposal ("actions"):
+If it not my own proposal
+ - Like proposal
+ - Suggest an improvement ("add comment")   => see github discussions layout
+ - Like/upvote another comment
+If this is my own proposal
+ - Start a completely new poll
+ - Merge my proposal into another poll (which must be in elaboration phase). 
+   - search for poll in elaboration   or   "add my proposal to this poll"
+   - can i change my mind and move my proposal to another poll?  (of course only as long as both polls are still in elaboration).
+
+
+
+### Polls
+
+When does voting start?
+ - At the earliest when there are at least two alternative proposals
+ - Optional/Configurable: At the earliest [two weeks] after the poll was created. (to give alternative proposals some time to reach their quorum and be elaborated)
+ - 
+    
+
+
 # Backlog / Roadmap
 
- - Bootstrap [Nav Pills as Arrows](https://benjii.me/2014/03/wizard-style-navigation-tabs-for-bootstrap/)
+ - Bootstrap [Nav Pills as Arrows](https://benjii.me/2014/03/wizard-style-navigation-tabs-for-bootstrap/)   *DONE*
  
  - Try [vue2-datatable-component](https://onewaytech.github.io/vue2-datatable/examples/dist/#)  supports folding and grouping
 

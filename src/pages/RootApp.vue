@@ -80,7 +80,7 @@ export default {
     margin-top: 5px;
     padding-top: 10px;
     padding-bottom: 10px;
-    background-color: #e7e7e7;
+    background-color: #ddd;
   }
   .navbar-nav.nav-arrows a:after {
     position: absolute;
@@ -91,7 +91,7 @@ export default {
     height: 0px;
     border-style: solid;
     border-width: 20px 0 20px 20px;
-    border-color: transparent transparent transparent #e7e7e7;
+    border-color: transparent transparent transparent #ddd;
     z-index: 150;
   }
   /* .navbar-nav.nav-arrows > :not(:first-child) a:before { */
@@ -104,7 +104,7 @@ export default {
     height: 0px;
     border-style: solid;
     border-width: 20px 0 20px 20px;
-    border-color: #e7e7e7 #e7e7e7 #e7e7e7 transparent;
+    border-color: #ddd #ddd #ddd transparent;
     z-index: 150;
   }
 
@@ -120,10 +120,10 @@ export default {
     border-color: #337ab7  #337ab7  #337ab7 transparent ;
   }
 
-  /* highlight on hover */
+  /* non active arrows */
   ul.nav.navbar-nav.nav-arrows a:not(.active) {
     color: #FFF;
-    background-color: #e7e7e7;
+    background-color: #ddd;
   }
   /*
   .nav.navbar-nav.navbar-right > li > a {

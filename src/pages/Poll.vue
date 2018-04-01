@@ -88,7 +88,8 @@ export default {
     },
 
     loadPoll: function(pollURI) {
-      return this.$root.api.loadPoll(pollURI).then(poll => {
+      this.$root.api.noCacheForNextRequest()
+      return this.$root.api.getPoll(pollURI).then(poll => {
         this.poll = poll
         this.proposals = poll._embedded.proposals
         this.votingEndsAtLoc = moment(this.proposals[0].votingEndsAt).format('L')

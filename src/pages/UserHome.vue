@@ -5,7 +5,7 @@
 
         <h2>Polls currently open for voting</h2>
 
-        <div class="panel panel-default">
+        <div v-for="poll in openForVotingPolls" class="panel panel-default pollPanel">
           <div class="panel-heading">
             <div class="row">
             <div class="col-xs-4">
@@ -15,43 +15,33 @@
               <small class="poll-timeleft">24 days lef to vote</small>
             </div>
             <div class="col-xs-4 text-right">
-              
-                <button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
-                   Details
-                </button>
-                <button type="button" class="btn btn-primary btn-xs">Go to poll</button>
-              
+              <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
+                Goto poll &raquo;
+              </router-link>
             </div>
             </div>
           </div>
           <div class="panel-body poll-list">
-            <h4>This is the long title of the first proposal in this poll</h4>
-            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-            Duis aute irure dolor in reprehenderiasdf asdf asdf asdf asdf asf adf asdf wer vewf </p>
-            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1 &nbsp;&nbsp;
-              <i class="fa fa-thumbs-o-up"></i> 15</p>
-            <hr/>
-            <h4>This is the long title of the first proposal in this poll that might run over two lines of text</h4>
-            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-            Duis aute irure dolor in reprehenderi</p>
-            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1&nbsp;&nbsp;
-              <i class="fa fa-thumbs-o-up"></i> 10</p>
-            <hr/>
-            <h4>This is the long title of the first proposal in this poll</h4>
-            <p class="collapse collapseDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-            Duis aute irure dolor in reprehenderi</p>
-            <p class="pfooter"><i class="fa fa-user"></i> Username1 &nbsp;&nbsp; <i class="fa fa-clock-o"></i> 4 hours ago &nbsp;&nbsp; <i class="fa fa-bookmark"></i> Area 1&nbsp;&nbsp;
-              <i class="fa fa-thumbs-o-up"></i> 8</p>
-                        
+            <span v-for="proposal in poll._embedded.proposals">
+              <h4>{{proposal.title}}</h4>
+              <p class="collapse collapseDescription">{{proposal.description}}</p>
+              <p class="pfooter">
+                <i class="fa fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
+                <i class="fa fa-clock-o"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
+                <i class="fa fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
+                <i class="fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}
+              </p>
+              <hr/>
+            </span>
+            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
+              <i class="fa fa-angle-double-down"></i>
+            </button>
           </div>
         </div>
 
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
-            <router-link :to="{ path: '/poll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
+            <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
               Goto poll &raquo;
             </router-link>
             <i aria-hidden="true" class="fa fa-balance-scale fa-lg pull-left"></i>
@@ -180,28 +170,28 @@
 
     
 
-    <br/><br/>
-				
+        <br/><br/>
+    				
 
-		<h2>Trending proposals</h2>
-    <p>(Demo for LawPanel)</p>
+    		<h2>Trending proposals</h2>
+        <p>(Demo for LawPanel)</p>
+    		
+    		<law-panel v-for="proposal in trendingProposals" 
+    		  :law="proposal" 
+    		  :showTimeline="true">  
+    		</law-panel> 
+    		
+    				
+    		
+        <h2>Ideas and proposals supported by you</h2>
+    		<p>Demo for LawList</p>
+    		
+    		<law-list 
+    		  :laws="supportedIdeasAndProps"
+    		  title="LawList Title">
+    		</law-list>
 		
-		<law-panel v-for="proposal in trendingProposals" 
-		  :law="proposal" 
-		  :showTimeline="true">  
-		</law-panel> 
-		
-				
-		
-    <h2>Ideas and proposals supported by you</h2>
-		<p>Demo for LawList</p>
-		
-		<law-list 
-		  :laws="supportedIdeasAndProps"
-		  title="LawList Title">
-		</law-list>
-		
-	  </div>
+	   </div>
     </div>
   </div>
 </template>
@@ -233,24 +223,28 @@ export default {
   },
   
   created () {
+    this.$root.api.noCacheForNextRequest()
     this.loadRecentIdeas()
 
+    this.$root.api.noCacheForNextRequest()
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.reachedQuorum = proposals
     })
     
+    this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       console.log("findSupportedBy returned", proposals)
       this.supportedIdeasAndProps = proposals
     })
 
+    this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.trendingProposals = proposals
     })
 
-    this.$root.api.getOpenForVotingPolls().then(openPolls => {
-      console.log("========= openForVotingPolls", openPolls)
-      this.openForVotingPolls = openPolls
+    this.$root.api.noCacheForNextRequest()
+    this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
+      this.openForVotingPolls = votingPolls
     })
   },
 
@@ -319,6 +313,17 @@ export default {
     font-size: 12px;
     line-height: 1.4;
   }
+
+  /* Button in the lower right corner of poll-pannel */
+  .pollPanel {
+    position: relative;
+  }
+  .expandButton {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+
 
   .panel-heading h4 {
     margin-top: 0;

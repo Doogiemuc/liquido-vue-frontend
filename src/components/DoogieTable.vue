@@ -64,7 +64,8 @@
           <th v-for="col in columns"
             @click="clickHeader(col)"
             :class="{active: sortByCol == col}">
-            {{ col.title }}
+            <span v-if="col.htmlTitle" v-html="col.htmlTitle"></span>
+            <span v-else>{{ col.title }}</span>
             <span v-if="sortByCol == col" class="arrow" :class="sortOrder > 0 ? 'asc' : 'dsc'"></span>
           </th>
         </tr>

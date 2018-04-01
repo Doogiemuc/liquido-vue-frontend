@@ -8,7 +8,7 @@
  */
 
 import loglevel from 'loglevel'
-import MD5 from 'crypto-js/md5'
+// import MD5 from 'crypto-js/md5'
 var log = loglevel.getLogger("logRequestsInterceptor");
 var interceptor = require('rest/interceptor');
 
@@ -21,6 +21,18 @@ var startTime = 0
 // shows the full callstack in Chrome developer console.
 
 // MAYBE: https://github.com/stacktracejs/stacktrace.js
+
+var hashStr = function(str) {
+  var hash = 0, i, chr;
+  if (str.length === 0) return hash;
+  for (i = 0; i < str.length; i++) {
+    chr   = str.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
 
 
 export default interceptor({
@@ -38,8 +50,8 @@ export default interceptor({
 
   request: function (request, config, meta) {
     if (config.logRequests) {
-      this.reqId = MD5(request.path)
       this.startTime = new Date().getTime()
+      this.reqId = (hashStr(request.path) * this.startTime) % 10000
       log.debug(config.requestPrefix + "[" + this.reqId + "]", request.path)
     }
     return request
