@@ -4,55 +4,10 @@
   <p class="lead">Spontaneous suggestions for improvement</p>
   <p>Here you can see all currently active ideas. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least NN supporters, then it is moved onto the table and can be voted upon.</p>
 
-
-  <div class="filters">
-    <form class="form-inline">
-      <input type="text" class="form-control smallInput" id="filterSearch" placeholder="Search" />
-        
-      <div class="btn-group">
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Updated: Anytime <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="#">Today</a></li>
-          <li><a href="#">Last 7 days</a></li>
-          <li><a href="#">Last 14 days</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="#">Anytime</a></li>
-        </ul>
-      </div>
-
-      <div class="btn-group">
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Area: Any <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" style="padding: 5px 5px">
-          <li><input type="checkbox"/> Area 1</a></li>
-          <li><input type="checkbox"/> Area 2</li>
-          <li><input type="checkbox"/> Area 3</li>
-          <li role="separator" class="divider"></li>
-          <li><button type="button" class="btn btn-primary btn-xs">Apply</button>&nbsp;<button type="button" class="btn btn-default btn-xs pull-right">Clear</button></li>
-        </ul>
-      </div>
-
-      <div class="btn-group">
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Created by: Anyone <span class="caret"></span>
-        </button>
-        <div class="dropdown-menu" style="padding: 5px 5px">
-          <input type="text" class="form-control smallInput" id="filterUsr" placeholder="Find user" />
-          <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
-          <ul>
-            <li>User 1</li>
-            <li>User 2</li>
-            <li>User 3</li>
-          </ul>
-        </div>  
-      </div>
-
-      <small><a href="#">Clear all filters</a></small>
-    </form>
-  </div>
+  <doogie-filter
+    :filtersConfig="filtersConfig"
+    ref="ideatableFilter"
+  />
 
   <doogie-table
     :row-data="ideas"
@@ -63,8 +18,7 @@
     v-on:saveNewValue="saveNewValue"
     v-on:addButtonClicked="addButtonClicked"
     ref="ideatable"
-  >
-  </doogie-table>
+  />
 
 </div>
 
@@ -72,6 +26,7 @@
 
 <script>
 import DoogieTable from '../components/DoogieTable'
+import DoogieFilter from '../components/DoogieFilter'
 import moment from 'moment'
 
 /** compare user names of createdBy */
@@ -95,33 +50,89 @@ export default {
       ideaKey: "_links.self.href",
       ideasLoading: true,
       ideas: [],
+      showAddButton: false,
+      filtersConfig: [
+        {
+          type: "search",
+          id: "s",
+          displayName: "Free text search"
+        },
+        {
+          type: "dateRange",
+          id: "updatedAt",
+          displayName: "Updated"
+        },
+        {
+          type: "select",
+          id: "selectID",
+          displayName: "Select Example",
+          options: [
+            { value: 1, displayValue: "Eins" },
+            { value: 2, displayValue: "Zwei" },
+            { value: 3, displayValue: "Drei" }
+          ]
+        },
+        {
+          type: "selectWithSearch",
+          id: "selectWithSearchID",
+          displayName: "Long Select Example",
+          options: [
+            { value: 1, displayValue: "Hans" },
+            { value: 2, displayValue: "Peter" },
+            { value: 3, displayValue: "Paul" },
+            { value: 3, displayValue: "Susi" },
+            { value: 3, displayValue: "Petra" },
+            { value: 3, displayValue: "Johanna" },
+            { value: 3, displayValue: "Iris" },
+            { value: 1, displayValue: "Hans" },
+            { value: 2, displayValue: "Peter" },
+            { value: 3, displayValue: "Paul" },
+            { value: 3, displayValue: "Susi" },
+            { value: 3, displayValue: "Petra" },
+            { value: 3, displayValue: "Johanna" },
+            { value: 3, displayValue: "Iris" },
+            { value: 1, displayValue: "Hans" },
+            { value: 2, displayValue: "Peter" },
+            { value: 3, displayValue: "Paul" },
+            { value: 3, displayValue: "Susi" },
+            { value: 3, displayValue: "Petra" },
+            { value: 3, displayValue: "Johanna" },
+            { value: 3, displayValue: "Iris" },
+            { value: 1, displayValue: "Hans" },
+            { value: 2, displayValue: "Peter" },
+            { value: 3, displayValue: "Paul" },
+            { value: 3, displayValue: "Susi" },
+            { value: 3, displayValue: "Petra" },
+            { value: 3, displayValue: "Johanna" },
+            { value: 3, displayValue: "Iris" },
+            { value: 1, displayValue: "Hans" },
+            { value: 2, displayValue: "Peter" },
+            { value: 3, displayValue: "Paul" },
+            { value: 3, displayValue: "Susi" },
+            { value: 3, displayValue: "Petra" },
+            { value: 3, displayValue: "Johanna" },
+            { value: 3, displayValue: "Iris" },
+          ]
+        },
+
+        {
+          type: "multi",
+          id: "multiSelectID",
+          displayName: "Multi Select",
+          options: [
+            { value: 'A', displayValue: "AAA" },
+            { value: 'B', displayValue: "BBB" },
+            { value: 'C', displayValue: "CCC" }
+          ],
+        }
+
+      ]
     }
   },
 
   components: {
-    DoogieTable
-  },
-
-  filters: {
-    userAvatar(user) {
-      return '<img src="'+user.profile.picture+'" />' // + user.profile.name
-    },
-
-    supportButton(numSupporters) {
-      return '<button  type="button" class="btn btn-default btn-xs active"><span data-v-0fe3ecbc="" aria-hidden="true" class="fa fa-thumbs-o-up"></span></button>'
-    },
-    
-    makeSmall(str) {
-      return '<small>'+str+'</small>'
-    },
-
-    localizeDateSmall(dateVal) {
-      return '<small>'+moment(dateVal).format('L')+'</small>'
-    },
-
-    fromNowSmall(dateVal) {
-      return '<small>'+moment(dateVal).fromNow()+'</small>'
-    }
+    DoogieTable,
+    DoogieFilter
   },
 
   methods: {
@@ -145,7 +156,7 @@ export default {
   },
 
   mounted () {
-    this.$refs.ideatable.localizedTexts.addButton = "Add Idea"
+    //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
 
     //var oneWeekAgo = "2018-01-01"
     this.$root.api.getRecentIdeas().then(ideas => {
@@ -158,19 +169,32 @@ export default {
     })
   },
 
+  /** These are vue "filters". The convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
+  filters: {
+    userAvatar(user) {
+      return '<img src="'+user.profile.picture+'" />' // + user.profile.name
+    },
+
+    supportButton(numSupporters) {
+      return '<button  type="button" class="btn btn-default btn-xs active"><span data-v-0fe3ecbc="" aria-hidden="true" class="fa fa-thumbs-o-up"></span></button>'
+    },
+    
+    makeSmall(str) {
+      return '<small>'+str+'</small>'
+    },
+
+    localizeDateSmall(dateVal) {
+      return '<small>'+moment(dateVal).format('L')+'</small>'
+    },
+
+    fromNowSmall(dateVal) {
+      return '<small>'+moment(dateVal).fromNow()+'</small>'
+    }
+  },
   
 }
 </script>
 
 <style>
-  .filters {
-    margin-bottom: 10px;
-  }
-
-  .smallInput {
-    height: 22px;
-    padding: 6px 6px;
-  }
-
 
 </style>

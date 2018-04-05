@@ -6,7 +6,6 @@
     - Each row is represented by one object. Any attribute of this object can be the primary key for each row.
     - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
     - The table is sortable by each column. The sorting is local aware and correct for number with leading zeros.
-    - A Search/Filter input field for client side filtering can be enabled and shown at the top or bottom.
     - Intelligent pager
     - Localisation support
 
@@ -33,7 +32,6 @@
   * primary-key-for-row: name of (or path to) attribute that is the primary key for each row. Values must be unique! 
   * rows-per-page: How many rows shall be shown on each page. If there is more data, then a pager will allow the user to navigate to other pages.
   * adjacent-pages: How many page numbers shall be shown in the middle of the pager. Default is 2.
-  * position-of-search: (Optional) top|bottom|none. Default is "bottom"
   * show-add-button: (Optional) should an add button be shown at the bottom right of the table.
   * updateHandler: (Function) will be called when cell was edited.
 
@@ -54,9 +52,6 @@
 
 <template>
   <div id="DoogieTableWrapper">
-    <div v-if="positionOfSearch=='top'" id="searchDiv">
-      <input name="query" v-model="searchQuery" v-bind:placeholder="localizedTexts.searchFilter"/>
-    </div>
     <table class="table table-condensed table-bordered table-hover doogie-table">
       <thead>
         <tr>
@@ -98,9 +93,6 @@
       </tbody>
     </table>
     <div class="row">
-      <div v-if="positionOfSearch=='bottom'" id="searchDiv" class="col-sm-2 text-left">
-        <input name="query" v-model="searchQuery" v-bind:placeholder="localizedTexts.searchFilter"/>
-      </div>
       <!-- pager for doogie table -->
       <div class="col-sm-8 text-center">
         <nav v-if="lastPageIndex() > 0">
@@ -164,7 +156,6 @@ export default {
       default: function() {    //TODO: merge with what has been passed
         return {
           emptyData: 'Empty data',
-          searchFilter: 'Search/Filter',
           addButton: 'Add'
         }
       }
@@ -185,13 +176,10 @@ export default {
     // shall rows be selecteable via click
     selectableRows: false,
 
-    // 'top', 'bottom' or 'none'
-    positionOfSearch: { type: String, default: function() { return 'bottom' } }
   },
 
   data () {
     return {
-      searchQuery: '',                 // filter by searching every cell's content by partial text match
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,										 // initial sort order is ascending
       page: 0,                         // currently shown page. 0 is first page!
@@ -402,7 +390,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 table.doogie-table {
   margin-bottom: 5px;
 }

@@ -51,7 +51,7 @@ export default {
 
   filters: {
     userAvatar(user) {
-      return '<img src="'+user.profile.picture+'" />'
+      return '<img src="'+user.profile.picture+'" />' 
     },
     
     userProfileName(user) {     //TODO: use this when sorting in row "Created By"
