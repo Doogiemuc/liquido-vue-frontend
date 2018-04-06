@@ -76,6 +76,7 @@ export default {
           type: "selectWithSearch",
           id: "selectWithSearchID",
           displayName: "Long Select Example",
+					//valueChangedHandler: function() { ...},
           options: [
             { value: 1, displayValue: "Hans" },
             { value: 2, displayValue: "Peter" },
@@ -124,7 +125,17 @@ export default {
             { value: 'B', displayValue: "BBB" },
             { value: 'C', displayValue: "CCC" }
           ],
-        }
+        },
+				{
+          type: "multi",
+          id: "multiSelectID2",
+          displayName: "Multi Select 2",
+          options: [
+            { value: 'A', displayValue: "AAA" },
+            { value: 'B', displayValue: "BBB" },
+            { value: 'C', displayValue: "CCC" }
+          ],
+        },
 
       ]
     }

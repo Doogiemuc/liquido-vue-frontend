@@ -1,11 +1,11 @@
 <template>
-  <div class="btn-group">
+  <div :id="id" class="btn-group" >
     <!-- Select for one value out of a very long list. With an inner search input field. -->
     <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      {{config.displayName}}: {{displayValue}} <span class="caret"></span>
+      {{displayName}}: {{displayValue}} <span class="caret"></span>
     </button>
     <div class="dropdown-menu">
-      <input type="text" class="selectSearchInput" :id="config.id + 'Search'" placeholder="Search" v-model="searchText" v-on:keyup="selectSearchKeyup"/>
+      <input type="text" class="selectSearchInput" :id="id + 'Search'" placeholder="Search" v-model="searchText" v-on:keyup="selectSearchKeyup"/>
       <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
       <div role="separator" class="selectDivider"></div>
       <div class="selectListWrapper">
@@ -23,11 +23,12 @@
 
 export default {
   props: {
-    // Configuration for this filter eg. { displayName: "Select2 Example", id: "selectID", options: [ { value:1, displayValue: "Eins" }, {...}, ... ]  }
-    config: { type: Object, required: true },
-
+    id: { type: String, required: true },								// id of this filter
+		displayName: { type: String, required: true },			// name to display to the user 
+		options: { type: Array, required: true },						// (long) list of possible options [{ value: 5, displayValue: "Fünf" }, ... ]
+		
     // this callback function will be triggered, when the filter has been changed. Then you need to apply the new filter settings to your data.
-    filterChangedHandler: { type: Function, required: false },
+    valueChangedHandler: { type: Function, required: false },
   },
 
   data () {
@@ -39,6 +40,15 @@ export default {
     }
   },
 
+	watch: {
+		value: function(newValue, oldValue) {
+			if (typeof this.valueChangedHandler === "function") {
+				this.valueChangedHandler(newValue)
+			}
+			this.$emit('input', {displayValue: this.displayValue, value: this.value})				//  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
+		}
+	},
+	
   methods: {
     /**
      * set the value of this filter
@@ -57,10 +67,11 @@ export default {
      */
     clearSearch() {
       this.searchText = ""
-      this.filteredOptions = this.config.options.slice()
+      this.filteredOptions = this.options.slice()
       this.setFilterValue('Any', null)  
     },    
    
+	  //TODO:Can filterdOptions be a computed property (with caching?)
     /** 
      * Filter a list of options by their displayName or by their value. Compares case-insensitive.
      * @param {Array} options list of value objects, e.g. [ { value: 1, displayName: "Eins" }, { ... }, ... ]
@@ -81,17 +92,15 @@ export default {
      * @param {Object} filter One element from filtersConfig array
      */
     selectSearchKeyup() {
-      var filterFunc = this.config.filterFunc || this.getFilteredOptions
-      this.filteredOptions = filterFunc(config.options, this.searchText)
+      var filterFunc = this.filterFunc || this.getFilteredOptions
+      this.filteredOptions = filterFunc(this.options, this.searchText)
       console.log("keyup:", this.filteredOptions.length, "match")
     },
 
   },
 
   created () {
-    this.config.options  = this.config.options || []
-    this.filteredOptions = this.config.options.slice()      // copy array
-    console.log(this.config, this.filteredOptions)
+    this.filteredOptions = this.options.slice()      // copy array
   }
 }
 </script>

@@ -2,15 +2,21 @@
 
 > Frontend for my liquid democracy app written with Vue 2.0 
 
-See [liquido-backend-spring](https://github.com/Doogiemuc/liquido-backend-spring) for the backend implementation.
+Liquido - a modern aproach for interactive, representative and direct democracy.
 
-This is my playground for learning the client side Java script framework [Vue 2.0](https://vuejs.org). Meanwhile this grew to a medium sized "single page application" (SPA) with quite some nice features.
+Liquid Democracy or Proxy Voting is a modern variant of direct demorcacy. Voters cast their votes for polls, just as you do it today. But a voter can also delegate his vote to a proxy. Then the proxy votes for him. A proxy may accumulate multiple delegated votes. This is what political parties do in today's democracy. But in Liquid Democracy, a voter may revoke his delegation at any time. A voter may simply decide to vote for himself per every poll. A voter may also decide to delegate his vote to another proxy at any time. Not just every four years.
+
+
 
 # Liquido Architecture
 
 ![Liquido Architecture](./doc/Liquido Architecture.png)
 
-## Dependencies / Tools used
+See [liquido-backend-spring](https://github.com/Doogiemuc/liquido-backend-spring) for the backend implementation.
+
+This is my playground for learning the client side Java script framework [Vue 2.0](https://vuejs.org). Meanwhile this grew to a medium sized "single page application" (SPA) with quite some nice features.
+
+## Dependencies / Technical tools used
 
  * [Vue 2.0](http://vuejs.org/guide/) - Client side MVC JS lib (comparable to AngularJS but different :-)
  * [Vue-loader](http://vuejs.github.io/vue-loader) Load components from .vue files

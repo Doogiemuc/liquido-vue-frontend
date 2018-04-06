@@ -39,13 +39,21 @@
         </button>
         <div class="dropdown-menu">
           <ul class="selectList">
-            <li v-for="option in filter.options"><input type="checkbox" v-model="currentFilters[filter.id].selectedCheckboxes"/>&nbsp;{{option.displayValue}}</li>
+            <li v-for="option in filter.options"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes[filter.id]"/>&nbsp;{{option.displayValue}}</li>
           </ul>
           <div role="separator" class="selectDivider"></div>
-          <button type="button" class="btn btn-primary btn-xs applyButton" v-on:click="applyMultiSelect(filter)">Apply</button>
+          <button type="button" class="btn btn-primary btn-xs applyButton" v-on:click="applyMultiSelect(filter, selectedCheckboxes[filter.id])">Apply</button>
           <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearMultiSelect(filter)">Clear</button>
         </div>
       </div>
+			
+			<doogie-filter-select v-if="filter.type === 'selectWithSearch'"
+			  :id="filter.id"
+				:displayName="filter.displayName"
+				:options="filter.options"
+				:valueChangedHandler="filter.valueChangedHandler"
+				v-model="currentFilters[filter.id]"
+			/>
 
     </div>
 
@@ -73,7 +81,7 @@ export default {
   data () {
     return {
       currentFilters: {},       // current values of all applied filters.
-      filteredSelectValues: {}
+			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" select 
     }
   },
 
@@ -88,7 +96,6 @@ export default {
     }
   },
   
-
   methods: {
 
     /**
@@ -128,9 +135,10 @@ export default {
      * @param {Object} filter One element from filtersConfig array
      * @param {array} selectedCheckboxes array with ids to all selected checkboxes
      */
-    applyMultiSelect(filter, selectedCheckboxes) {
-      var displayValue = selectedCheckboxes.length == filter.options.length ? 'All' : selectedCheckboxes.length+'/'+filter.options.length+' selected'
-      this.setFilterValue(filter, displayValue, selectedCheckboxes)
+    applyMultiSelect(filter) {
+      var displayValue = this.selectedCheckboxes[filter.id].length == filter.options.length ? 'All' : this.selectedCheckboxes[filter.id].length+'/'+filter.options.length+' selected'
+			console.log(this.selectedCheckboxes[filter.id])
+      this.setFilterValue(filter, displayValue, this.selectedCheckboxes[filter.id])
     },
 
     /**
@@ -138,7 +146,7 @@ export default {
      * @param {Object} filter One element from filtersConfig array
      */
     clearMultiSelect(filter) {
-      this.currentFilters[filter.id].selectedCheckboxes = []
+      this.selectedCheckboxes[filter.id] = []
       this.setFilterValue(filter, 'Any', [])
     },
 
@@ -165,10 +173,12 @@ export default {
           this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
           this.$set(this.currentFilters[filter.id], 'value', null)
           break;
+				case "selectWithSearch":
+					break;
         case "multi":
           this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
           this.$set(this.currentFilters[filter.id], 'value', [])    // Array is needed for Vue's handling of checkboxes
-          this.currentFilters[filter.id].selectedCheckboxes = []    // this property is NOT reactive
+          this.selectedCheckboxes[filter.id] = []  
           break;
       }
     })
@@ -178,10 +188,11 @@ export default {
 
 <style scoped>
   .filtersOuterWrapper {
-    
+		margin-bottom: 5px;
   }
   .filterWrapper {
     display: inline-block;
+		vertical-align: top;
   }
   .filterWrapper:not(:first-child) {
     margin-left: 5px;
