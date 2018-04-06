@@ -7,6 +7,7 @@
   <doogie-filter
     :filtersConfig="filtersConfig"
     ref="ideatableFilter"
+		v-on:filtersChanged="filtersChanged"
   />
 
   <doogie-table
@@ -15,6 +16,7 @@
     :primary-key-for-row="ideaKey"
     :loading="ideasLoading"
     :show-add-button="true"
+		:filterFunc="tableFilterFunc"
     v-on:saveNewValue="saveNewValue"
     v-on:addButtonClicked="addButtonClicked"
     ref="ideatable"
@@ -51,10 +53,13 @@ export default {
       ideasLoading: true,
       ideas: [],
       showAddButton: false,
-      filtersConfig: [
+			
+			// date for DoogieFilter.vue
+			currentFilters: {},
+			filtersConfig: [
         {
           type: "search",
-          id: "s",
+          id: "searchID",
           displayName: "Free text search"
         },
         {
@@ -137,7 +142,7 @@ export default {
           ],
         },
 
-      ]
+      ],
     }
   },
 
@@ -164,8 +169,19 @@ export default {
       console.log('addButtonClicked in Ideas.vue')
       this.$router.push('/editIdea')
     },
+		
+		/** called when the advanced filters above the table changed */
+		filtersChanged(newFilters) {
+			console.log("ideaTable.FiltersChanged", newFilters)
+			this.currentFilters = newFilters
+		},
+		
+		tableFilterFunc: function(row) {
+			return !this.currentFilters.searchID.value || 
+						(row.title.indexOf(this.currentFilters.searchID.value) > -1)
+		},
   },
-
+	
   mounted () {
     //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
 

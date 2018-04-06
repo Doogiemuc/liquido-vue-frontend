@@ -4,7 +4,7 @@
 
       <div v-if="filter.type === 'search'">
         <!-- Free text (google like)  search -->
-        <input type="text" class="searchInput" :id="filter.name" :name="filter.name" :placeholder="filter.displayName" />
+        <input type="text" class="searchInput" :id="filter.name" :name="filter.name" :placeholder="filter.displayName" v-model="currentFilters[filter.id].value"/>
       </div>
 
       <div v-else-if="filter.type === 'dateRange'" class="btn-group">
@@ -90,7 +90,7 @@ export default {
     // Inactive filters will normally have the value null. But there are exceptions: Unselected multi will have the value []
     currentFilters: {
       handler: function(newFilters, oldFilters) {
-        console.log("Filters changed to", newFilters)
+				this.$emit('filtersChanged', newFilters)
       },
       deep: true
     }
@@ -137,7 +137,6 @@ export default {
      */
     applyMultiSelect(filter) {
       var displayValue = this.selectedCheckboxes[filter.id].length == filter.options.length ? 'All' : this.selectedCheckboxes[filter.id].length+'/'+filter.options.length+' selected'
-			console.log(this.selectedCheckboxes[filter.id])
       this.setFilterValue(filter, displayValue, this.selectedCheckboxes[filter.id])
     },
 
@@ -162,7 +161,7 @@ export default {
       this.$set(this.currentFilters, filter.id, {})
       switch (filter.type) {
         case "search":
-          this.$set(this.currentFilters[filter.id], 'displayValue', "")
+          //this.$set(this.currentFilters[filter.id], 'displayValue', "")    For a search input value == displayValue :-)
           this.$set(this.currentFilters[filter.id], 'value', null)
           break;
         case "dateRange":

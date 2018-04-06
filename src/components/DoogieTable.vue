@@ -175,6 +175,9 @@ export default {
 
     // shall rows be selecteable via click
     selectableRows: false,
+		
+		// client side filtering of tableData. When filterFunc(row) returns false, that row will not be shown.
+		filterFunc:{ type: Function, required: false },
 
   },
 
@@ -207,23 +210,22 @@ export default {
       return result
     },
     
-    // Get filtered row data (if any searchQuery is set).
-    // Matches on the cell values as the user sees them! (ignoring case)
+    // Get rows that match a given filter 'this.filterFunc'
     // adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
     // and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
     getFilteredRowData() {
-      if (this.rowData == undefined) return []
-      if (this.searchQuery == undefined || this.searchQuery == '') return this.rowData
-      var result = this.rowData
-      var that = this
-      var filterKey = this.searchQuery.toLowerCase()
-      result = result.filter(function (row) {
+			if (this.rowData === undefined) return []
+			if (typeof this.filterFunc !== "function") return this.rowData
+      return this.rowData.filter(row => this.filterFunc(row))
+			/*
+			function (row) {
         return that.columns.some(function(col) {
           var cellValue = that.getFilteredCellValue(row, col.path, col.filter)
           return cellValue.toLowerCase().indexOf(filterKey) > -1
         })
-      })    
-      return result
+      })
+*/			
+      
     },
 
     /** 
@@ -297,7 +299,8 @@ export default {
       return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
     },
 
-    // get a cell value for viewing in table cell. Will Apply the colFilter with the give name
+    // get the value (or HTML) that shall be shown in a cell. Will Apply vue's colFilter for transformation.
+		// Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
     getFilteredCellValue(row, path, colFilter) {
       var cellValue = this.getPath(row, path)
       return this.applyFilter(cellValue, colFilter)
