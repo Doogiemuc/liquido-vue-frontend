@@ -5,12 +5,12 @@
       {{displayName}}: {{displayValue}} <span class="caret"></span>
     </button>
     <div class="dropdown-menu">
-      <input type="text" class="selectSearchInput" :id="id + 'Search'" placeholder="Search" v-model="searchText" v-on:keyup="selectSearchKeyup"/>
+      <input type="text" class="selectSearchInput" :id="id + 'Search'" placeholder="Search" v-model="searchText"/>
       <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
       <div role="separator" class="selectDivider"></div>
       <div class="selectListWrapper">
       <ul class="selectList">
-        <li v-for="option in filteredOptions" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
+        <li v-for="option in getFilteredOptions" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
@@ -26,9 +26,6 @@ export default {
     id: { type: String, required: true },								// id of this filter
 		displayName: { type: String, required: true },			// name to display to the user 
 		options: { type: Array, required: true },						// (long) list of possible options [{ value: 5, displayValue: "Fünf" }, ... ]
-		
-    // this callback function will be triggered, when the filter has been changed. Then you need to apply the new filter settings to your data.
-    valueChangedHandler: { type: Function, required: false },
   },
 
   data () {
@@ -36,18 +33,31 @@ export default {
       searchText: "",           // search input field
       displayValue: "Any",      // text displayed to the user for the currently selected option
       value: null,              // real value of currently selection option or null when nothing is selcted
-      filteredOptions: [],      // list of options filtered by searchText
+      //filteredOptions: this.options,      // list of options filtered by searchText
     }
   },
 
 	watch: {
 		value: function(newValue, oldValue) {
-			if (typeof this.valueChangedHandler === "function") {
-				this.valueChangedHandler(newValue)
-			}
 			this.$emit('input', {displayValue: this.displayValue, value: this.value})				//  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
-		}
+		},
+    options: function(newValue, oldValue) {
+      this.filteredOptions = this.options
+    },
 	},
+
+  computed: {
+    /** 
+     * Filter a list of options by their displayName or by their value. Compares case-insensitive.
+     * The result of this computed propery is cached. Will be updated, everytime when this.searchText changes
+     * @returns filtered sublist of this.options
+     */
+    getFilteredOptions() {
+      var searchRegex = new RegExp(this.searchText || "", "i")
+      return this.options.filter(opt => searchRegex.test(opt.displayValue))
+    },
+
+  },
 	
   methods: {
     /**
@@ -67,40 +77,15 @@ export default {
      */
     clearSearch() {
       this.searchText = ""
-      this.filteredOptions = this.options.slice()
+      this.filteredOptions = this.options
       this.setFilterValue('Any', null)  
     },    
    
-	  //TODO:Can filterdOptions be a computed property (with caching?)
-    /** 
-     * Filter a list of options by their displayName or by their value. Compares case-insensitive.
-     * @param {Array} options list of value objects, e.g. [ { value: 1, displayName: "Eins" }, { ... }, ... ]
-     * @param {String} searchText the case insensitive text snippet to search for in value.displayName or value.value
-     * @returns the filtered list of values. An array of value objects.
-     */
-    getFilteredOptions(options, searchText) {
-      searchText = searchText || ""
-      return options.filter(option => {
-        var val = option.displayValue || option.value || ""
-        return val.toLowerCase().indexOf(searchText.toLowerCase()) > -1
-      })
-    },
-
-    /**
-     * Calles everythime a key was pressed in the search input field of a select filter.
-     * Will filter the selectValues by the current search text. By default matches strings case insensitive.
-     * @param {Object} filter One element from filtersConfig array
-     */
-    selectSearchKeyup() {
-      var filterFunc = this.filterFunc || this.getFilteredOptions
-      this.filteredOptions = filterFunc(this.options, this.searchText)
-      console.log("keyup:", this.filteredOptions.length, "match")
-    },
 
   },
 
   created () {
-    this.filteredOptions = this.options.slice()      // copy array
+    //this.filteredOptions = this.options     
   }
 }
 </script>

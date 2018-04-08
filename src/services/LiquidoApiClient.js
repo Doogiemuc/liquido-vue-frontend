@@ -312,7 +312,7 @@ module.exports = {
    * @return {Promise} (a Promise that will resolve to) a list of LawModels of type == IDEA
    */
   getRecentIdeas(since) {
-    log.debug("getRecentIdeas("+since+")")
+    log.debug("getRecentIdeas("+(since?since:"")+")")
     return client({
       path: '/laws/search/recentIdeas',
       params: { 'since': since }

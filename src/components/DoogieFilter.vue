@@ -51,13 +51,12 @@
 			  :id="filter.id"
 				:displayName="filter.displayName"
 				:options="filter.options"
-				:valueChangedHandler="filter.valueChangedHandler"
 				v-model="currentFilters[filter.id]"
 			/>
 
     </div>
 
-    <small><a href="#">Clear all filters</a></small>
+    <small><a href="#" v-on:click="clearAllFilters">Clear all filters</a></small>
   </div>
 </template>
 
@@ -149,38 +148,47 @@ export default {
       this.setFilterValue(filter, 'Any', [])
     },
 
-  },
-
-  created () {
     /*
-      Init currenetFilters according to filtersConfig. Set default values.
+      Init currentFilters according to filtersConfig. Set default values.
       This needs to be done through Vue's $set() method, so that deep changes in the object can be detected by Vue. And the {{templates}} in our view will be updated.
       See https://vuejs.org/v2/guide/reactivity.html#ad
     */
-    this.filtersConfig.forEach(filter => {
-      this.$set(this.currentFilters, filter.id, {})
-      switch (filter.type) {
-        case "search":
-          //this.$set(this.currentFilters[filter.id], 'displayValue', "")    For a search input value == displayValue :-)
-          this.$set(this.currentFilters[filter.id], 'value', null)
-          break;
-        case "dateRange":
-          this.$set(this.currentFilters[filter.id], 'displayValue', "Anytime")
-          this.$set(this.currentFilters[filter.id], 'value', null)
-          break;
-        case "select":
-          this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-          this.$set(this.currentFilters[filter.id], 'value', null)
-          break;
-				case "selectWithSearch":
-					break;
-        case "multi":
-          this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-          this.$set(this.currentFilters[filter.id], 'value', [])    // Array is needed for Vue's handling of checkboxes
-          this.selectedCheckboxes[filter.id] = []  
-          break;
-      }
-    })
+    initFilters() {
+      this.currentFilters = {}
+      this.filtersConfig.forEach(filter => {
+        this.$set(this.currentFilters, filter.id, {})
+        switch (filter.type) {
+          case "search":
+            //this.$set(this.currentFilters[filter.id], 'displayValue', "")    For a search input value == displayValue :-)
+            this.$set(this.currentFilters[filter.id], 'value', "")
+            break;
+          case "dateRange":
+            this.$set(this.currentFilters[filter.id], 'displayValue', "Anytime")
+            this.$set(this.currentFilters[filter.id], 'value', null)
+            break;
+          case "select":
+            this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
+            this.$set(this.currentFilters[filter.id], 'value', null)
+            break;
+          case "selectWithSearch":
+            break;
+          case "multi":
+            this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
+            this.$set(this.currentFilters[filter.id], 'value', [])    // Array is needed for Vue's handling of checkboxes
+            this.selectedCheckboxes[filter.id] = []  
+            break;
+        }
+      })
+    },
+
+    clearAllFilters() {
+      this.initFilters()
+    },    
+
+  },
+
+  created () {
+    this.initFilters()
   }
 }
 </script>

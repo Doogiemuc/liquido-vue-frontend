@@ -22,7 +22,7 @@
   tableColumnsExample: [
     { title: "Title", path: "nameOfTitleAttribute" },
     { title: "Description", path: "description", editable: true  },
-    { title: "deepField", path: "some.deep.path.to.imgHref", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
+    { title: "deepField", path: "some.deep.path.to.imgHref", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
   ]
   ````
 
@@ -39,12 +39,12 @@
    * title: The (localized) title that is shown at the top of that column
    * path: name of attribute or path to the value in row object for each cell in this column, e.g  "profile.name"
    * rawHTML: (Optional) wether the value shall be shown as rawHTML. HTML tags won't be escaped. This way you can for example show images or buttons in cells.
-   * filter: (Optional) name of custom vue filter that converts the raw value from row object to the HTML representation that is shown in the cell.
+   * vueFilter: (Optional) name of custom vue filter that converts the raw value from row object to the HTML representation that is shown in the cell.
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
 
   ### Roadmap
    
-   * TODO: Sophisticated filter funcionality, with pre-defind filters as in JIRA
+   * TODO: Sophisticated filtering of rows, with pre-defind filters as in JIRA
    * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
    * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
 
@@ -66,8 +66,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="rowData == undefined || rowData.length == 0">
+        <tr v-if="rowData === undefined || rowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.emptyData}}</td>
+        </tr>
+        <tr v-else-if="getFilteredRowData.length === 0">
+          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
         </tr>
         <tr v-if="message">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
@@ -81,13 +84,13 @@
               v-if="col.editable"
               :pk="getPath(row, primaryKeyForRow)"
               :column="col"
-              :value="getFilteredCellValue(row, col.path, col.filter)" 
+              :value="getDisplayValue(row, col)"
               v-on:saveNewValue="saveNewValue">
             </editable-cell>
             <span v-if="!col.editable && !col.rawHTML">
-              {{ getFilteredCellValue(row, col.path, col.filter) }}
+              {{ getDisplayValue(row, col) }}
             </span>
-            <span v-if="!col.editable && col.rawHTML" v-html="getFilteredCellValue(row, col.path, col.filter)"></span>
+            <span v-if="!col.editable && col.rawHTML" v-html="getDisplayValue(row, col)"></span>
           </td>
         </tr>
       </tbody>
@@ -118,6 +121,7 @@
         </nav>
       </div>
       <div v-if="showAddButton" class="col-sm-2 text-right">
+        <span>showAddButton = {{showAddButton}}</span>
         <button type="button" class="btn btn-primary btn-sm" @click="addRow()">
           <i class="fa fa-plus-square" aria-hidden="true"></i> {{localizedTexts.addButton}}
         </button>
@@ -156,7 +160,8 @@ export default {
       default: function() {    //TODO: merge with what has been passed
         return {
           emptyData: 'Empty data',
-          addButton: 'Add'
+          addButton: 'Add',
+          filterdResultEmpty: 'Filtered result is empty. Choose less strict filters.',
         }
       }
     },
@@ -171,13 +176,13 @@ export default {
     showRowNumbers: { type: Boolean, required: false, default: true },
 
     // button for adding a new row. Will fire the 'addButtonClicked' event
-    showAddButton: true,
+    showAddButton: { type: Boolean, required: false, default: false },
 
     // shall rows be selecteable via click
-    selectableRows: false,
+    selectableRows: { type: Boolean, required: false, default: false },
 		
-		// client side filtering of tableData. When filterFunc(row) returns false, that row will not be shown.
-		filterFunc:{ type: Function, required: false },
+		// client side filtering of tableData. When rowFilterFunc(row) returns false, that row will not be shown.
+		rowFilterFunc: { type: Function, required: false },
 
   },
 
@@ -210,22 +215,18 @@ export default {
       return result
     },
     
-    // Get rows that match a given filter 'this.filterFunc'
-    // adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
-    // and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
+    /** 
+     Get rows that match a given filter 'this.rowFilterFunc'
+     adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
+     and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
+     This is a computed property. Its result is cached by Vue.
+     Do not confuse this with Vue's "filter" for converting values to display values!
+    */
     getFilteredRowData() {
-			if (this.rowData === undefined) return []
-			if (typeof this.filterFunc !== "function") return this.rowData
-      return this.rowData.filter(row => this.filterFunc(row))
-			/*
-			function (row) {
-        return that.columns.some(function(col) {
-          var cellValue = that.getFilteredCellValue(row, col.path, col.filter)
-          return cellValue.toLowerCase().indexOf(filterKey) > -1
-        })
-      })
-*/			
-      
+      if (this.rowData === undefined) return []
+			if (typeof this.rowFilterFunc !== "function") return this.rowData
+      this.page = 0   //BUGFIX:   must return to first page, after filter has been pllied
+      return this.rowData.filter(row => this.rowFilterFunc(row))
     },
 
     /** 
@@ -301,20 +302,20 @@ export default {
 
     // get the value (or HTML) that shall be shown in a cell. Will Apply vue's colFilter for transformation.
 		// Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
-    getFilteredCellValue(row, path, colFilter) {
-      var cellValue = this.getPath(row, path)
-      return this.applyFilter(cellValue, colFilter)
+    getDisplayValue(row, col) {
+      var cellValue = this.getPath(row, col.path)
+      return this.applyVueFilter(cellValue, col.vueFilter)
     },
 
     // applies a filter/conversion given by 'filterName' to 'val' from this component or any of its parents
-    applyFilter(val, filterName) {
+    applyVueFilter(val, filterName) {
       if (!filterName) return val;
-      var filterFunc = undefined, vueComp = this
-      //walk up the chain of $parent components and try to find filterFunc by filterName
-      while (filterFunc === undefined && vueComp != null && vueComp != vueComp.$parent) {
-        filterFunc = vueComp.$options.filters[filterName]
-        if (_.isFunction(filterFunc)) {
-          return filterFunc(val)
+      var converterFunc = undefined, vueComp = this
+      //walk up the chain of $parent components and try to find converterFunc by filterName
+      while (converterFunc === undefined && vueComp != null && vueComp != vueComp.$parent) {
+        converterFunc = vueComp.$options.filters[filterName]
+        if (_.isFunction(converterFunc)) {
+          return converterFunc(val)
         }
         vueComp = vueComp.$parent
       }

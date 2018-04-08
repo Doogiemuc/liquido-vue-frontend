@@ -6,7 +6,7 @@
 
   <doogie-filter
     :filtersConfig="filtersConfig"
-    ref="ideatableFilter"
+    ref="ideaTableFilter"
 		v-on:filtersChanged="filtersChanged"
   />
 
@@ -15,8 +15,8 @@
     :columns="ideaColumns"
     :primary-key-for-row="ideaKey"
     :loading="ideasLoading"
-    :show-add-button="true"
-		:filterFunc="tableFilterFunc"
+    :show-add-button="false"
+		:rowFilterFunc="rowFilterFunc"
     v-on:saveNewValue="saveNewValue"
     v-on:addButtonClicked="addButtonClicked"
     ref="ideatable"
@@ -36,6 +36,9 @@ var createdByComparator = function(val1, val2) {
   return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
 }
 
+var allCategories = []
+var allUsers = []
+
 export default {
   data () {
     return {
@@ -43,19 +46,17 @@ export default {
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
-        { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters" },
-        { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", filter: 'makeSmall', rawHTML: true },
-        { title: "Created", path: "createdAt", filter: 'localizeDateSmall', rawHTML: true },
-        { title: "Last activity", path: "updatedAt", filter: 'fromNowSmall', rawHTML: true },
+        { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
+        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters",  vueFilter: 'supportButton', rawHTML: true },
+        { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
+        { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
+        { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
       ],
       ideaKey: "_links.self.href",
       ideasLoading: true,
       ideas: [],
-      showAddButton: false,
 			
-			// date for DoogieFilter.vue
-			currentFilters: {},
+			// data for DoogieFilter.vue
 			filtersConfig: [
         {
           type: "search",
@@ -69,56 +70,15 @@ export default {
         },
         {
           type: "select",
-          id: "selectID",
-          displayName: "Select Example",
-          options: [
-            { value: 1, displayValue: "Eins" },
-            { value: 2, displayValue: "Zwei" },
-            { value: 3, displayValue: "Drei" }
-          ]
+          id: "selectCategoryID",
+          displayName: "Category",
+          options: allCategories   // will be filled in created()
         },
         {
           type: "selectWithSearch",
-          id: "selectWithSearchID",
-          displayName: "Long Select Example",
-					//valueChangedHandler: function() { ...},
-          options: [
-            { value: 1, displayValue: "Hans" },
-            { value: 2, displayValue: "Peter" },
-            { value: 3, displayValue: "Paul" },
-            { value: 3, displayValue: "Susi" },
-            { value: 3, displayValue: "Petra" },
-            { value: 3, displayValue: "Johanna" },
-            { value: 3, displayValue: "Iris" },
-            { value: 1, displayValue: "Hans" },
-            { value: 2, displayValue: "Peter" },
-            { value: 3, displayValue: "Paul" },
-            { value: 3, displayValue: "Susi" },
-            { value: 3, displayValue: "Petra" },
-            { value: 3, displayValue: "Johanna" },
-            { value: 3, displayValue: "Iris" },
-            { value: 1, displayValue: "Hans" },
-            { value: 2, displayValue: "Peter" },
-            { value: 3, displayValue: "Paul" },
-            { value: 3, displayValue: "Susi" },
-            { value: 3, displayValue: "Petra" },
-            { value: 3, displayValue: "Johanna" },
-            { value: 3, displayValue: "Iris" },
-            { value: 1, displayValue: "Hans" },
-            { value: 2, displayValue: "Peter" },
-            { value: 3, displayValue: "Paul" },
-            { value: 3, displayValue: "Susi" },
-            { value: 3, displayValue: "Petra" },
-            { value: 3, displayValue: "Johanna" },
-            { value: 3, displayValue: "Iris" },
-            { value: 1, displayValue: "Hans" },
-            { value: 2, displayValue: "Peter" },
-            { value: 3, displayValue: "Paul" },
-            { value: 3, displayValue: "Susi" },
-            { value: 3, displayValue: "Petra" },
-            { value: 3, displayValue: "Johanna" },
-            { value: 3, displayValue: "Iris" },
-          ]
+          id: "selectUserID",
+          displayName: "Created by",
+          options: allUsers
         },
 
         {
@@ -170,18 +130,56 @@ export default {
       this.$router.push('/editIdea')
     },
 		
-		/** called when the advanced filters above the table changed */
+		/** 
+     * Called when the advanced filters above the table changed.
+     * @param {object} newFilters the new filter configuration
+     */
 		filtersChanged(newFilters) {
 			console.log("ideaTable.FiltersChanged", newFilters)
-			this.currentFilters = newFilters
 		},
 		
-		tableFilterFunc: function(row) {
-			return !this.currentFilters.searchID.value || 
-						(row.title.indexOf(this.currentFilters.searchID.value) > -1)
+    /**
+     * Fast client side filtering of table rows
+     * This reactive function will automatically be called, when currentFilters changes.
+     * @param {Object} row  one row from tableData
+     * @return true when this row shall be shown according to the currentFilters
+     */
+		rowFilterFunc: function(row) {
+      var searchKey = this.$refs.ideaTableFilter.currentFilters.searchID.value
+      //if (!searchKey) return true
+      var searchRegex = new RegExp(searchKey, "i")
+			return !searchKey || (
+          searchRegex.test(row.title) ||
+          searchRegex.test(row.description) ||
+          searchRegex.test(row.createdBy.email) ||
+          searchRegex.test(row.createdBy.profile.name)
+        )
+
+        
 		},
+
   },
 	
+  created () {
+    this.$root.api.getAllCategories().then(categories => {
+      categories.forEach(category => {
+        allCategories.push({ value: category.id, displayValue: category.title })
+      })
+    })
+    .catch(err  => {
+      console.log("ERROR loading categories: ", err)
+    })
+
+    this.$root.api.getAllUsers().then(users => {
+      users.forEach(user => {
+        allUsers.push({ value: user.id, displayValue: user.profile.name })
+      })
+    })
+    .catch(err  => {
+      console.log("ERROR loading users: ", err)
+    })
+  },
+
   mounted () {
     //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
 
@@ -194,16 +192,17 @@ export default {
       console.log("ERROR loading Ideas: ", err)
       //TODO: show error to user, e.g. in ideatable
     })
+
   },
 
   /** These are vue "filters". The convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
   filters: {
     userAvatar(user) {
-      return '<img src="'+user.profile.picture+'" />' // + user.profile.name
+      return '<img src="'+user.profile.picture+'" title="'+user.profile.name +' <'+ user.email +'>" />'
     },
 
     supportButton(numSupporters) {
-      return '<button  type="button" class="btn btn-default btn-xs active"><span data-v-0fe3ecbc="" aria-hidden="true" class="fa fa-thumbs-o-up"></span></button>'
+      return '<button  type="button" class="btn btn-default btn-xs active"><span aria-hidden="true" class="fa fa-thumbs-o-up"> '+numSupporters+'</span></button>'
     },
     
     makeSmall(str) {
