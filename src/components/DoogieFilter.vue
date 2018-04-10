@@ -65,6 +65,12 @@
 
 import DoogieFilterSelect from '../components/DoogieFilterSelect'
 
+/**
+ * Filter functionality for rows in DoogieTable.
+ * !!! Do not confuse this with Vue's "filters" !!! Vue's filters are for string conversion in vue templates, e.g. {{ value | capitalize }}
+ *
+ * This component offers powerfull default filters that can be dynamically be combined. Maybe you know the filters of JIRA. 
+ */
 export default {
   props: {
     // Array of configoration info for each filter, eg. [ { type: "dateRange", name: "Created at"  }, { ... } ]

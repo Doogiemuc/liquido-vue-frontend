@@ -301,16 +301,14 @@ module.exports = {
     if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
     var supportersURI = idea._links.supporters.href
     var userURI       = this.getURI(user)
-    log.debug("Add Supporter "+user.email+" ("+userURI+") to idea '"+idea.title+"': POST "+supportersURI)
+    log.debug(user.profile.name+" ("+user.email+") now supports idea '"+idea.title+"': POST "+supportersURI)
     return client({
       method: 'POST',
       path:   supportersURI,
       headers: { 'Content-Type' : 'text/uri-list' },  //BUGFIX for "no String-argument constructor/factory method to deserialize from String value"   send text/uri-list !
       entity: userURI
     }).then(res => {
-      // returns status 204
-      log.debug("added Supporter successfully.")
-      return ""
+      return ""  // returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter: "+supportersURI+": ", err)
       throw new Error(err)

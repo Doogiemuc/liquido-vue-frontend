@@ -36,26 +36,26 @@
 <script>
 import DoogieTable from '../components/DoogieTable'
 import DoogieFilter from '../components/DoogieFilter'
+import SupportButton from  '../components/SupportButton'
 import moment from 'moment'
 
 /** compare user names of createdBy */
 var createdByComparator = function(val1, val2) {
   return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
 }
-//cannot have these as data properties, cause they are initialized to late. Will be filled in reloadFromServer()
+//Cannot have these as data properties, cause they are initialized to late. Will be filled in reloadFromServer()
 var allUsers = []
 var allCategories = []
 
 export default {
   data () {
-		console.log("==== data init")
     return {
       // Data for DoogieTable.vue
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters",  vueFilter: 'supportButton', rawHTML: true },
+        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters", renderComponent: SupportButton },
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
@@ -117,7 +117,8 @@ export default {
 
   components: {
     DoogieTable,
-    DoogieFilter
+    DoogieFilter,
+		SupportButton,
   },
 
   methods: {
@@ -208,14 +209,15 @@ export default {
     //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
   },
 
-  /** These are vue "filters". The convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
+  /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
   filters: {
     userAvatar(user) {
       return '<img src="'+user.profile.picture+'" title="'+user.profile.name +' <'+ user.email +'>" />'
     },
 
-    supportButton(numSupporters) {
-      return '<button  type="button" class="btn btn-default btn-xs active"><span aria-hidden="true" class="fa fa-thumbs-o-up"> '+numSupporters+'</span></button>'
+    supportButton(numSupporters, law) {
+			return '<support-button :law="law"></support-button>'
+      //return '<button  type="button" class="btn btn-default btn-xs active"><span aria-hidden="true" class="fa fa-thumbs-o-up"> '+numSupporters+'</span></button>'
     },
     
     makeSmall(str) {

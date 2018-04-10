@@ -43,10 +43,9 @@
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
 
   ### Roadmap
-   
-   * TODO: Sophisticated filtering of rows, with pre-defind filters as in JIRA
+ 
    * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
-   * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker
+   * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker. Found possible solution with Vue's dynamic components!
 
  */
 
@@ -87,10 +86,11 @@
               :value="getDisplayValue(row, col)"
               v-on:saveNewValue="saveNewValue">
             </editable-cell>
-            <span v-if="!col.editable && !col.rawHTML">
+						<component v-else-if="col.renderComponent" :is="col.renderComponent" :row="row" :col="col"></component>
+						<span v-else-if="col.rawHTML" v-html="getDisplayValue(row, col)"></span>
+						<span v-else>
               {{ getDisplayValue(row, col) }}
             </span>
-            <span v-if="!col.editable && col.rawHTML" v-html="getDisplayValue(row, col)"></span>
           </td>
         </tr>
       </tbody>
@@ -290,8 +290,6 @@ export default {
     clickHeader(col) {
       this.setSortCol(col)
       this.invertSortOrder()
-      //console.log("$forceUpdate")
-      //this.$forceUpdate()
     },
 
     // index of last page (after applying filter)
@@ -304,18 +302,24 @@ export default {
 		// Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
     getDisplayValue(row, col) {
       var cellValue = this.getPath(row, col.path)
-      return this.applyVueFilter(cellValue, col.vueFilter)
+      return this.applyVueFilter(cellValue, row, col.vueFilter)
     },
 
-    // applies a filter/conversion given by 'filterName' to 'val' from this component or any of its parents
-    applyVueFilter(val, filterName) {
+    /** 
+		 * applies a Vue filter/conversion given by 'filterName' to 'val' from this component or any of its parents
+		 * @param {String} val cell's raw value from rowData
+		 * @param {Object} the full row object. An element from rowData. (Can be used when the cell's display value depends on other values in this row.)
+		 * @param {String} filterName name of a vueFilter. Can be one of the default filters in DoogieTable, e.g. 'localizeDate' or any filter you defined in any parent component.
+		 * @return {String} the converted display value, that shall be shown to the user in this table cell. Can be interpreted as rawHTML, when column.rawHTML is true.
+		 */
+    applyVueFilter(val, row, filterName) {
       if (!filterName) return val;
       var converterFunc = undefined, vueComp = this
-      //walk up the chain of $parent components and try to find converterFunc by filterName
+      //walk up the chain of $parent components and try to find a converterFunc with filterName
       while (converterFunc === undefined && vueComp != null && vueComp != vueComp.$parent) {
         converterFunc = vueComp.$options.filters[filterName]
         if (_.isFunction(converterFunc)) {
-          return converterFunc(val)
+          return converterFunc(val, row)
         }
         vueComp = vueComp.$parent
       }

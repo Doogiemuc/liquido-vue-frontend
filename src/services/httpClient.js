@@ -10,7 +10,7 @@ import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 import template from 'rest/interceptor/template'
 import basicAuth from 'rest/interceptor/basicAuth'
-//import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list"
+import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list", used e.g. when adding a supporter to an idea
 import cachingInterceptor     from './cachingInterceptor'       // cache requests by URL (with TTL)
 import logRequestsInterceptor from './logRequestsInterceptor'   // very detailed loging of all HTTP requests and responses incl. payload
 import loglevel from 'loglevel'
