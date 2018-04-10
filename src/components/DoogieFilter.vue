@@ -15,8 +15,8 @@
           <li><a v-on:click="setDateRangeToPastDays(filter, 0)">Today</a></li>
           <li><a v-on:click="setDateRangeToPastDays(filter, 7)">Last 7 days</a></li>
           <li><a v-on:click="setDateRangeToPastDays(filter, 14)">Last 14 days</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a v-on:click="setFilterValue(filter, 'Anytime', null)">Anytime</a></li>
+          <li role="separator" class="selectDivider"></li>
+          <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter, 'Anytime', undefined)">Clear</button></li>
         </ul>
       </div>
 
@@ -26,9 +26,9 @@
           {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li v-for="option in filter.options"><a v-on:click="setFilterValue(filter, option.displayValue, option.value)">{{option.displayValue}}</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a v-on:click="setFilterValue(filter, 'Any', null)">Clear filter</a></li>
+          <li v-for="option in filter.options"><a class="selectItem" v-on:click="setFilterValue(filter, option.displayValue, option.value)">{{option.displayValue}}</a></li>
+          <li role="separator" class="selectDivider"></li>
+					<li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter, 'Any', undefined)">Clear</button></li>
         </ul>
       </div>
 
@@ -56,7 +56,8 @@
 
     </div>
 
-    <small><a href="#" v-on:click="clearAllFilters">Clear all filters</a></small>
+    <small><a href="" v-on:click.prevent="clearAllFilters">Clear all filters</a></small>
+		
   </div>
 </template>
 
@@ -66,11 +67,8 @@ import DoogieFilterSelect from '../components/DoogieFilterSelect'
 
 export default {
   props: {
-    // Array of configoration info for each filter, eg. [ { type: "date", name: "Created at"  }, { ... } ]
+    // Array of configoration info for each filter, eg. [ { type: "dateRange", name: "Created at"  }, { ... } ]
     filtersConfig: { type: Array, required: true },
-
-    // this callback function will be triggered, when the filter has been changed. Then you need to apply the new filter settings to your data.
-    filterChangedHandler: { type: Function, required: false },
   },
 
   components: {
@@ -96,7 +94,6 @@ export default {
   },
   
   methods: {
-
     /**
      * set the value of one filter
      * @param {Object} filter One element from filtersConfig array
@@ -121,13 +118,24 @@ export default {
       var newValue = {}
       var start = new Date()
       start.setHours(0,0,0,0)         // start of the first day at midnight
-      newValue.from = new Date(start.getTime() - nDays*24*3600*1000)    // n days in the past
+      newValue.start = new Date(start.getTime() - nDays*24*3600*1000)    // n days in the past
       var end = new Date()
       end.setHours(23,59,59,999)
-      newValue.until = end
+      newValue.end = end
       this.setFilterValue(filter, newDisplayValue, newValue)
     },
 
+		/** 
+		 * @param {object|string|number} date Can be passed as JS Date object, ISO date string or number of milliseconds
+		 * @param {object} dateRange {start: <date>, end: <date> }    Keep in mind that JS dates are actually datetime.
+		 * @return true, when date is within dateRange.start and dateRange.end 
+		 */
+		isInDateRange(date, dateRange) {
+			date = new Date(date)  // allow everything new Date is able to parse,  e.g. ISO strings			
+			//console.log("isInDateRange", date, dateRange, dateRange.start <= date && date <= dateRange.end)
+			return dateRange.start <= date && date <= dateRange.end
+		},
+		
     /**
      * Set the value of a multi select.
      * newValue will be an array with the ids of all selected checkboxes
@@ -140,7 +148,7 @@ export default {
     },
 
     /**
-     * set all checkboxes to unselected 
+     * Set all checkboxes of a multi select to unselected 
      * @param {Object} filter One element from filtersConfig array
      */
     clearMultiSelect(filter) {
@@ -148,7 +156,7 @@ export default {
       this.setFilterValue(filter, 'Any', [])
     },
 
-    /*
+    /**
       Init currentFilters according to filtersConfig. Set default values.
       This needs to be done through Vue's $set() method, so that deep changes in the object can be detected by Vue. And the {{templates}} in our view will be updated.
       See https://vuejs.org/v2/guide/reactivity.html#ad
@@ -164,11 +172,11 @@ export default {
             break;
           case "dateRange":
             this.$set(this.currentFilters[filter.id], 'displayValue', "Anytime")
-            this.$set(this.currentFilters[filter.id], 'value', null)
+            this.$set(this.currentFilters[filter.id], 'value', undefined)
             break;
           case "select":
             this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-            this.$set(this.currentFilters[filter.id], 'value', null)
+            this.$set(this.currentFilters[filter.id], 'value', undefined)
             break;
           case "selectWithSearch":
             break;
@@ -234,6 +242,10 @@ export default {
     list-style: none;
     -webkit-padding-start: 06px;
   }
+	.selectItem {
+		padding-top: 0;
+		padding-bottom: 0;
+	}
   .selectList li:hover {
     background-color: #f5f5f5;
     cursor: pointer;

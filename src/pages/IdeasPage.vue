@@ -4,15 +4,23 @@
   <p class="lead">Spontaneous suggestions for improvement</p>
   <p>Here you can see all currently active ideas. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least NN supporters, then it is moved onto the table and can be voted upon.</p>
 
-  <doogie-filter
-    :filtersConfig="filtersConfig"
-    ref="ideaTableFilter"
-		v-on:filtersChanged="filtersChanged"
-  />
+	<div class="row">
+		<div class="col-sm-10">
+	  	<doogie-filter
+				:filtersConfig="filtersConfig"
+				ref="ideaTableFilter"
+				v-on:filtersChanged="filtersChanged"
+			/>
+		</div>
+		<div class="col-sm-2 text-right">
+		  <span class="glyphicon glyphicon-refresh" aria-hidden="true" title="Reload table data from server" v-on:click="reloadFromServer"></span>
+		</div>
+	</div>
 
   <doogie-table
     :row-data="ideas"
     :columns="ideaColumns"
+		:rowsPerPage="rowsPerPage"
     :primary-key-for-row="ideaKey"
     :loading="ideasLoading"
     :show-add-button="false"
@@ -21,7 +29,6 @@
     v-on:addButtonClicked="addButtonClicked"
     ref="ideatable"
   />
-
 </div>
 
 </template>
@@ -35,12 +42,13 @@ import moment from 'moment'
 var createdByComparator = function(val1, val2) {
   return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
 }
-
-var allCategories = []
+//cannot have these as data properties, cause they are initialized to late. Will be filled in reloadFromServer()
 var allUsers = []
+var allCategories = []
 
 export default {
   data () {
+		console.log("==== data init")
     return {
       // Data for DoogieTable.vue
       ideaColumns: [
@@ -55,6 +63,7 @@ export default {
       ideaKey: "_links.self.href",
       ideasLoading: true,
       ideas: [],
+			rowsPerPage: 20,
 			
 			// data for DoogieFilter.vue
 			filtersConfig: [
@@ -65,18 +74,18 @@ export default {
         },
         {
           type: "dateRange",
-          id: "updatedAt",
+          id: "updatedAtID",
           displayName: "Updated"
         },
         {
           type: "select",
-          id: "selectCategoryID",
+          id: "categoryID",
           displayName: "Category",
-          options: allCategories   // will be filled in created()
+          options: allCategories
         },
         {
           type: "selectWithSearch",
-          id: "selectUserID",
+          id: "createdByID",
           displayName: "Created by",
           options: allUsers
         },
@@ -125,6 +134,7 @@ export default {
       this.$root.api.patch(ideaURI, patchedIdea)
     },
 
+		//@Deprecated
     addButtonClicked() {
       console.log('addButtonClicked in Ideas.vue')
       this.$router.push('/editIdea')
@@ -135,7 +145,7 @@ export default {
      * @param {object} newFilters the new filter configuration
      */
 		filtersChanged(newFilters) {
-			console.log("ideaTable.FiltersChanged", newFilters)
+			//console.log("ideaTable.FiltersChanged", newFilters)
 		},
 		
     /**
@@ -144,55 +154,58 @@ export default {
      * @param {Object} row  one row from tableData
      * @return true when this row shall be shown according to the currentFilters
      */
-		rowFilterFunc: function(row) {
-      var searchKey = this.$refs.ideaTableFilter.currentFilters.searchID.value
-      //if (!searchKey) return true
-      var searchRegex = new RegExp(searchKey, "i")
-			return !searchKey || (
+		rowFilterFunc(row) {
+			var currentFilters = this.$refs.ideaTableFilter.currentFilters
+      var searchRegex = new RegExp(currentFilters.searchID.value, "i")
+   		var dateRange   = currentFilters.updatedAtID.value  	// dateRange == {start: ..., end: ... }
+			var categoryID  = currentFilters.categoryID.value
+			var createdByID = currentFilters.createdByID.value
+			//console.log("rowFilterFunc", dateRange === undefined? "undefined" : this.$refs.ideaTableFilter.isInDateRange(row.updatedAt, dateRange))
+			return (!currentFilters.searchID.value || (
           searchRegex.test(row.title) ||
           searchRegex.test(row.description) ||
           searchRegex.test(row.createdBy.email) ||
           searchRegex.test(row.createdBy.profile.name)
-        )
-
-        
+        )) &&
+				(dateRange === undefined || this.$refs.ideaTableFilter.isInDateRange(row.updatedAt, dateRange)) &&   // row.updatedAt is a string!! ISO date format
+				(categoryID === undefined || row.area.id == categoryID) &&
+				(createdByID === undefined || row.createdBy.id == createdByID)
+		},
+		
+		reloadFromServer() {
+			this.$root.api.disableCache()
+			Promise.all([
+				this.$root.api.getAllCategories(),
+				this.$root.api.getAllUsers(),
+				this.$root.api.findByStatus("IDEA", 0, 1000, "updatedAt,desc")
+			]).then(results => {
+				// must push into existing array. Cannot simply assign new array, cause Vue will not recognize this as reactive property
+				allCategories.length = 0
+				results[0].forEach(category => {
+					allCategories.push({ value: category.id, displayValue: category.title })
+				})
+				allUsers.length = 0
+				results[1].forEach(user => {
+					allUsers.push({ value: user.id, displayValue: user.profile.name })
+				})
+				this.ideas = results[2]
+				this.ideasLoading = false
+				this.$root.api.enableCache()
+			})
+			.catch(err => { console.log("ERROR loading data for ideasPage: ", err) })
+			
 		},
 
   },
 	
   created () {
-    this.$root.api.getAllCategories().then(categories => {
-      categories.forEach(category => {
-        allCategories.push({ value: category.id, displayValue: category.title })
-      })
-    })
-    .catch(err  => {
-      console.log("ERROR loading categories: ", err)
-    })
-
-    this.$root.api.getAllUsers().then(users => {
-      users.forEach(user => {
-        allUsers.push({ value: user.id, displayValue: user.profile.name })
-      })
-    })
-    .catch(err  => {
-      console.log("ERROR loading users: ", err)
-    })
+		console.log("==== reload")
+		this.reloadFromServer()
+		
   },
 
   mounted () {
     //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
-
-    //var oneWeekAgo = "2018-01-01"
-    this.$root.api.getRecentIdeas().then(ideas => {
-      this.ideas = ideas
-      this.ideasLoading = false
-    })
-    .catch(err  => {
-      console.log("ERROR loading Ideas: ", err)
-      //TODO: show error to user, e.g. in ideatable
-    })
-
   },
 
   /** These are vue "filters". The convert the passed value into a format that shows to the user. (They should be called converters by vue.) */

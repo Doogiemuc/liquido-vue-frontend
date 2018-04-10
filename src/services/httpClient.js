@@ -8,6 +8,7 @@ import rest from 'rest'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
+import template from 'rest/interceptor/template'
 import basicAuth from 'rest/interceptor/basicAuth'
 //import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list"
 import cachingInterceptor     from './cachingInterceptor'       // cache requests by URL (with TTL)
@@ -26,6 +27,7 @@ var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// then co
 		                 .wrap(cachingInterceptor, cacheConfig)  				 			// caching interceptor must be BEFORE the mime interceptor!
 		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400 
 		                 .wrap(logRequestsInterceptor, { logPayload: true })  // first of all log the request
+										 .wrap(template)																			// support query parameters in the url
 		                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })  // add path prefix to request
 
 

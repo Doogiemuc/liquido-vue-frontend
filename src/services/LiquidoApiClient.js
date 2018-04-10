@@ -20,9 +20,6 @@ if (process.env.backendBaseURL === undefined) {
 
 var client = httpClient.getClient()
 
-httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
-httpClient.setCacheTTL(10)
-
 /** 
  * Get the internal DB id of a model. IDs are numbers.
  * This is an internal method and should not be exposed.
@@ -32,7 +29,6 @@ var getId = function(model) {
   var uriRegEx = new RegExp('^https?://.*/(\d?)$')
   var id = uri.match(uriRegEx)
 }
-
 
 //==================================================================================================================
 // Public/Exported methods
@@ -56,15 +52,19 @@ module.exports = {
     })
   },
 
+	/** disable the cache. Every request will go the backend */
   disableCache() {
     httpClient.setCacheUrlFilter('DO_NOT_CACHE')
   },
 
-  enableCache() {
-    // only cache requests when searching for ideas, proposals or laws
-    httpClient.setCacheUrlFilter(process.env.backendBaseURL+'/laws/search/')
-  },
+	/** enable cache when searching for laws */
+  enableCache(){
+		// only cache requests when searching for ideas, proposals or laws
+		httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
+		httpClient.setCacheTTL(10)
+	},
 
+	/** disable the cache but only for the next request */
   noCacheForNextRequest() {
     httpClient.noCacheForNextRequest()
   },
@@ -212,12 +212,23 @@ module.exports = {
 
   /**
    * Get all ideas, propsals or laws (paged)
-   * @param status IDEA|PROPOSAL|LAW
-   * @return list of ideas, proposals or laws 
+   * @param {string} status IDEA|PROPOSAL|LAW
+	 * @param {number} page number of page to load
+	 * @param {size}   size length of one page
+	 * @param {string} sort <name of attribute>[,asc|desc]
+   * @return paged list of ideas, proposals or laws 
    */
-  findByStatus(status) {
+  findByStatus(status, page, size, sort) {
     log.debug("findByStatus(status="+status+")")
-    return client('/laws/search/findByStatus?status='+status)
+    return client({
+			path: '/laws/search/findByStatus{?status,page,size,sort}',
+			params: {
+				status: status,
+				page: page,
+				size: size,
+				sort: sort
+			}
+		})
     .then(res => { return res.entity._embedded.laws })
     .catch(err => {
       log.error("ERROR in apiClient: ", JSON.stringify(err))
@@ -311,17 +322,14 @@ module.exports = {
    * @param {String} (optional) since date in the format "yyyy-MM-dd"
    * @return {Promise} (a Promise that will resolve to) a list of LawModels of type == IDEA
    */
-  getRecentIdeas(since) {
-    log.debug("getRecentIdeas("+(since?since:"")+")")
-    return client({
-      path: '/laws/search/recentIdeas',
-      params: { 'since': since }
-    })
-    .then(res => { return res.entity._embedded.laws })
-    .catch(err => {
-      log.error("ERROR in apiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
-    }) 
+  getRecentIdeas() {
+    log.debug("getRecentIdeas()")
+    return client('/laws/search/recentIdeas')
+			.then(res => { return res.entity._embedded.laws })
+			.catch(err => {
+				log.error("ERROR in apiClient: ", JSON.stringify(err))
+				return Promise.reject("LiquidoApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
+			}) 
   },
 
   
@@ -404,3 +412,5 @@ module.exports = {
   },
 
 }
+
+module.exports.enableCache()
