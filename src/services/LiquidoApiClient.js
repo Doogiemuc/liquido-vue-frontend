@@ -54,11 +54,13 @@ module.exports = {
 
 	/** disable the cache. Every request will go the backend */
   disableCache() {
+    log.debug("disableCache")
     httpClient.setCacheUrlFilter('DO_NOT_CACHE')
   },
 
 	/** enable cache when searching for laws */
   enableCache(){
+    log.debug("enableCache")
 		// only cache requests when searching for ideas, proposals or laws
 		httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
 		httpClient.setCacheTTL(10)

@@ -107,9 +107,10 @@ export default interceptor({
    * then cache the returned response (incl. its response.entity if any) in the cache with a timestamp.
    */
   success: function (response, config, meta) {
-    //TODO: check HTTP 1.0 Pragma:"no-cache" or HTTP 1.1 Cache-Control headers of respone if we are allowed to cache.
     if (response.request.method !== 'GET') return response
     if (response.fromLocalCache) return response   // do not cache already cached responses. Do not update timestamp.  (success is actually not called when request returns a ComplexRequest. Which is also fine.)
+    // When HTTP 1.1 response header Cache-Control contains 'no-cache'. Then do not cache the response
+    if (response.headers['Cache-Control'] && response.headers['Cache-Control'].indexOf('no-cache') >= 0) { return response }
     var auth    = response.request.headers.Authorization
     var key     = response.request.path   //TODO: Should auth be appended to the key?
     cache[key] = {

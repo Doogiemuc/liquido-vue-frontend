@@ -26,7 +26,7 @@ var cacheConfig = { urlFilter: /CACHE_NOTHING/ }
 var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// then convert entity according to mime type
 		                 .wrap(cachingInterceptor, cacheConfig)  				 			// caching interceptor must be BEFORE the mime interceptor!
 		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400 
-		                 .wrap(logRequestsInterceptor, { logPayload: true })  // first of all log the request
+		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // first of all log the request
 										 .wrap(template)																			// support query parameters in the url
 		                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })  // add path prefix to request
 
@@ -49,7 +49,7 @@ export default {
    * @urlFilter {String or RegEx} urls that match this regex will be cached.
    */
   setCacheUrlFilter(urlFilter) {
-  	log.debug("setting urlFilter in cachingInterceptor to ", urlFilter)
+  	//log.debug("setting urlFilter in cachingInterceptor to ", urlFilter)
   	if (typeof urlFilter === 'string') {
   		cacheConfig.urlFilter = new RegExp(urlFilter)
   	} else {

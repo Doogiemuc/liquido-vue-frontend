@@ -18,7 +18,7 @@
           <li role="separator" class="selectDivider"></li>
           <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter, 'Anytime', undefined)">Clear</button></li>
         </ul>
-      </div>
+       </div>
 
       <div v-else-if="filter.type === 'select'" class="btn-group">
         <!-- Select for exactly one value -->

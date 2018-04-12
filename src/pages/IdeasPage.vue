@@ -13,7 +13,10 @@
 			/>
 		</div>
 		<div class="col-sm-2 text-right">
-		  <span class="glyphicon glyphicon-refresh" aria-hidden="true" title="Reload table data from server" v-on:click="reloadFromServer"></span>
+		  <b>{{shownRowNumbers()}}</b> of <b>{{ideas.length}}</b>
+      <span v-on:click="reloadFromServer" class="reloadIcon">
+        <i class="fa fa-sync-alt" title="Reload table data from server" ></i>
+      </span>
 		</div>
 	</div>
 
@@ -26,7 +29,6 @@
     :show-add-button="false"
 		:rowFilterFunc="rowFilterFunc"
     v-on:saveNewValue="saveNewValue"
-    v-on:addButtonClicked="addButtonClicked"
     ref="ideatable"
   />
 </div>
@@ -55,7 +57,7 @@ export default {
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters", renderComponent: SupportButton },
+        { htmlTitle: '<i class="fas fa-thumbs-up"></i>', path: "numSupporters", editComponent: SupportButton, editCompProps: { foo: 'bar' } },
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
@@ -89,7 +91,7 @@ export default {
           displayName: "Created by",
           options: allUsers
         },
-
+        /*
         {
           type: "multi",
           id: "multiSelectID",
@@ -100,16 +102,7 @@ export default {
             { value: 'C', displayValue: "CCC" }
           ],
         },
-				{
-          type: "multi",
-          id: "multiSelectID2",
-          displayName: "Multi Select 2",
-          options: [
-            { value: 'A', displayValue: "AAA" },
-            { value: 'B', displayValue: "BBB" },
-            { value: 'C', displayValue: "CCC" }
-          ],
-        },
+        */
 
       ],
     }
@@ -121,12 +114,22 @@ export default {
 		SupportButton,
   },
 
+
   methods: {
+    shownRowNumbers: function() {
+      var table = this.$refs.ideatable
+      if (!table) return "all"
+      var first = table.page*table.rowsPerPage + 1
+      var last  = (table.page+1)*table.rowsPerPage
+      return first+"-"+last
+    },
+
     /**
      * save an updated value of an Idea
      * This is called when the EditableCell component fires the "saveNewValue" event
-     * @param ideaURI the full ideaURI which shall be updated (which is the rowId in IdeaTable!)
-     * @param path
+     * @param {String} ideaURI the full ideaURI which shall be updated (which is the rowId in IdeaTable!)
+     * @param {Object} column Which column has been edited.
+     * @param {Any} value The new value that the user has entered or chosen. As returned by the EditableCell component.
      */
     saveNewValue(ideaURI, column, value) {
       console.log("saveNewValue event in IdeasPage.vue:", ideaURI, column, value);
@@ -135,12 +138,6 @@ export default {
       this.$root.api.patch(ideaURI, patchedIdea)
     },
 
-		//@Deprecated
-    addButtonClicked() {
-      console.log('addButtonClicked in Ideas.vue')
-      this.$router.push('/editIdea')
-    },
-		
 		/** 
      * Called when the advanced filters above the table changed.
      * @param {object} newFilters the new filter configuration
@@ -173,6 +170,9 @@ export default {
 				(createdByID === undefined || row.createdBy.id == createdByID)
 		},
 		
+    /**
+     * (re)load all tabledata from the server. Cache will temporarily be disabled for this.
+     */
 		reloadFromServer() {
 			this.$root.api.disableCache()
 			Promise.all([
@@ -200,13 +200,7 @@ export default {
   },
 	
   created () {
-		console.log("==== reload")
 		this.reloadFromServer()
-		
-  },
-
-  mounted () {
-    //this.$refs.ideatable.localizedTexts.addButton = "Add Idea"   No add button in table
   },
 
   /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
@@ -215,11 +209,6 @@ export default {
       return '<img src="'+user.profile.picture+'" title="'+user.profile.name +' <'+ user.email +'>" />'
     },
 
-    supportButton(numSupporters, law) {
-			return '<support-button :law="law"></support-button>'
-      //return '<button  type="button" class="btn btn-default btn-xs active"><span aria-hidden="true" class="fa fa-thumbs-o-up"> '+numSupporters+'</span></button>'
-    },
-    
     makeSmall(str) {
       return '<small>'+str+'</small>'
     },
@@ -237,5 +226,7 @@ export default {
 </script>
 
 <style>
-
+  .reloadIcon {
+    cursor: pointer;
+  }
 </style>

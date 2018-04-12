@@ -87,6 +87,7 @@
               v-on:saveNewValue="saveNewValue">
             </editable-cell>
 						<component v-else-if="col.renderComponent" :is="col.renderComponent" :row="row" :col="col"></component>
+            <component v-else-if="col.editComponent"   :is="col.editComponent"   :row="row" :col="col" v-bind="col.editCompProps"></component>
 						<span v-else-if="col.rawHTML" v-html="getDisplayValue(row, col)"></span>
 						<span v-else>
               {{ getDisplayValue(row, col) }}
