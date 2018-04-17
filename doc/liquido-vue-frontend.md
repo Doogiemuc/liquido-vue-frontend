@@ -1,44 +1,81 @@
 # Frontend for Liquido written in Vue.js with WebPack
     
-# User Stories
-
 ## Happy Case
 
 Make this work first
 
- # Login
- # Create new idea
- # Simulate getting enough supporters => Idea becomes a proposal
- # START a new poll
- # Simulate second idea, add supportes to it, becomes a proposal and then JOINS poll
- # User gets message (on UserHome) that he can now start the voting phase
- # Start voting phase
+*User A*
+ 1. Create new idea
+ 3. Simulate getting enough supporters => Idea becomes a proposal
+ 4. Start a new poll
 
-## Pages
+*User B*
+ 5. Create a second idea
+ 6. Add supportes to it so that it becomes a proposal.
+ 7. Join poll of user A. User A gets message (on UserHome) that user B joined the poll.
+ 8. Wait for Minimum time of elaboration phase.
 
-### Proposals
+ 9. Voting of poll starts.
+ 
 
-Do I want to have the same page for ideas and proposals?
+
+# Domains
+
+## Ideas
+
+When an idea has enough supporters, it becomes a proposal.
+
+## Proposals
 
 What can be done with a proposal ("actions"):
+
 If it not my own proposal
  - Like proposal
  - Suggest an improvement ("add comment")   => see github discussions layout
- - Like/upvote another comment
+ - Like/upvote a comment
+ 
 If this is my own proposal
  - Start a completely new poll
  - Merge my proposal into another poll (which must be in elaboration phase). 
    - search for poll in elaboration   or   "add my proposal to this poll"
-   - can i change my mind and move my proposal to another poll?  (of course only as long as both polls are still in elaboration).
+   - Move my proposal to another poll. Of course only as long as both polls are still in elaboration.   => NOT MVP
+
+MAYBE: Join proposals?  => Join supporters?  Open questions: Which description to keep?
+	 
+## Polls
+
+*Use Case:* Start a new poll
+
+After an idea became a proposal the creator may 
+ - either start a new poll with his proposal as the initial proposal
+ - or he may join an already existing poll.
+
+Voting starts n days after the poll was created, when there are at least two alternative proposals.
+
+# GUI
+ 
+### UI Component: Quick info about a poll (components/PollPanel.vue)
+
+Show quick and small overview of a poll. No timeline. Initially only show title of proposals. But can be expanded in heigt to show descriptions and additional infos.
+ 
+### UI Page: Show a poll  (pollShow.vue)
+
+Show the poll's timeline: created --(elaboration phase)--> voting starts --(voting phase)--> completed
+Show all alternative proposals within a poll. Add comment to proposal.
+
+### UI Page: (pollVote.vue)
+
+Cast you vote, ie. sort proposals into your personally preferred order.
+
+
+### UI Page flow
+
+ - Recent messages show that idea reached its quorum.
+ - When creator views his own proposal, he (and only him) sees an action to "Create a new poll" or "Join existing poll".
+ - When user views a poll and has a proposal that is not yet part of another poll, then he sees an action to join this poll.
 
 
 
-### Polls
-
-When does voting start?
- - At the earliest when there are at least two alternative proposals
- - Optional/Configurable: At the earliest [two weeks] after the poll was created. (to give alternative proposals some time to reach their quorum and be elaborated)
- - 
     
 
 

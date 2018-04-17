@@ -25,7 +25,7 @@
     :columns="ideaColumns"
 		:rowsPerPage="rowsPerPage"
     :primary-key-for-row="ideaKey"
-    :loading="ideasLoading"
+    :message="ideasTableMessage"
     :show-add-button="false"
 		:rowFilterFunc="rowFilterFunc"
     v-on:saveNewValue="saveNewValue"
@@ -57,13 +57,17 @@ export default {
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { htmlTitle: '<i class="fas fa-thumbs-up"></i>', path: "numSupporters", editComponent: SupportButton, editCompProps: { foo: 'bar' } },
+        { htmlTitle: '<i class="fas fa-thumbs-up"></i>', 
+				  path: "numSupporters", 
+					editComponent: SupportButton, 
+					editCompProps: { supporterAdded: this.supporterAdded } 
+				},
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
       ],
       ideaKey: "_links.self.href",
-      ideasLoading: true,
+      ideasTableMessage: "loading ...",
       ideas: [],
 			rowsPerPage: 20,
 			
@@ -146,6 +150,19 @@ export default {
 			//console.log("ideaTable.FiltersChanged", newFilters)
 		},
 		
+		/**
+		 * callback when supporter was added to idea 
+		 * @param {object} idea the supported idea <b>IN ITS OLD STATE!!!</b>.  Needs to be reloaded!
+		 * @param {object} newSupporter the newly added supporter (that is not yet part of idea.supporters array!
+		 */
+		supporterAdded(idea, newSupporter) {
+			var index = this.$refs.ideatable.getIndexOf(idea)
+			// reload full idea data from backend
+			this.$root.api.getIdea(idea, true).then(reloadedIdea => {
+				this.$set(this.ideas, index, reloadedIdea)
+			})
+		},
+		
     /**
      * Fast client side filtering of table rows
      * This reactive function will automatically be called, when currentFilters changes.
@@ -190,7 +207,7 @@ export default {
 					allUsers.push({ value: user.id, displayValue: user.profile.name })
 				})
 				this.ideas = results[2]
-				this.ideasLoading = false
+				this.ideasTableMessage = undefined
 				this.$root.api.enableCache()
 			})
 			.catch(err => { console.log("ERROR loading data for ideasPage: ", err) })

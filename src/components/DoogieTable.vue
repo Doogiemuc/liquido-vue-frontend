@@ -65,14 +65,14 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="rowData === undefined || rowData.length === 0">
+        <tr v-if="message">
+          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
+        </tr>
+				<tr v-else-if="rowData === undefined || rowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.emptyData}}</td>
         </tr>
         <tr v-else-if="getFilteredRowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
-        </tr>
-        <tr v-if="message">
-          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
         </tr>
         <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
@@ -87,7 +87,7 @@
               v-on:saveNewValue="saveNewValue">
             </editable-cell>
 						<component v-else-if="col.renderComponent" :is="col.renderComponent" :row="row" :col="col"></component>
-            <component v-else-if="col.editComponent"   :is="col.editComponent"   :row="row" :col="col" v-bind="col.editCompProps"></component>
+            <component v-else-if="col.editComponent"   :is="col.editComponent"   :row="row" :col="col" :index="index" v-bind="col.editCompProps"></component>
 						<span v-else-if="col.rawHTML" v-html="getDisplayValue(row, col)"></span>
 						<span v-else>
               {{ getDisplayValue(row, col) }}
@@ -170,6 +170,9 @@ export default {
     // how many rows per page shall be shown in the table?
     rowsPerPage:    { type: Number, required: false, default: 10 },
 
+		// A message that is shown in the first row, e.g "loading" or can be used for error messages
+		message: { type: String, required: false, default: "" },
+		
     // pager width: number of li elements to left and right of the current page index (plus first/last page)
     adjacentPages:  { type: Number, required: false, default:  2 },
 
@@ -191,9 +194,8 @@ export default {
     return {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,										 // initial sort order is ascending
-      page: 0,                         // currently shown page. 0 is first page!
-      message: '',                     // A message that is shown in the first row, e.g "loading" or can be used for error messages
-      selectedRow: null
+      page: 0,                         // currently shown page. 0 is first page!      
+      selectedRow: null								 // currently selected row
     }
   },
 
@@ -203,8 +205,11 @@ export default {
 
   //These computed properties are cached. See https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
-    // Array of current page indexes that are shown in the middle of the pagination component
-    // (A field with first and last page is always shown at the very left and right of my pager.)
+    /** 
+		 * Array of current page indexes that are shown in the middle of the pagination component
+     * (A field with first and last page is always shown at the very left and right of my pager.)
+		 * @return {array} Array of page indexes
+		 */
     currentPages() {
       var firstIndexInPager = Math.max(1, this.page - this.adjacentPages)
       var lastIndexInPager  = Math.min(this.lastPageIndex()-1, this.page + this.adjacentPages)
@@ -226,41 +231,52 @@ export default {
     getFilteredRowData() {
       if (this.rowData === undefined) return []
 			if (typeof this.rowFilterFunc !== "function") return this.rowData
-      this.page = 0   //BUGFIX:   must return to first page, after filter has been pllied
       return this.rowData.filter(row => this.rowFilterFunc(row))
     },
 
     /** 
      Get filtered and sorted row data for current page only.
      Here this.sortOrder is used when sorting.
+		 @return the subarray of this.rowData with the elements for the current page only.
     */
     getRowDataForCurrentPage() {
-      // apply filter (if any)
-      var result = this.getFilteredRowData
-      // sort
-      if (this.sortByCol) {
+      var result = this.getFilteredRowData  // first apply filter
+      if (this.sortByCol) {									// then sort
         var compFunc = this.sortByCol.comparator || this.localAwareComparator;
         var compFuncWithOrder = (row1, row2) => {
           return compFunc(row1, row2) * this.sortOrder
         }
         result = result.slice().sort(compFuncWithOrder)   // need to make a copy of the array!
       }
-
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
       return result
     }
 
   },
+	
+	watch: {
+		/**
+		 * When the filtered number of rows changes, because the filter settings changed, then 
+		 * it might be that we have to jump to a smaller last page index.
+		 */
+		getFilteredRowData: function(newValue) {
+			var lastIdx = this.lastPageIndex()
+			if (this.page > lastIdx ) { this.page = lastIdx }
+		}
+	},
 
   methods: {
-    // set the column that the table is sorted by
+    /** 
+		 * Visually sort the rows in the table by this column.  (this.rowData will not be changed by this action.)
+		 * @param {object} col one element from columns array
+		 */
     setSortCol(col) {
       if (typeof col == "number") col=this.columns[col]
       this.sortByCol = col
     },
 
-    // invert the sort order of the current column sort (ascending/descending)
+    /** invert the sort order of the current column sort (ascending/descending) */
     invertSortOrder() {
       this.sortOrder = this.sortOrder * -1
     },
@@ -287,20 +303,25 @@ export default {
       }
     },
 
-    // called when header is clicked: Will sort by this column and invert sort order on subsequent clicks
+    /** Called when a header is clicked: Will sort by this column and invert sort order on subsequent clicks */
     clickHeader(col) {
       this.setSortCol(col)
       this.invertSortOrder()
     },
 
-    // index of last page (after applying filter)
+    /** @return index of last page (after applying filter) */
     lastPageIndex() {
       var filteredRowData = this.getFilteredRowData
       return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
     },
 
-    // get the value (or HTML) that shall be shown in a cell. Will Apply vue's colFilter for transformation.
-		// Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
+    /** 
+		 * Get the value (or HTML) that shall be shown in a cell. Will Apply vue's colFilter for transformation.
+		 * Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
+		 * @param {Object} row one element from rowData array
+		 * @param {Object} col one element from columns array
+		 * @return {String} the value to display in this cell (mapped by Vue filter)
+		 */
     getDisplayValue(row, col) {
       var cellValue = this.getPath(row, col.path)
       return this.applyVueFilter(cellValue, row, col.vueFilter)
@@ -330,19 +351,31 @@ export default {
     // pick the lodash utility function 'get path in object' and make it available in our template
     getPath: _.get,
 
-    // highlights current page in pagination
+    /** Will highlights current page in pagination */
     isActivePage(index) {
       return index == this.page
     },
 
-    // return true when this column is selected (has been clicked on)
+    /** @return {boolean} true when this column is selected (has been clicked on) */
     isSelected(row) {
       return row == this.selectedRow
     },
 
+		/** 
+		 * Get the <b>unfiltered</b> index of row in this.rowData array.  Compares on object equality. Not just primaryKey!
+		 * @param {object} row one element from this.rowData
+		 * @return {integer} index so that this.rowData[index] === row  
+		 */
+		getIndexOf(row) {
+			for (var i = 0; i < this.rowData.length; i++) {
+				if (this.rowData[i] == row) return i
+			}
+			return -1
+		},
+		
     /**
-     * Get a row from rowData by its primary ky
-     * @param pk the primaryKey (ID) of a row in rowData
+     * Get a row from rowData by its primary key
+     * @param pk the primaryKey (ID) of a row in rowData. The attribute configured in "this.primaryKeyForRow"
      * @return the row from rowData with that primary key or undefind in no row has that ID.
      */
     getRowByPk(pk) {
@@ -369,7 +402,7 @@ export default {
       this.$emit('saveNewValue', pk, col, value)   // let event from editable cell bubble up to parent component
     },
 
-    // emit event when a row was clicked
+    /** emit "rowSelected" event when this.selectableRows == true and a row was clicked */
     rowClicked(row) {
       if (this.selectableRows) {
         this.selectedRow = row
@@ -377,7 +410,7 @@ export default {
       this.$emit('rowSelected', row)
     },
 
-    //emit an event so that the parent component can for example show a popup where the new entry can be created.
+    /** emit an event so that the parent component can for example show a popup where the new entry can be created. */
     addRow() {
       this.$emit('addButtonClicked')
     },
@@ -412,7 +445,6 @@ th {
   -moz-user-select: none;
   -user-select: none;
 }
-
 
 th.active .arrow {
   opacity: 1;

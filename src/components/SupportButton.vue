@@ -12,7 +12,7 @@
 export default {
 	props: {
 		row: { type: Object, required: true },
-		foo: { type: String, required: false }
+		supporterAdded: { type: Function, required: false }	//callback when supporter was added
 	},
 	
 	computed: {
@@ -26,21 +26,20 @@ export default {
 			this.$root.api.addSupporterToIdea(this.law, this.$root.currentUser).then(res => {
         //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
         this.$emit("input", this.law)  // notify parent with new value
+				if (typeof this.supporterAdded === "function") this.supporterAdded(this.law, this.$root.currentUser)
       })
       .catch(err => { console.log("Cannot add supporter to idea", err) })
 		}
 	},
 
-	created () {
-		console.log("Support Button is ", this.row, this.foo)
-	}
-
-
 }
 </script>
 
 <style>
-	button.btn-default.active {
+	button.btn-default.active,
+	button.btn-default.active:hover {
 		background-color: #9C9;
+		cursor: default;
 	}
+	
 </style>

@@ -1,8 +1,11 @@
 /**
- * Main client for Liquido backend API.
- * Handles users and login
- * This class is meant to be used as a singleton!
-  */
+ * API client  for the Liquido backend. This class is the central facade for all API methods.
+ * Every call to the backend comes through here. LiquidoApiClient handles:
+ *  - authentication
+ *  - caching of requests
+ *  - error handling
+ * Under the hood REST requests are sent with the CuJoJs REST client and its powerfull interceptors.
+ */
 
 import httpClient from './httpClient'
 import loglevel from 'loglevel'
@@ -87,7 +90,8 @@ module.exports = {
         //TODO: remove "{?projection}" from the end
         return uri    
       } catch (err) {
-        throw new Error("Cannot get URI of "+ model+" : "+err)
+				console.log("Cannot get URI of ", model, err)
+        throw new Error("Cannot get URI of "+model+": "+err)
       }
     }
   },
@@ -189,8 +193,8 @@ module.exports = {
       path: '/saveProxy',
       headers: { 'Content-Type' : 'application/json' },
       entity: {
-        area:     getURI(category),   // the ID of any model is its URI, eg.  /area/4
-        toProxy:  getURI(proxy)
+        area:     this.getURI(category),   // the ID of any model is its URI, eg.  /area/4
+        toProxy:  this.getURI(proxy)
       }
     })
   },
@@ -211,6 +215,25 @@ module.exports = {
 //==================================================================================================================
 // Ideas
 //==================================================================================================================
+
+  /**
+	 * reload one idea from server (without using the cache)
+	 * @param {string|object} ideaOrURI idea object or URI of an idea
+	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
+	 * @return {object} the reloaded idea as HATEOS JSON
+	 */
+	getIdea(ideaOrURI, projected) {
+		httpClient.noCacheForNextRequest()
+    var ideaURI = this.getURI(ideaOrURI) + (projected ? "?projection=lawProjection" : "")
+		log.debug("getIdea()",ideaURI)
+    return client(ideaURI).then(res => { 
+      return res.entity 
+    }).catch(err => {
+      log.error("Cannot getIdea("+JSON.stringify(ideaOrURI)+") :", err)
+      return Promise.reject(err)
+      //throw new Error(err)
+    })
+  },
 
   /**
    * Get all ideas, propsals or laws (paged)

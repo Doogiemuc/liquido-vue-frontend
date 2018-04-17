@@ -11,32 +11,31 @@
           <div class="panel-heading">
             <div class="row">
             <div class="col-xs-4">
-              <h4><i class="fa fa-fw fa-balance-scale"></i> Poll</h4>
+              <h4><i class="fas fa-balance-scale"></i> Poll</h4>
             </div>
             <div class="col-xs-4 text-center">
               &nbsp;  
             </div>
             <div class="col-xs-4 text-right">
                 <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-                  Goto poll &raquo;
+                  Show details &raquo;
                 </router-link>
             </div>
             </div>
           </div>
-          <div class="panel-body poll-list">
-            <span v-for="proposal in poll._embedded.proposals">
+          <div class="panel-body poll-list" :id="'Poll_'+poll.id">
+            <div v-for="proposal in poll._embedded.proposals">
               <h4>{{proposal.title}}</h4>
               <p class="collapse collapseDescription">{{proposal.description}}</p>
               <p class="pfooter">
-                <i class="fa fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
-                <i class="fa fa-clock-o"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
-                <i class="fa fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
-                <i class="fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}
+                <i class="far fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
+                <i class="far fa-clock"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
+                <i class="far fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
+                <i class="far fa-thumbs-up"></i> {{proposal.numSupporters}}
               </p>
-              <hr/>
-            </span>
-            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
-              <i class="fa fa-angle-double-down"></i>
+            </div>
+            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" :data-target="'#Poll_'+poll.id+' .collapseDescription'" aria-expanded="false" aria-controls="collapseDescription">
+              <i class="fas fa-angle-double-down"></i>
             </button>
           </div>
         </div>
@@ -55,14 +54,14 @@
           <div class="panel-heading">
             <div class="row">
             <div class="col-xs-4">
-              <h4><i class="fa fa-fw fa-balance-scale"></i> Poll</h4>
+              <h4><i class="fas fa-balance-scale"></i> Poll</h4>
             </div>
             <div class="col-xs-4 text-center">
               <small class="poll-timeleft">24 days lef to vote</small>
             </div>
             <div class="col-xs-4 text-right">
-                <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-                  Goto poll &raquo;
+                <router-link :to="{ path: '/castVote', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
+                  Cast vote &raquo;
                 </router-link>
             </div>
             </div>
@@ -80,7 +79,7 @@
               <hr/>
             </span>
             <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
-              <i class="fa fa-angle-double-down"></i>
+              <i class="fas fa-angle-double-down"></i>
             </button>
           </div>
         </div>
@@ -163,10 +162,6 @@ export default {
     margin-top: 5px;
     margin-bottom: 5px;
   }
-  .poll-list hr {
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
   .poll-list p {
     margin: 0;
   }
@@ -174,8 +169,9 @@ export default {
     text-align: right;
     color: #999;
     font-size: 12px;
-    line-height: 1.4;
+		margin-bottom: 15px;
   }
+	
 
   .pollPanel {
     position: relative;
