@@ -6,10 +6,10 @@
 		</h1>
 			
 	  <p v-if="poll.status === 'ELABORATION'">
-			Voting will start in {{daysUntilVotingStart}} days.
+			Voting will start on {{votingStart}}
 		</p>
 		<p v-if="poll.status === 'VOTING'">
-			{{daysUntilVotingEnd}} days left to cast your vote.
+			{{votingEnd}} until voting phase ends.
 		</p>
 		
 		<timeline :timelineData="timelineData" style="width:80%"></timeline>
@@ -51,8 +51,6 @@ export default {
 		pollCreated : function() { return moment(this.poll.createdAt).format('L') },
 		votingStart : function() { return moment(this.poll.votingStartAt).format('L') },
 		votingEnd   : function() { return moment(this.poll.votingEndAt).format('L') },
-		daysUntilVotingStart: function() { return moment(this.poll.votingStartAt).fromNow() },
-		daysUntilVotingEnd  : function() { return moment(this.poll.votingEndAt).fromNow() },
 		timelineData: function() {
 		  return {
 				percentFilled: "30",

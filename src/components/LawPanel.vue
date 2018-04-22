@@ -3,7 +3,7 @@
     
     <div class="panel-heading">
 			<i class="far fa-file-alt lawIcon pull-right" aria-hidden="true"></i>
-			<router-link :to="{ path: '/proposal', query: { proposal: this.getLawURI() }}">
+			<router-link :to="getLawURL()">
 				<h4 class="lawTitle">{{law.title}}</h4>
 			</router-link>
     </div>
@@ -19,7 +19,7 @@
 			<table class="table lawFooterTable">
 				<tbody>
 					<tr>
-						<td><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></td>
+						<td><img :src="law.createdBy.profile.picture" class="media-object userPicture"></td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
 							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}
@@ -42,7 +42,6 @@
 /*
   A lawPanel shows one idea, proposal or law.
   It shows three rows: title, description with timeline and some attributes in the footer.
-
  */
 import moment from 'moment'
 import timeline from './Timeline'   // timeline component
@@ -52,7 +51,6 @@ export default {
   props: { 
     'law' : { type: Object, required: true },
     'showTimeline' : { type: Boolean, required: false, default: function() { return true } },
-    'showGotoPoll' : { type: Boolean, required: false, default: function() { return false } },
   },
 
   components: {
@@ -120,8 +118,12 @@ export default {
       return timelineData
     },
 
-    getLawURI() {
-      return this.$root.api.getURI(this.law)
+    getLawURL() {
+      switch(this.law.status) {
+        case 'IDEA':     return '/idea/'+this.law.id
+        case 'PROPOSAL': return '/proposal/'+this.law.id
+        case 'LAW':      return '/law/'+this.law.id
+      }
     }
   }
 }
@@ -134,6 +136,9 @@ export default {
   .lawTitle {
     margin-top: 0;
     margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .lawDescription {
     /*background:  #fcfcfc;*/
