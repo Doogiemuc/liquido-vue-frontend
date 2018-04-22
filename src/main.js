@@ -31,7 +31,7 @@ const routes = [
   },
   { path: '/categories',
     component: function(resolve) {
-      require(['./pages/ListCategoriesPage.vue'], resolve)
+      require(['./pages/Categories_List.vue'], resolve)
     }
   },
   /*  TODO: editCategory
@@ -43,39 +43,39 @@ const routes = [
   */
   { path: '/ideas', 
     component: function(resolve) {
-      require(['./pages/IdeasPage.vue'], resolve)
+      require(['./pages/Ideas_List.vue'], resolve)
     }
   },
   { path: '/proposals', 
     component: function(resolve) {
-      require(['./pages/ProposalsPage.vue'], resolve)
+      require(['./pages/Proposals_List.vue'], resolve)
     }
   },
   { path: '/polls', 
     component: function(resolve) {
-      require(['./pages/PollsPage.vue'], resolve)
+      require(['./pages/Polls_List.vue'], resolve)
     }
   },
-  /*
+	/*
   { path: '/laws', 
     component: function(resolve) {
-      require(['./pages/LawsPage.vue'], resolve)
+      require(['./pages/Laws_List.vue'], resolve)
     }
   },
-  */
+	*/
   { path: '/addIdea',   // add a new idea
     component: function(resolve) {
-      require(['./pages/EditIdea.vue'], resolve)
+      require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: { ideaId: undefined }
   },
   { path: '/editIdea/:ideaId',  // edit an existing idea (ideaID is the numerical ID of this idea)
     component: function(resolve) {
-      require(['./pages/EditIdea.vue'], resolve)
+      require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: true
   },
-  //TODO:  showIdea/:ideaId  (with link, depending on status => createPoll or joinPoll)
+  //TODO:  proposal/:propsoalId  (with actions depending on status => createPoll or joinPoll)
   { path: '/userHome',
     component: function(resolve) {
       require(['./pages/UserHome.vue'], resolve)
@@ -88,16 +88,22 @@ const routes = [
   },
   { path: '/editProxy',   // ?categoryId=42
     component: function(resolve) {
-      require(['./pages/ProxyEdit.vue'], resolve)
+      require(['./pages/Proxy_Edit.vue'], resolve)
     }
-  },  
-  { path: '/showPoll',   // ?proposalId=42
+  },
+	{ path: '/showPoll/:pollId',
     component: function(resolve) {
-      require(['./pages/Poll.vue'], resolve)
+      require(['./pages/Poll_Show.vue'], resolve)
+    },
+		props: true  // pass URL parameter to prop in component
+  },  
+  { path: '/castVote/:pollId',
+    component: function(resolve) {
+      require(['./pages/Poll_CastVote.vue'], resolve)
     }
   },
   /*
-  { path: '/createPoll',  // ?proposalId=42
+  { path: '/createPoll',
     component: function(resolve) {
       require(['./pages/createPoll.vue'], resolve)
     }

@@ -2,8 +2,10 @@
 	<div class="panel panel-default" :data-proposaluri="law._links.self.href">
     
     <div class="panel-heading">
-      <i class="pull-right fa lawIcon grey" v-bind:class="getIconFor(law)" aria-hidden="true"></i>
-      <h4 class="lawTitle">{{law.title}}</h4>
+			<i class="far fa-file-alt lawIcon pull-right" aria-hidden="true"></i>
+			<router-link :to="{ path: '/proposal', query: { proposal: this.getLawURI() }}">
+				<h4 class="lawTitle">{{law.title}}</h4>
+			</router-link>
     </div>
 
     <div class="panel-body lawDescription">
@@ -12,36 +14,27 @@
       
       <timeline v-if="showTimeline" :timelineData="getTimelineDataFor(law)"></timeline>
     </div>
+		<div class="panel-footer">
  
-    <table class="table lawFooterTable">
-      <tbody>
-        <tr>
-          <td><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></td>
-          <td class="userDataSmall">
-            <i class="fa fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
-            <i class="fa fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}
-          </td>
-          <td class="userDataSmall">
-            <i class="fa fa-fw fa-clock-o" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
-            <i v-if="law.numCompetingProposals > 0" class="fa fa-fw fa-balance-scale" aria-hidden="true"></i>&nbsp;{{law.numCompetingProposals}} alternatives<br/>
-          </td>
-          <td class="likeButtonCell">
-            <button v-if="law.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
-              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{law.numSupporters}}
-            </button>
-            <button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss(law)">
-              <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {{law.numSupporters}}
-            </button>
-          </td>
-          <td class="gotoPollCell">
-            <router-link v-if="showGotoPoll" :to="{ path: '/poll', query: { proposal: this.getLawURI() }}" role="button" class="btn btn-default btn-xs">
-              &nbsp;Goto poll &raquo;
-            </router-link>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
+			<table class="table lawFooterTable">
+				<tbody>
+					<tr>
+						<td><img src="/static/img/Avatar_32x32.jpeg" class="media-object userPicture"></td>
+						<td class="userDataSmall">
+							<i class="far fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
+							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}
+						</td>
+						<td class="userDataSmall">
+							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
+						</td>
+						<td class="likeButtonCell">
+							<support-button :row="law"></support-button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		
+		</div>
   </div>
 </template>
 
@@ -53,6 +46,7 @@
  */
 import moment from 'moment'
 import timeline from './Timeline'   // timeline component
+import SupportButton from '../components/SupportButton'
 
 export default {
   props: { 
@@ -61,7 +55,10 @@ export default {
     'showGotoPoll' : { type: Boolean, required: false, default: function() { return false } },
   },
 
-  components: {'timeline': timeline },
+  components: {
+		'timeline': timeline,
+		'support-button': SupportButton
+	},
 
   methods: {
     getFromNow: function(dateVal) {
@@ -71,8 +68,9 @@ export default {
     // dynamically set icon depending on law.status
     getIconFor: function(law) {
       return {
-        "fa-lightbulb-o": law.status == "IDEA",
-        "fa-file-text-o": law.status == "PROPOSAL",
+        "fa-lightbulb":   law.status == "IDEA",
+        "fa-file-alt":    law.status == "PROPOSAL",
+				"fa-file-alt":    law.status == "VOTING",
         "fa-university":  law.status == "LAW"
       }
     },
@@ -131,7 +129,7 @@ export default {
 
 <style scoped>
   .lawIcon {
-  	font-size: 20px;
+  	font-size: 14pt;
   }
   .lawTitle {
     margin-top: 0;
@@ -141,16 +139,17 @@ export default {
     /*background:  #fcfcfc;*/
   }
   .lawFooterTable {
-    background: #f5f5f5;
+    /* background: #f5f5f5; */
+		margin: 0;
+		padding: 0;
   }
   .lawFooterTable td {
-    padding: 3px 8px;
+    margin: 0;
+		padding: 0;
+		border: none;
   }
   .likeButtonCell {
-    vertical-align: middle;
-  }
-  .gotoPollCell {
     text-align: right;
-    vertical-align: middle;
+		vertical-align: middle;
   }
 </style>

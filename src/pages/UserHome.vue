@@ -5,40 +5,9 @@
 
         <h2>Polls currently open for voting</h2>
 
-        <div v-for="poll in openForVotingPolls" class="panel panel-default pollPanel">
-          <div class="panel-heading">
-            <div class="row">
-            <div class="col-xs-4">
-              <h4><i class="fa fa-fw fa-balance-scale"></i> Poll</h4>
-            </div>
-            <div class="col-xs-4 text-center">
-              <small class="poll-timeleft">24 days lef to vote</small>
-            </div>
-            <div class="col-xs-4 text-right">
-              <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-                Goto poll &raquo;
-              </router-link>
-            </div>
-            </div>
-          </div>
-          <div class="panel-body poll-list">
-            <span v-for="proposal in poll._embedded.proposals">
-              <h4>{{proposal.title}}</h4>
-              <p class="collapse collapseDescription">{{proposal.description}}</p>
-              <p class="pfooter">
-                <i class="fa fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
-                <i class="fa fa-clock-o"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
-                <i class="fa fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
-                <i class="fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}
-              </p>
-              <hr/>
-            </span>
-            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
-              <i class="fa fa-angle-double-down"></i>
-            </button>
-          </div>
-        </div>
-
+				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
+				
+				<!-- Alternative to pollPanel -->
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
             <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
@@ -200,6 +169,7 @@
 import IdeaPanel from '../components/IdeaPanel.vue'
 import LawPanel from '../components/LawPanel.vue'
 import LawList from '../components/LawList.vue'
+import PollPanel from '../components/PollPanel.vue'
 import Timeline from '../components/Timeline.vue'
 import moment from 'moment'
 
@@ -209,6 +179,7 @@ export default {
     'idea-panel' : IdeaPanel,
     'law-panel' : LawPanel,
 	  'law-list' : LawList,
+		'poll-panel': PollPanel,
     'timeline' : Timeline
   },
 

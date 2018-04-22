@@ -2,88 +2,14 @@
   <div class="container">
     <div class="row">
       <div class="col-sm-6">
-
         <h2>Polls in elaboration phase</h2>
-
         <p>The proposals in these polls can be discussed and improved.</p>
-
-        <div v-for="poll in pollsInElaboration" class="panel panel-default pollPanel">
-          <div class="panel-heading">
-            <div class="row">
-            <div class="col-xs-4">
-              <h4><i class="fas fa-balance-scale"></i> Poll</h4>
-            </div>
-            <div class="col-xs-4 text-center">
-              &nbsp;  
-            </div>
-            <div class="col-xs-4 text-right">
-                <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-                  Show details &raquo;
-                </router-link>
-            </div>
-            </div>
-          </div>
-          <div class="panel-body poll-list" :id="'Poll_'+poll.id">
-            <div v-for="proposal in poll._embedded.proposals">
-              <h4>{{proposal.title}}</h4>
-              <p class="collapse collapseDescription">{{proposal.description}}</p>
-              <p class="pfooter">
-                <i class="far fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
-                <i class="far fa-clock"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
-                <i class="far fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
-                <i class="far fa-thumbs-up"></i> {{proposal.numSupporters}}
-              </p>
-            </div>
-            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" :data-target="'#Poll_'+poll.id+' .collapseDescription'" aria-expanded="false" aria-controls="collapseDescription">
-              <i class="fas fa-angle-double-down"></i>
-            </button>
-          </div>
-        </div>
-
-       
+				<poll-panel v-for="poll in pollsInElaboration" :poll="poll"></poll-panel>
       </div>
-
-      <!-- right column -->
       <div class="col-sm-6">
-
         <h2>Polls currently open for voting</h2>
-
         <p>You can cast your ballot in these polls.</p>
-
-        <div v-for="poll in pollsInVotingPhase" class="panel panel-default pollPanel">
-          <div class="panel-heading">
-            <div class="row">
-            <div class="col-xs-4">
-              <h4><i class="fas fa-balance-scale"></i> Poll</h4>
-            </div>
-            <div class="col-xs-4 text-center">
-              <small class="poll-timeleft">24 days lef to vote</small>
-            </div>
-            <div class="col-xs-4 text-right">
-                <router-link :to="{ path: '/castVote', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-                  Cast vote &raquo;
-                </router-link>
-            </div>
-            </div>
-          </div>
-          <div class="panel-body poll-list">
-            <span v-for="proposal in poll._embedded.proposals">
-              <h4>{{proposal.title}}</h4>
-              <p class="collapse collapseDescription">{{proposal.description}}</p>
-              <p class="pfooter">
-                <i class="fa fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
-                <i class="fa fa-clock-o"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
-                <i class="fa fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
-                <i class="fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}
-              </p>
-              <hr/>
-            </span>
-            <button type="button" class="btn btn-default btn-xs expandButton" data-toggle="collapse" data-target=".collapseDescription" aria-expanded="false" aria-controls="collapseDescription">
-              <i class="fas fa-angle-double-down"></i>
-            </button>
-          </div>
-        </div>
-
+				<poll-panel v-for="poll in pollsInVotingPhase" :poll="poll"></poll-panel>
   	  </div>
     </div>
   </div>
@@ -91,12 +17,14 @@
 
 <script>
 import Timeline from '../components/Timeline.vue'
+import PollPanel from '../components/PollPanel.vue'
 import moment from 'moment'
 
 
 export default {
   components: {
-    'timeline' : Timeline
+    'timeline' : Timeline,
+		'pollPanel': PollPanel,
   },
 
   data () {
@@ -158,10 +86,6 @@ export default {
 </script>
 
 <style scoped>
-  .poll-list h4 {
-    margin-top: 5px;
-    margin-bottom: 5px;
-  }
   .poll-list p {
     margin: 0;
   }
@@ -169,14 +93,10 @@ export default {
     text-align: right;
     color: #999;
     font-size: 12px;
-		margin-bottom: 15px;
   }
-	
-
   .pollPanel {
     position: relative;
   }
-
   .expandButton {
     position: absolute;
     bottom: 0;

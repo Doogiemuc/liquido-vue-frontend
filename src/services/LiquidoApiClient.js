@@ -95,6 +95,16 @@ module.exports = {
       }
     }
   },
+	
+	/**
+	 * get the URI of a poll
+	 * @param pollSelector {any} numerical pollID or poll JSON object or already a poll URI
+	 * @return {String} the full poll URI
+	 */
+	getPollURI(pollSelector) {
+		if (!isNaN(pollSelector)) return process.env.backendBaseURL+'/polls/'+pollSelector
+		else return this.getURI(pollSelector)
+	},
 
 //==================================================================================================================
 // Users
@@ -399,8 +409,8 @@ module.exports = {
    * @return a poll as JSON
    */
   getPoll(pollSelector) {
-    log.debug("loadPoll", pollSelector)
-    var pollURI = this.getURI(pollSelector)
+    log.debug("getPoll", pollSelector)
+    var pollURI = this.getPollURI(pollSelector)
     return client(pollURI)
     .then(res => { return res.entity })
     .catch(err => {

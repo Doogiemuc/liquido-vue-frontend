@@ -143,7 +143,7 @@ export default {
   props: {
 
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
-    columns: { type: Array, required: true },
+    columns: { type: Array, required: true },   //TODO: add validator function for columns object
 
     // raw rowData, that will then be filtered and sorted
     rowData: { type: Array, required: true, default: function() { return [] } },
