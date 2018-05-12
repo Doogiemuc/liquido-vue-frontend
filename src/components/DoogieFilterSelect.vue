@@ -1,7 +1,7 @@
 <template>
-  <div :id="id" class="btn-group" >
+  <div :id="id" class="btn-group">
     <!-- Select for one value out of a very long list. With an inner search input field. -->
-    <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass()" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{displayName}}: {{displayValue}} <span class="caret"></span>
     </button>
     <div class="dropdown-menu">
@@ -14,7 +14,7 @@
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
-      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearSearch">Clear</button>
+      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter">Clear</button>
     </div>
   </div>
 </template>
@@ -32,7 +32,7 @@ export default {
     return {
       searchText: "",           // search input field
       displayValue: "Any",      // text displayed to the user for the currently selected option
-      value: null,              // real value of currently selection option or null when nothing is selcted
+      value: undefined,         // real value of currently selection option or null when nothing is selcted
       //filteredOptions: this.options,      // list of options filtered by searchText
     }
   },
@@ -64,7 +64,7 @@ export default {
      * set the value of this filter
      * @param {Object} filter One element from filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
-     * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
+     * @param {any} newValue the new value that will be saved in this.value
      */
     setFilterValue(newDisplayValue, newValue) {
       this.displayValue = newDisplayValue
@@ -72,16 +72,22 @@ export default {
     },
 
     /**
-     * Reset search input field. All selectValues will be shown
-     * @param {Object} filter One element from filtersConfig array
+     * Reset filter. Will also clear search field. All options will be shown.
      */
-    clearSearch() {
+    clearFilter() {
       this.searchText = ""
       this.filteredOptions = this.options
-      this.setFilterValue('Any', null)  
+      this.setFilterValue('Any', undefined)  
     },    
    
-
+    /** When a filter is active, then style it accordingly */
+    getActiveClass() {
+      var filterCleared = this.value === undefined
+      return {
+        'btn-default': filterCleared,
+        'btn-primary': !filterCleared
+      }
+    } 
   },
 
   created () {

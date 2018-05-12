@@ -31,7 +31,8 @@ export default {
     return {
       // Data for DoogieTable.vue
       proposalColumns: [
-        { title: "Title", path: "title", editable: false },
+        { title: "Title", path: "title", editable: false },   //TODO: make poll title a link to Proposal_Show.vue
+        //TODO: if (proposal.poll !=== null) showLinkToPoll()
         { title: "Description", path: "description", editable: false },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", filter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
         { htmlTitle: '<i class="fa fa-thumbs-o-up"></i>', path: "numSupporters" },

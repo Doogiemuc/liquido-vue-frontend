@@ -1,21 +1,16 @@
 <template>
 	<div class="panel panel-default" :data-proposaluri="law._links.self.href">
-    
     <div class="panel-heading">
-			<i class="far fa-file-alt lawIcon pull-right" aria-hidden="true"></i>
-			<router-link :to="getLawURL()">
+			<router-link :to="getLinkToLaw()">
+        <i class="far lawIcon pull-right" :class="getIconForLaw" aria-hidden="true"></i>
 				<h4 class="lawTitle">{{law.title}}</h4>
 			</router-link>
     </div>
-
-    <div class="panel-body lawDescription">
-      <!-- TODO: law.tagline -->
+    <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
       {{law.description}}
-      
-      <timeline v-if="showTimeline" :timelineData="getTimelineDataFor(law)"></timeline>
+      <timeline v-if="showTimeline" :height="60" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
- 
 			<table class="table lawFooterTable">
 				<tbody>
 					<tr>
@@ -26,14 +21,14 @@
 						</td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
+              <i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null" :to="'/showPoll/'+law.poll.id">Poll</router-link>
 						</td>
 						<td class="likeButtonCell">
-							<support-button :row="law"></support-button>
+							<support-button :row="law" v-on:like="likeToDiscuss"></support-button>
 						</td>
 					</tr>
 				</tbody>
-			</table>
-		
+			</table>		
 		</div>
   </div>
 </template>
@@ -44,13 +39,14 @@
   It shows three rows: title, description with timeline and some attributes in the footer.
  */
 import moment from 'moment'
-import timeline from './Timeline'   // timeline component
+import timeline from './Timeline' 
 import SupportButton from '../components/SupportButton'
 
 export default {
   props: { 
     'law' : { type: Object, required: true },
     'showTimeline' : { type: Boolean, required: false, default: function() { return true } },
+    'fixedHeight' : { type: Number, required: false, default: function() { return undefined } },
   },
 
   components: {
@@ -58,73 +54,89 @@ export default {
 		'support-button': SupportButton
 	},
 
+  computed: {
+    // dynamically set icon depending on law.status  
+    // BUGFIX: Must be a computed prop. Not a method!
+    getIconForLaw: function(law) {
+      switch(law.status) {
+        case "IDEA": return { "fa-lightbulb": true }
+        case "LAW":  return { "fa-university": true }
+        default:     return { "fa-file-alt": true }
+      }
+    },
+
+    timelinePercentFilled() {
+      var start = new Date(this.law.createdAt)
+      var today = new Date()
+      var end
+      switch (this.law.status) {
+        case "IDEA": 
+          return 10
+        case "PROPOSAL":
+          end = new Date(this.law.reachedQuorumAt)
+          break;
+        case "ELABORATION":
+          end = new Date(this.law.poll.votingEndAt)
+          break;
+        //case "LAW"
+        //case "RETENTION"
+        default:
+          end = today
+      }
+      return timeline.methods.date2percent(today, start, end)
+    },
+
+    timelineEvents() {
+      if (this.law.status === "IDEA") return [ 
+        { percent: "5", above: moment(this.law.createdAt).format('L'), below: "created" },
+      ]
+      // proposal in elaboration or in VOTING
+      if (this.law.poll !== undefined) return [
+        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: "33", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+        { percent: "66", above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
+        { percent: "95", above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}    
+      ]
+      if (this.law.status === "PROPOSAL") return [
+        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: "90", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+      ]      
+      //MAYBE: if (this.law.status === "LAW")
+      if (this.law.status === "RETENTION") {
+        //TODO: show how long until retracted
+      }
+    }
+  },
+
   methods: {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
     
-    // dynamically set icon depending on law.status
-    getIconFor: function(law) {
-      return {
-        "fa-lightbulb":   law.status == "IDEA",
-        "fa-file-alt":    law.status == "PROPOSAL",
-				"fa-file-alt":    law.status == "VOTING",
-        "fa-university":  law.status == "LAW"
-      }
-    },
-    
-    likeToDiscuss(law) {
-      //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+idea.title+"'")
-      this.$root.api.addSupporter(law, this.$root.currentUser).then(res => {
+    likeToDiscuss() {
+      this.$root.api.addSupporterToIdea(this.law, this.$root.currentUser).then(res => {
+        console.log(res)
         //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
-        this.$emit("reloadLaw", law)  // notify parent to reload this law
+        this.$emit("like", this.law)  // notify parent to reload this law
+        //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+this.law.title+"' => event emmited")
       })
     },
 
-    getTimelineDataFor(law) {
-      var now = new Date().getTime()
-      var createdMs = new Date(law.createdAt).getTime()
-      var createdLoc = moment(law.createdAt).format('L')
-      var elaborationStartsLoc = moment(law.elaborationStartsAt).format('L')
-      var quorumReachedLoc     = moment(law.reachedQuorumAt).format('L')
-      var votingStartsLoc      = moment(law.votingStartsAt).format('L')
-      var votingEndsLoc        = moment(law.votingEndsAt).format('L')
-      var timeForVoting = 30 * 24*3600*1000  // days in ms    //TODO: load timeForVoting from server (from profile)
-      var percentFilled = ((now-createdMs) / timeForVoting)*100
-      //console.log((now-created)/1000+"sec since created", (now-created) / timeForVoting)
-      var timelineData = {}
-      if (law.initialProposal) {
-      	timelineData = {
-	        percentFilled: percentFilled,
-	        events: [ 
-	          { percent:  "0",  above: elaborationStartsLoc, below: "Initial<br/>created" },
-	          { percent: "30",  above: quorumReachedLoc, below: "Quorum<br/>reached"},
-	          { percent: "45",  above: votingStartsLoc, below: "Voting<br/>starts"},
-	          { percent: "100", above: votingEndsLoc, below: "Voting<br/>ends"}
-	        ]
-	      }
-      } else {
-      	timelineData = {
-	        percentFilled: percentFilled,
-	        events: [ 
-	          { percent:  "0",  above: elaborationStartsLoc, below: "Elaboration<br/>starts" },
-	          { percent: "15",  above: createdLoc, below: "Proposal<br/>created" },
-	          { percent: "30",  above: quorumReachedLoc, below: "Quorum<br/>reached"},
-	          { percent: "45",  above: votingStartsLoc, below: "Voting<br/>starts"},
-	          { percent: "100", above: votingEndsLoc, below: "Voting<br/>ends"}
-	        ]
-	      }
-      }
-      return timelineData
-    },
-
-    getLawURL() {
+    /** get the link for the title of the idea, proposal or law */
+    getLinkToLaw() {
+      //TODO: Should I manage these frontend URL in a central place? MAYBE in confg/dev.env.js
       switch(this.law.status) {
         case 'IDEA':     return '/idea/'+this.law.id
-        case 'PROPOSAL': return '/proposal/'+this.law.id
         case 'LAW':      return '/law/'+this.law.id
+        default:         return '/proposal/'+this.law.id   // PROPOSAL, ELABORATION
       }
-    }
+    },
+
+    getLawDescriptionStyle() {
+      if (!this.fixedHeight) return ""
+      return "min-height: "+this.fixedHeight+"px; max-height: "+this.fixedHeight+"px; overflow-y: scroll; overflow-x: hidden;"
+    },
+
   }
 }
 </script>
@@ -140,11 +152,7 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .lawDescription {
-    /*background:  #fcfcfc;*/
-  }
   .lawFooterTable {
-    /* background: #f5f5f5; */
 		margin: 0;
 		padding: 0;
   }
@@ -157,4 +165,5 @@ export default {
     text-align: right;
 		vertical-align: middle;
   }
+ 
 </style>

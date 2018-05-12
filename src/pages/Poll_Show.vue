@@ -12,15 +12,20 @@
 			{{votingEnd}} until voting phase ends.
 		</p>
 		
-		<timeline :timelineData="timelineData" style="width:80%"></timeline>
+		<timeline :height="60" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
 
-		<br/>
 		
 		<h4>Alternative proposals in this poll</h4>
 		
     <div class="row">
 		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
-				<law-panel :law="proposal" :showTimeline="false" class="proposalPanel"></law-panel>
+				<law-panel 
+				  :law="proposal" 
+				  :showTimeline="false" 
+				  :fixedHeight="200"
+				  v-on:like="likeToDiscuss"
+				  class="proposalPanel" 
+				></law-panel>
 			</div>
 		</div>
 	</div>	
@@ -51,31 +56,35 @@ export default {
 		pollCreated : function() { return moment(this.poll.createdAt).format('L') },
 		votingStart : function() { return moment(this.poll.votingStartAt).format('L') },
 		votingEnd   : function() { return moment(this.poll.votingEndAt).format('L') },
-		timelineData: function() {
-		  return {
-				percentFilled: "30",
-        events: [ 
-          { percent: "0",   above: this.pollCreated, below: "Poll<br/>created"},  //TODO: make it possible to pass dates instead of percentage values
-          { percent: "50",  above: this.votingStart, below: "Voting</br>starts"},
-          { percent: "100", above: this.votingEnd, below: "Voting<br/>ends"}
-        ]
-			}
+		timelinePercentFilled: function() { return 30 },
+		timelineEvents: function() {
+		  return [ 
+        { percent: "5",   above: this.pollCreated, below: "Poll<br/>created" },
+        { percent: "50",  above: this.votingStart, below: "Voting</br>start" },
+        { percent: "95", above: this.votingEnd, below: "Voting<br/>end" }
+      ]
 		}
 	},
 
   methods: {
 		/** get localized display Value of a date */
-    getFromNow: function(dateVal) {
+    getFromNow(dateVal) {
       return moment(dateVal).fromNow();
     },
 
-		/**
-		 * get URI from poll object 
+		/** 
+		 * When a user likes a proposal, then we update its properties
+		 * (a little bit of a small dirty hack, but better than reloading the whole poll from the backend)
 		 */
-		getPollURI: function(poll) {
-    	return this.$root.api.getURI(poll)
-    },
-		
+  	likeToDiscuss(likedProposal) {
+  		this.poll._embedded.proposals.forEach(proposal => {
+  			if (proposal.id === likedProposal.id) {
+  				proposal.numSupporters++
+  				proposal.supportedByCurrentUser = true
+  			}
+  		})
+  		
+  	},
   },
 	
 	created () {
@@ -86,12 +95,6 @@ export default {
 }
 </script>
 
-<style>
- .lawDescription {
-		min-height: 200px;
-		max-height: 200px;
-		overflow-y: scroll;
-		overflow-x: hidden;
-	}
+<style scoped>
 </style>
 

@@ -153,14 +153,20 @@ export default {
 		/**
 		 * callback when supporter was added to idea 
 		 * @param {object} idea the supported idea <b>IN ITS OLD STATE!!!</b>.  Needs to be reloaded!
-		 * @param {object} newSupporter the newly added supporter (that is not yet part of idea.supporters array!
 		 */
-		supporterAdded(idea, newSupporter) {
-			var index = this.$refs.ideatable.getIndexOf(idea)
-			// reload full idea data from backend
-			this.$root.api.getIdea(idea, true).then(reloadedIdea => {
-				this.$set(this.ideas, index, reloadedIdea)
-			})
+		supporterAdded(idea) {
+      this.$root.api.addSupporterToIdea(idea, this.$root.currentUser).then(res => {
+        //update local values by hand
+        var index = this.$refs.ideatable.getIndexOf(idea)
+        this.ideas[index].numSupporters++
+        this.ideas[index].supportedByCurrentUser = true
+
+        //OLD: reload idea completely from server
+        //this.$root.api.getIdea(idea, true).then(reloadedIdea => {
+        //  this.$set(this.ideas, index, reloadedIdea)  // Important: Must use Vue's reactive $setter when replacing an array element
+        //})
+      })
+			
 		},
 		
     /**

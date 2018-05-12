@@ -1,41 +1,32 @@
 <template>
-<button v-if="law.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
-	<i class="far fa-thumbs-up"></i> {{law.numSupporters}}
-</button>
-<button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss()">
-	<i class="far fa-thumbs-up"></i> {{law.numSupporters}}
-</button>
+	<button v-if="row.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
+		<i class="far fa-thumbs-up"></i> {{row.numSupporters}}
+	</button>
+	<button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss()">
+		<i class="far fa-thumbs-up"></i> {{row.numSupporters}}
+	</button>
 </template>
 
+// Button for adding current user as supporter
+
 <script>
-/** Button for adding current user as supporter to idea */
 export default {
 	props: {
 		row: { type: Object, required: true },
 		supporterAdded: { type: Function, required: false }	//callback when supporter was added
 	},
 	
-	computed: {
-		law: function() {
-			return this.row
-		}
-	},
-	
 	methods: {
 		likeToDiscuss() {
-			this.$root.api.addSupporterToIdea(this.law, this.$root.currentUser).then(res => {
-        //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
-        this.$emit("input", this.law)  // notify parent with new value
-				if (typeof this.supporterAdded === "function") this.supporterAdded(this.law, this.$root.currentUser)
-      })
-      .catch(err => { console.log("Cannot add supporter to idea", err) })
+			this.$emit("like", this.row)  // notify parent. Keep in mind that this.row is the old state with numSupportes not yet incremented!
+			if (typeof this.supporterAdded === "function") this.supporterAdded(this.row)
 		}
 	},
 
 }
 </script>
 
-<style>
+<style scoped>
 	button.btn-default.active,
 	button.btn-default.active:hover {
 		background-color: #9C9;

@@ -8,7 +8,7 @@
       </div>
 
       <div v-else-if="filter.type === 'dateRange'" class="btn-group">
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
@@ -22,7 +22,7 @@
 
       <div v-else-if="filter.type === 'select'" class="btn-group">
         <!-- Select for exactly one value -->
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
@@ -34,7 +34,7 @@
 
       <div v-else-if="filter.type === 'multi'" class="btn-group">
         <!-- select for multiple values. With checkboxes -->
-        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <div class="dropdown-menu">
@@ -49,6 +49,7 @@
 			
 			<doogie-filter-select v-if="filter.type === 'selectWithSearch'"
 			  :id="filter.id"
+        :ref="filter.id" 
 				:displayName="filter.displayName"
 				:options="filter.options"
 				v-model="currentFilters[filter.id]"
@@ -97,6 +98,10 @@ export default {
       },
       deep: true
     }
+  },
+
+  computed: {
+   
   },
   
   methods: {
@@ -185,6 +190,8 @@ export default {
             this.$set(this.currentFilters[filter.id], 'value', undefined)
             break;
           case "selectWithSearch":
+            if (this.$refs[filter.id])    // Vue ref are not yet filled during initial render
+              this.$refs[filter.id][0].clearFilter()
             break;
           case "multi":
             this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
@@ -197,7 +204,16 @@ export default {
 
     clearAllFilters() {
       this.initFilters()
-    },    
+    },   
+
+    /** When a filter is active, then style it accordingly */
+    getActiveClass(filterId) {
+      var filterCleared = this.currentFilters[filterId].value === undefined || this.currentFilters[filterId].value === "" || this.currentFilters[filterId].value === []
+      return {
+        'btn-default': filterCleared,
+        'btn-primary': !filterCleared
+      }
+    } 
 
   },
 

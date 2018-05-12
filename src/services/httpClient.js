@@ -19,14 +19,16 @@ var log = loglevel.getLogger("LiquidoApiClient");
 log.debug("Creating httpClient for backend at "+process.env.backendBaseURL)
 
 /* This is a whitelist for requests that will be cached locally in the browser */
-var cacheConfig = { urlFilter: /CACHE_NOTHING/ }
+var cacheConfig     = { urlFilter: /CACHE_NOTHING/ }
+var basicAuthConfig = { username: null, password: null }
 
 // !!!!! The order of these interceptors is EXTREMELY important !!!!!
 // !!!!! The *outer* interceptors at the *bottom* come first. The inner interceptors are executed last.
-var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// then convert entity according to mime type
+var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// convert entity according to mime type
 		                 .wrap(cachingInterceptor, cacheConfig)  				 			// caching interceptor must be BEFORE the mime interceptor!
 		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400 
-		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // first of all log the request
+		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // logs a lot of data. Also try your browsers debug console
+                     .wrap(basicAuth, basicAuthConfig)                    // login
 										 .wrap(template)																			// support query parameters in the url
 		                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })  // add path prefix to request
 
@@ -39,9 +41,14 @@ export default {
    * @password {string} the password
    * @return a REST client that will send this basicAuth information on each request. (A CuJo REST client wraped with a CuJo basicAuth interceptor.)
    */
-  basicAuth(username, password) {
-    httpClient = httpClient.wrap(basicAuth, { username: username, password: password });
-    return httpClient
+  login(username, password) {
+    basicAuthConfig.username = username
+    basicAuthConfig.password = password 
+  },
+
+  logout() {
+    basicAuthConfig.username = null
+    basicAuthConfig.password = null
   },
  
   /**

@@ -73,7 +73,7 @@ export default {
       //this.idea.createdBy = this.$root.currentUserID
       this.idea.area = ""  // force an ERROR   FIXME
       console.log("Saving idea: this.idea=", JSON.stringify(this.idea));
-      this.$root.api.saveIdea(this.idea)
+      this.$root.api.saveNewIdea(this.idea)
       .then(() => {
         $('#saveIdeaButton').button('reset')
         swal({

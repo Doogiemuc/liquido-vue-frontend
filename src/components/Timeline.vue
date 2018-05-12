@@ -1,24 +1,12 @@
-<template>
-  <div class="timeline">
-    <div class="timeline_grey"></div>
-    <ol style="list-style: none">
-      <li v-for="event in this.timelineData.events" class="timeline_event circle" 
-          v-bind:style="{left: event.percent+'%'}" 
-          v-bind:class="{ selected: event.percent <= timelineData.percentFilled }" >
-      	<div class="event_above" v-html="event.above"></div>
-      	<div class="event_below" v-html="event.below"></div>
-      </li>
-    </ol>
-    <span class="filling_line" v-bind:style="{ width: timelineData.percentFilled+'%' }"></span>
-    <span class="glyphicon glyphicon-play timeline_arrow_right" aria-hidden="true"></span>  
-  </div>
-</template>
+  /*
+  
+  Horizontal timeline 
+  Inspired by https://codyhouse.co/demo/horizontal-timeline/index.html
 
-<script>
-  /**
 
       exampleTimelineData = {
-        percentFilled: "80",
+        height: 40,  // pixels
+        percentFilled: 80,
         events: [ 
           { percent:  "0", above: "Proposal", below: "created"},  //TODO: make it possible to pass dates instead of percentage values
           { percent: "10", above: "Quorum", below: "reached"},
@@ -28,30 +16,64 @@
       }
 
    */
+
+<template>
+  <div class="timeline" :style="{ height: height+'px' }" >
+    <div class="timeline_grey"></div>
+    <ol style="list-style: none">
+      <li v-for="event in this.events" 
+          class="timeline_event circle" 
+          v-bind:style="{ left: event.percent+'%'}" 
+          v-bind:class="{ selected: event.percent <= percentFilled }" >
+        <div class="event_above" v-html="event.above"></div>
+        <div class="event_below" v-html="event.below"></div>
+      </li>
+    </ol>
+    <span class="filling_line" v-bind:style="{ width: percentFilled+'%' }"></span>
+    <span class="glyphicon glyphicon-play timeline_arrow_right"></span>  
+  </div>
+
+</template>
+
+
+<script>
   export default {
   	props: {
-  	  'timelineData' : { type: Object, required: true }
+      height: { type: Number, required: false, default: function() { return 40 } },
+      percentFilled: { type: Number, required: true },
+  	  events: { type: Array, required: true }    //TODO: make it possible to pass dates instead of percentage values
   	},
 
-    mounted () {
-      if (this.timelineData.percentFilled > 100) {
-        this.timelineData.percentFilled = 100
+    methods: {
+      limit(val, min, max) {
+        if (val < min) return min
+        if (val > max) return max
+        return val
+      },
+
+      date2percent(date, start, end) {
+        var period = end.getTime() - start.getTime()     // number of millisecdons between start and end
+        var rel    = date.getTime() - start.getTime()    // number of milliseconds from start until date (might be negative if date is bevor start)
+        var percent = rel / period * 100
+        return this.limit(percent, 0, 100)
       }
+    },
+
+    mounted () {
+      this.percentFilled = this.limit(this.percentFilled, 0, 100)
+      this.events.forEach(event => {
+        event.percent = this.limit(event.percent, 0, 100)
+      })
     }
   }
 </script>
 
-<style type="text/css">
-/* 
-  Horizontal timeline 
-  Inspired by https://codyhouse.co/demo/horizontal-timeline/index.html
-*/
+<style scoped>
 
 .timeline {
   position:relative; 
-  height: 40px; 
   /*overflow: hidden;*/
-  font-size: 11px;
+  font-size: 12px;
   width: 95%;
   margin: 0 auto;
 }

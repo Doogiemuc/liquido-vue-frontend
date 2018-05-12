@@ -21,6 +21,8 @@ if (process.env.backendBaseURL === undefined) {
 // Module private fields and methods
 //==================================================================================================================
 
+//TODO: Also try https://github.com/marmelab/restful.js   or better even go with GraphQL 
+
 var client = httpClient.getClient()
 
 /** 
@@ -41,7 +43,11 @@ module.exports = {
 
   login(username, password) {
     log.debug("LiquidoApiClient User login: "+username)
-    client = httpClient.basicAuth(username,password)
+    httpClient.login(username,password)
+  },
+
+  logout() {
+    httpClient.logout()
   },
 
   /** 
@@ -77,8 +83,9 @@ module.exports = {
   /** 
    * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
    * e.g. <pre>http://localhost:8080/liquido/v2/areas/42</pre>
-   * @param model  a domain model. If you already pass a valid URI as a string, then that URI will be returned as is.
-   * @return the ID of the passed model, which actually is a URI that points to a resource on our REST backend 
+   * @param {String|Object} model If you already pass a valid URI as a string, then that URI will be returned as is.
+   *        Otherwise you can also pass a model that you loaded before. Then its _links.self_href will be returned.
+   * @return {URI} an URI that points to a resource on our REST backend 
    */
   getURI(model) {
     var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'[\\w/]*/\\d+$')
@@ -228,21 +235,28 @@ module.exports = {
 
   /**
 	 * reload one idea from server (without using the cache)
-	 * @param {string|object} ideaOrURI idea object or URI of an idea
+	 * @param {string|object} lawIdOrURI ID or URI of an idea, proposal or law
 	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
 	 * @return {object} the reloaded idea as HATEOS JSON
 	 */
-	getIdea(ideaOrURI, projected) {
-		httpClient.noCacheForNextRequest()
-    var ideaURI = this.getURI(ideaOrURI) + (projected ? "?projection=lawProjection" : "")
-		log.debug("getIdea()",ideaURI)
-    return client(ideaURI).then(res => { 
+	getLaw(lawIdOrURI, projected) {
+    var lawURI
+    if (!isNaN(lawIdOrURI)) lawURI = process.env.backendBaseURL+'/laws/'+lawIdOrURI 
+    else lawURI = this.getURI(lawIdOrURI) 
+    if (projected) lawURI += "?projection=lawProjection"
+		log.debug("getLaw()", lawURI)
+    httpClient.noCacheForNextRequest()
+    return client(lawURI).then(res => { 
       return res.entity 
     }).catch(err => {
-      log.error("Cannot getIdea("+JSON.stringify(ideaOrURI)+") :", err)
+      log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
       return Promise.reject(err)
-      //throw new Error(err)
+      //throw new Error(err)  NO! See https://stackoverflow.com/questions/33445415/javascript-promises-reject-vs-throw 
     })
+  },
+
+  getIdea(ideaIdOrURI, projected) {
+    return this.getLaw(ideaIdOrURI, projected)
   },
 
   /**
@@ -292,7 +306,7 @@ module.exports = {
    * save a new(!) idea in the backend
    * The new idea will automatically be createdBy the currently logged in user.
    */
-  saveIdea(newIdea) {
+  saveNewIdea(newIdea) {
     log.debug("POST newIdea: "+JSON.stringify(newIdea))
     return client({
       method: 'POST',
@@ -304,7 +318,6 @@ module.exports = {
     }).catch(err => {
       log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
       return Promise.reject(err)
-      //throw new Error(err)
     })
   },
 
@@ -316,8 +329,8 @@ module.exports = {
    */
   patchIdea(uri, update) {
     log.debug("PATCH "+uri+" "+JSON.stringify(update))
-    if (!uri.startsWith('http')) throw new Error("ERROR in patch: URI must start with http(s)! wrong_uri="+uri)
-    if (!update) log.warn("WARNING: PATCH called with empty update")
+    if (!uri.startsWith('http')) return Promise.reject("ERROR in patchIdea: URI must start with http(s)! wrong_uri="+uri)
+    if (!update) return Promise.reject("patchIdea called with empty update")
     return client({ 
       method: 'PATCH', 
       path:   uri, 
@@ -327,16 +340,21 @@ module.exports = {
       return res.entity 
     }).catch(err => {
       log.error("Cannot patch "+uri+" : "+err)
-      throw new Error(err)
+      return Promise.reject(err)
     })
   },
 
-  // add user as a supporter to an idea
+  /**
+   * add user as a supporter to an idea
+   * @param {Object} idea the idea that the user likes
+   * @param {Object} user the user that likes to discuss this idea
+   * @return Just HTTP status 204
+   */
   addSupporterToIdea(idea, user) {
     if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
     var supportersURI = idea._links.supporters.href
     var userURI       = this.getURI(user)
-    log.debug(user.profile.name+" ("+user.email+") now supports idea '"+idea.title+"': POST "+supportersURI)
+    log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title+"': POST "+supportersURI)
     return client({
       method: 'POST',
       path:   supportersURI,
@@ -346,7 +364,7 @@ module.exports = {
       return ""  // returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter: "+supportersURI+": ", err)
-      throw new Error(err)
+      return Promise.reject(err)
     })
   },
 
@@ -365,7 +383,9 @@ module.exports = {
 			}) 
   },
 
-  
+//==================================================================================================================
+// Proposals
+//==================================================================================================================
 
   /**
    * get proposals that reached their quorum since a given date.
@@ -380,6 +400,96 @@ module.exports = {
       return Promise.reject("LiquidoApiClient: Cannot getReachedQuorumSince(since="+since+")")
     })
   },
+
+  /**
+   * Fetch a proposal (which is also a LawModel)
+   */
+  getProposal(proposalOrURI, projected) {
+    return this.getLaw(proposalOrURI, projected)
+  },
+
+  /** fetch all comments of a proposal */
+  getComments(proposal, projected) {
+    var commentsURL = proposal._links.comments.href
+    log.debug("getComments for Proposal: "+commentsURL)
+    if (projected) commentsURL += "?projection=commentProjection"
+    return client(commentsURL)
+      .then(res => { return res.entity._embedded.comments })
+      .catch(err => { return Promise.reject("LiquidoApiClient: Cannot getComments(id="+proposalId+"): "+err) })
+  },
+
+  /** 
+    * Upvote a comment of a proposal. Will add current user to the list of upvoters. Backend will not add an upvoter twice.
+    * @param comment a comment model (JSON with comment._links.upVoters.href)
+    * @return Promise (HTTP 204)
+    */
+  upvoteComment(comment, user) {
+    var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
+    var userURI       = this.getURI(user)
+    log.debug("upvoteComment", upvotersURI, userURI)
+    return client({
+      method: 'POST',
+      path: upvotersURI,     
+      headers: { 'Content-Type' : 'text/uri-list' },
+      entity: userURI
+    })
+    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot upvoteComment", comment: comment, err: err}) })
+  },
+
+  /** mark a comment as inapropriate */
+  downvoteComment(comment, user) {
+    var downvotersURI = comment._links.downVoters.href   // e.g. /comments/4711/downVoters
+    var userURI       = this.getURI(user)
+    log.debug("downvoteComment", downvotersURI, userURI)
+    return client({
+      method: 'POST',
+      path: downvotersURI,     
+      headers: { 'Content-Type' : 'text/uri-list' },
+      entity: userURI
+    })
+    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot downvoteComment", comment: comment, err: err}) })
+  },
+
+  /** 
+   * save a new comment (will automatically be createdBy currently logged in user)
+   * @param newCommentText text of new comment
+   * @param parent parent comment
+   */
+  saveComment(newCommentText, parent) {
+    var newComment = { comment: newCommentText }    
+    if (parent) newComment['parent'] = parent._links.self.href
+    log.debug("saveComment", newComment)
+    return client({
+      method: 'POST',
+      path: '/comments',
+      headers: { 'Content-Type' : 'application/json' },
+      entity: newComment
+    })
+    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot saveComment", newComment: newComment, err: err}) })
+  },
+
+  /**
+   * add a new suggestion for improvement to a proposal
+   * This method first creates a new "comment" and then links this as a new suggestion to the passed proposal
+   * @param {String} newImprovementText plain-text of suggestion
+   * @param {Object} proposal the proposal that we want to improve
+   */
+  suggestImprovement(newImprovementText, proposal) {
+    if (!proposal) return new Promise.reject({msg: "Need proposal to suggest improvement"})
+    log.debug("suggestImprovement for proposal", proposal)
+    return this.saveComment(newImprovementText, null)
+    .then(res => {
+      var createdComment = res.entity
+      return client({
+        method: 'POST',   // POST adds a suggestion to the list of comments (PUT would overwrite all existing comments of this proposal)
+        path: proposal._links.comments.href,
+        headers: { 'Content-Type' : 'text/uri-list' },
+        entity: createdComment._links.self.href
+      })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot suggestImprovement", newImprovementText: newImprovementText, err: err}) })  
+    })
+  },
+
 
 
 //==================================================================================================================

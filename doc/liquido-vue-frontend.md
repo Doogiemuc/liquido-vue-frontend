@@ -99,6 +99,7 @@ URIs are nice as IDs to reference models. But they are bad for passing them as U
 
  - [Bootstrap](http://getbootstrap.com/)
  - [VueJS Guide](http://vuejs.org/guide/)
+ - [Vue-loader](https://vue-loader.vuejs.org/)
  - [Awesome Vue](https://github.com/vuejs/awesome-vue)  Links to further Vue resources
  - [Vue Webpack Template Doc](http://vuejs-templates.github.io/webpack/index.html)
  - [VueJS Testing](http://www.slideshare.net/coulix/vuejs-testing)

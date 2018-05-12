@@ -41,6 +41,7 @@ const routes = [
     }
   }
   */
+  // ======================= Idea =======================
   { path: '/ideas', 
     component: function(resolve) {
       require(['./pages/Ideas_List.vue'], resolve)
@@ -51,18 +52,6 @@ const routes = [
       require(['./pages/Proposals_List.vue'], resolve)
     }
   },
-  { path: '/polls', 
-    component: function(resolve) {
-      require(['./pages/Polls_List.vue'], resolve)
-    }
-  },
-	/*
-  { path: '/laws', 
-    component: function(resolve) {
-      require(['./pages/Laws_List.vue'], resolve)
-    }
-  },
-	*/
   { path: '/addIdea',   // add a new idea
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
@@ -75,12 +64,28 @@ const routes = [
     },
     props: true
   },
-  //TODO:  proposal/:propsoalId  (with actions depending on status => createPoll or joinPoll)
+  // ======================= Proposals =======================
+  { path: '/proposal/:proposalId', 
+    component: function(resolve) {
+      require(['./pages/Proposal_Show.vue'], resolve)
+    },
+    props: true 
+  },
+  // ======================= Laws =======================
+	/*
+  { path: '/laws', 
+    component: function(resolve) {
+      require(['./pages/Laws_List.vue'], resolve)
+    }
+  },
+	*/
+  // ======================= User Home =======================
   { path: '/userHome',
     component: function(resolve) {
       require(['./pages/UserHome.vue'], resolve)
     }
   },
+  // ======================= Proxies =======================
   { path: '/proxies',
     component: function(resolve) {
       require(['./pages/Proxies.vue'], resolve)
@@ -89,6 +94,12 @@ const routes = [
   { path: '/editProxy',   // ?categoryId=42
     component: function(resolve) {
       require(['./pages/Proxy_Edit.vue'], resolve)
+    }
+  },
+  // ======================= Polls =======================
+  { path: '/polls', 
+    component: function(resolve) {
+      require(['./pages/Polls_List.vue'], resolve)
     }
   },
 	{ path: '/showPoll/:pollId',
@@ -100,7 +111,8 @@ const routes = [
   { path: '/castVote/:pollId',
     component: function(resolve) {
       require(['./pages/Poll_CastVote.vue'], resolve)
-    }
+    },
+    props: true 
   },
   /*
   { path: '/createPoll',
@@ -149,8 +161,8 @@ var checkDevelopmentMode = function() {
     log.info("Running in development mode. Increase log level and automatically log in a default user.")
     loglevel.setLevel("trace")                              // trace == log everything
     var userEmail = "testuser0@liquido.de"                  // email of user that will automatically be logged in
-    apiClient.login(userEmail, "dummyPasswordHash")      // need authorisation to make any calls at all  
-    return apiClient.findUserByEmail(userEmail).then(user => {    //TODO: refactor to userApiClient.vue
+    apiClient.login(userEmail, "dummyPasswordHash")         // need authorisation to make any calls at all  
+    return apiClient.findUserByEmail(userEmail).then(user => { 
       currentUser = user  
     })
   } else {
@@ -168,7 +180,7 @@ var startApp = function(props) {
       api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information
-      currentUserID: currentUser._links.self.href   // ID of the currently logged in user (which is an URI e.g. "http://localhost:8080/liquido/v2/users/1")
+      currentUserURI: currentUser._links.self.href   // URI of the currently logged in user, e.g. http://localhost:8080/liquido/v2/users/1
     },
     ...RootApp
   }).$mount()

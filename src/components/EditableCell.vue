@@ -122,7 +122,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 td:hover span.glyphicon-edit {
   visibility: visible;
 }
