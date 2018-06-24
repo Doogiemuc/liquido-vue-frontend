@@ -6,7 +6,6 @@
  
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-//import VueForm from 'vue-form'                    // https://github.com/fergaldoyle/vue-form    Vue Form Validation  //TODO: not yet working with  Vue2 !!!
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
 import apiClient from './services/LiquidoApiClient'
@@ -15,9 +14,11 @@ var log = loglevel.getLogger('main.js')
 
 // Vue plugins
 Vue.use(VueRouter)
-//Vue.use(VueForm)
 
-// Setup Vue-router for navigation
+// ================= Setup Vue-router for navigation =============
+
+//MAYBE: With named routes https://router.vuejs.org/en/essentials/named-routes.html
+//       I could abstract away from the client URL pathes one level more. But is that necessary?
 const routes = [
   { 
     path: '/', 
@@ -47,25 +48,25 @@ const routes = [
       require(['./pages/Ideas_List.vue'], resolve)
     }
   },
-  { path: '/proposals', 
-    component: function(resolve) {
-      require(['./pages/Proposals_List.vue'], resolve)
-    }
-  },
   { path: '/addIdea',   // add a new idea
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: { ideaId: undefined }
   },
-  { path: '/editIdea/:ideaId',  // edit an existing idea (ideaID is the numerical ID of this idea)
+  { path: '/idea/:ideaId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: true
   },
   // ======================= Proposals =======================
-  { path: '/proposal/:proposalId', 
+  { path: '/proposals', 
+    component: function(resolve) {
+      require(['./pages/Proposals_List.vue'], resolve)
+    }
+  },
+  { path: '/proposal/:proposalId',  // show one proposal
     component: function(resolve) {
       require(['./pages/Proposal_Show.vue'], resolve)
     },
@@ -102,7 +103,7 @@ const routes = [
       require(['./pages/Polls_List.vue'], resolve)
     }
   },
-	{ path: '/showPoll/:pollId',
+	{ path: '/polls/:pollId',
     component: function(resolve) {
       require(['./pages/Poll_Show.vue'], resolve)
     },

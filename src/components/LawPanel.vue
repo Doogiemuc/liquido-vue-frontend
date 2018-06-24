@@ -1,8 +1,12 @@
 <template>
-	<div class="panel panel-default" :data-proposaluri="law._links.self.href">
+	<div class="panel panel-default lawPanel" :data-proposaluri="law._links.self.href">
     <div class="panel-heading">
-			<router-link :to="getLinkToLaw()">
-        <i class="far lawIcon pull-right" :class="getIconForLaw" aria-hidden="true"></i>
+      <span v-if="readOnly">
+        <i class="far lawIcon pull-left" :class="getIconForLaw" aria-hidden="true"></i>
+        <h4 class="lawTitle">{{law.title}}</h4>
+      </span>
+			<router-link v-if="!readOnly" :to="getLinkToLaw()">
+        <i class="far lawIcon pull-left" :class="getIconForLaw" aria-hidden="true"></i>
 				<h4 class="lawTitle">{{law.title}}</h4>
 			</router-link>
     </div>
@@ -17,14 +21,16 @@
 						<td><img :src="law.createdBy.profile.picture" class="media-object userPicture"></td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
-							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}
+							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}
 						</td>
 						<td class="userDataSmall">
-							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}<br/>
-              <i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null" :to="'/showPoll/'+law.poll.id">Poll</router-link>
+              <i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
+              <i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;
+              <router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
+              <span v-if="law.poll !== null && readOnly">Poll</span>
 						</td>
 						<td class="likeButtonCell">
-							<support-button :row="law" v-on:like="likeToDiscuss"></support-button>
+							<support-button :row="law" v-on:like="likeToDiscuss" :readOnly="readOnly"></support-button>
 						</td>
 					</tr>
 				</tbody>
@@ -44,9 +50,10 @@ import SupportButton from '../components/SupportButton'
 
 export default {
   props: { 
-    'law' : { type: Object, required: true },
-    'showTimeline' : { type: Boolean, required: false, default: function() { return true } },
-    'fixedHeight' : { type: Number, required: false, default: function() { return undefined } },
+    'law' : { type: Object, required: true },     // the idea, proposal or law we show in a bootstrap panel
+    'showTimeline' : { type: Boolean, required: false, default: function() { return true } }, // whether to show a timeline
+    'fixedHeight' : { type: Number, required: false, default: function() { return undefined } },  // fixed height of lawDescription, can be used  to make several LawPanels all the same height.
+    'readOnly' : { type: Boolean, required: false, default: function() { return false } },   // if true, then no links and inactive supportButton
   },
 
   components: {
@@ -57,8 +64,8 @@ export default {
   computed: {
     // dynamically set icon depending on law.status  
     // BUGFIX: Must be a computed prop. Not a method!
-    getIconForLaw: function(law) {
-      switch(law.status) {
+    getIconForLaw: function() {
+      switch(this.law.status) {
         case "IDEA": return { "fa-lightbulb": true }
         case "LAW":  return { "fa-university": true }
         default:     return { "fa-file-alt": true }
@@ -90,17 +97,16 @@ export default {
       if (this.law.status === "IDEA") return [ 
         { percent: "5", above: moment(this.law.createdAt).format('L'), below: "created" },
       ]
-      // proposal in elaboration or in VOTING
-      if (this.law.poll !== undefined) return [
+      if (this.law.status === "PROPOSAL") return [
+        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: "90", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+      ]
+      if (this.law.status === "ELABORATION" || this.law.status === "VOTING") return [    // implies    this.law.poll !== undefined && this.law.poll !== null
         { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
         { percent: "33", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
         { percent: "66", above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
         { percent: "95", above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}    
       ]
-      if (this.law.status === "PROPOSAL") return [
-        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
-        { percent: "90", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
-      ]      
       //MAYBE: if (this.law.status === "LAW")
       if (this.law.status === "RETENTION") {
         //TODO: show how long until retracted
@@ -144,6 +150,7 @@ export default {
 <style scoped>
   .lawIcon {
   	font-size: 14pt;
+    margin-right: 0.2em;
   }
   .lawTitle {
     margin-top: 0;
@@ -152,6 +159,10 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .lawPanel .panel-footer {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  } 
   .lawFooterTable {
 		margin: 0;
 		padding: 0;

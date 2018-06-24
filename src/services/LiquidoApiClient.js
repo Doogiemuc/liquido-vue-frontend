@@ -102,17 +102,9 @@ module.exports = {
       }
     }
   },
-	
-	/**
-	 * get the URI of a poll
-	 * @param pollSelector {any} numerical pollID or poll JSON object or already a poll URI
-	 * @return {String} the full poll URI
-	 */
-	getPollURI(pollSelector) {
-		if (!isNaN(pollSelector)) return process.env.backendBaseURL+'/polls/'+pollSelector
-		else return this.getURI(pollSelector)
-	},
 
+  //MAYBE: getModelById(id, modelClass),  e.g   getModelById(4711, 'laws') => process.env.backendBaseURL + '/' + modelClass + '/' + id
+	
 //==================================================================================================================
 // Users
 //==================================================================================================================
@@ -250,7 +242,7 @@ module.exports = {
       return res.entity 
     }).catch(err => {
       log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
-      return Promise.reject(err)
+      return Promise.reject({msg: "Cannot get law", lawURI: lawURI, httpStatusCode: err.status.code})
       //throw new Error(err)  NO! See https://stackoverflow.com/questions/33445415/javascript-promises-reject-vs-throw 
     })
   },
@@ -279,10 +271,23 @@ module.exports = {
 			}
 		})
     .then(res => { return res.entity._embedded.laws })
-    .catch(err => {
-      log.error("ERROR in apiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot findByStatus(status="+status+")")
-    })
+    .catch(err => { return Promise.reject("LiquidoApiClient: Cannot findByStatus(status="+status+")", err) })
+  },
+
+  /**
+   *
+   */
+  findByStatusAndCreator(status, creator) {
+    log.debug("findByStatusAndCreator(status='"+status+"', creator.id="+creator.id+")")
+    return client({
+        path: '/laws/search/findByStatusAndCreator{?status,user}',
+        params: {
+          status: status,
+          user: this.getURI(creator)
+        }
+      })
+      .then(res => { return res.entity._embedded.laws })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findByStatusAndCreator", status: status, creator: creator, err: err}) })
   },
 
   /**
@@ -295,11 +300,7 @@ module.exports = {
     log.debug("findSupportedBy(user="+userURI+")")
     return client('/laws/search/findSupportedBy?status='+status+'&user='+encodeURIComponent(userURI))   //BUGFIX: Need to encode URI otherwise rest client gets confued.  THIS STOLE ME A WEEK ARGL!!! :-(
     .then(res => { return res.entity._embedded.laws })
-    .catch(err => {
-      log.error("ERROR in apiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot findSupportedBy(user="+userURI+")")
-    })
-    
+    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findSupportedBy()", user: user, status: status, err: err})  })
   },
 
   /**
@@ -504,13 +505,8 @@ module.exports = {
   findPollsByStatus(status) {
     log.debug("findPollsByStatus()")
     return client('/polls/search/findByStatus?status='+status)
-    .then(
-      response => { return response.entity._embedded.polls }
-    )
-    .catch(err => {
-      log.error("ERROR in LiquidoApiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot findPollsByStatus()")
-    })
+      .then( res => { return res.entity._embedded.polls })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
   },
 
   /** 
@@ -518,15 +514,32 @@ module.exports = {
    * @param pollSelector a poll or a poll URI
    * @return a poll as JSON
    */
-  getPoll(pollSelector) {
-    log.debug("getPoll", pollSelector)
-    var pollURI = this.getPollURI(pollSelector)
+  getPoll(pollIdOrUri) {
+    log.debug("getPoll", pollIdOrUri)
+    var pollURI
+    if (!isNaN(pollIdOrUri)) pollURI = process.env.backendBaseURL+'/polls/'+pollIdOrUri 
+    else pollURI = this.getURI(pollIdOrUri) 
     return client(pollURI)
-    .then(res => { return res.entity })
-    .catch(err => {
-      log.error("ERROR in LiquidoApiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot getPoll()")
-    }) 
+      .then( res => { return res.entity })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) }) 
+  },
+
+  joinPoll(proposal, poll) {
+    log.debug("joinPoll", proposal, poll)
+    //TODO: make some basic checks about proposal and poll
+    var proposalURI = this.getURI(proposal)
+    var pollURI = this.getURI(poll)
+    return client({
+      method: 'POST',
+      path: '/joinPoll',
+      headers: { 'Content-Type' : 'application/json' },
+      entity: {
+        proposal: proposalURI,
+        poll: pollURI
+      }
+      })
+      .then( res => { return "" })  // returns HTTP status 201
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) }) 
   },
 
   /** called when a user casts a vote. Will either insert a new ballot or update the existing one .

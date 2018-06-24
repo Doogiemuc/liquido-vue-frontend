@@ -2,10 +2,7 @@
 	<div class="panel panel-default pollPanel">
 		<div class="panel-heading">
 			<div class="pull-right">
-				<router-link v-if="poll.status === 'ELABORATION'" :to="{ path: '/showPoll/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
-					<i class="fas fa-angle-double-right"></i>
-				</router-link>
-				<router-link v-if="poll.status === 'VOTING'" :to="{ path: '/castVote/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
+				<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
 					<i class="fas fa-angle-double-right"></i>
 				</router-link>
 			</div>
@@ -51,13 +48,6 @@ export default {
 		/** get localized display Value of a date */
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
-    },
-
-		/**
-		 * get URI from poll object 
-		 */
-		getPollURI: function(poll) {
-    	return this.$root.api.getURI(poll)
     },
 
 		isFirst(index) {

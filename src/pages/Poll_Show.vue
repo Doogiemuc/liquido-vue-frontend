@@ -1,21 +1,29 @@
+<!-- 
+	Page that shows one poll. 
+	If a user has proposals in elaboration (that are not yet part of any poll)
+	then he can join this poll.
+-->
+
 <template>
   <div class="container">
-		<h1>Poll
+		<h1><i class="fas fa-balance-scale"></i> Poll
 			<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">in voting phase</template>
 		</h1>
-			
-	  <p v-if="poll.status === 'ELABORATION'">
-			Voting will start on {{votingStart}}
-		</p>
-		<p v-if="poll.status === 'VOTING'">
-			{{votingEnd}} until voting phase ends.
-		</p>
 		
-		<timeline :height="60" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
+		<div v-if="poll.status == 'VOTING'" class="panel panel-default">
+	    <div class="panel-body"">
+	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
+	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
+	      <timeline :height="80" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
+	      <router-link :to="{ path: '/castVote/'+poll.id }" role="button" class="btn btn-primary text-center">
+					Cast your vote <i class="fas fa-angle-double-right"></i>
+				</router-link>
+	    </div>
+	  </div>
 
-		
-		<h4>Alternative proposals in this poll</h4>
+	  <br/>
+		<h3>Alternative proposals in this poll</h3>
 		
     <div class="row">
 		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
@@ -28,41 +36,95 @@
 				></law-panel>
 			</div>
 		</div>
+
+		<br/>
+		<div v-if="canJoinPoll" id="joinPollDiv" class="text-right collapse in">
+			<button type="button" id="joinPollButton" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top" 
+			  data-content="If the topic of this ballot matches one of your proposals, then you can join your proposal into this poll and put it to the vote."
+			  v-on:click="toggleCollapse">
+			  Join this poll
+			</button>
+		</div>
+
+		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default collapse">
+	    <div class="panel-heading">
+	    	<button type="button" class="close" aria-label="Close" v-on:click="toggleCollapse">&times;</button>
+				<h4 class="panelTitle">Join this poll</h4>
+	    </div>
+	    <div class="panel-body"">
+	      <p>If you think that one of your proposals matches this ballot's topic, then you can <em>join this poll</em> and put your proposal to the vote.</p>
+	      <div class="form-inline">
+	      	<div class="input-group">
+		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for porposal title" autocomplete="off" data-toggle="dropdown" 
+		      	 class="form-control" style="width: 300px" v-model="searchVal"> 
+		      	<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
+		      		<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
+		      	</ul>
+		      </div>
+		      <button type="button" class="btn btn-primary" :class="joinProposalButtonClass" v-on:click="joinPoll">
+					  Join your proposal
+					</button>	      	
+	      </div>
+	    </div>
+		</div>  
+
 	</div>	
 </template>
 
 <script>
 import moment from 'moment'
+import TypeAhead from 'vue2-typeahead'
 import LawPanel from '../components/LawPanel'
-import timeline from '../components/Timeline'
+import Timeline from '../components/Timeline'
+
 
 export default {
 	props: {
 		'pollId': { type: String, required: true }
 	},
 	
-	data () {
+	data () { 
     return {
-      poll: { _embedded: { proposals: [] }}
+      poll: { _embedded: { proposals: [] }},
+      userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
+      searchVal: "",
+      selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 		}
 	},
 	
 	components: {
-		timeline: timeline,
-		'law-panel': LawPanel
+		timeline: Timeline,
+		lawPanel: LawPanel, 		
+		typeahead: TypeAhead
 	},
 	
 	computed: {
-		pollCreated : function() { return moment(this.poll.createdAt).format('L') },
-		votingStart : function() { return moment(this.poll.votingStartAt).format('L') },
-		votingEnd   : function() { return moment(this.poll.votingEndAt).format('L') },
-		timelinePercentFilled: function() { return 30 },
-		timelineEvents: function() {
+		pollCreated() { return moment(this.poll.createdAt).format('L') },
+		votingStart() { return moment(this.poll.votingStartAt).format('L') },
+		votingEnd()   { return moment(this.poll.votingEndAt).format('L') },
+		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. 14 days
+		timelinePercentFilled() { return 30 },
+		timelineEvents() {
 		  return [ 
-        { percent: "5",   above: this.pollCreated, below: "Poll<br/>created" },
-        { percent: "50",  above: this.votingStart, below: "Voting</br>start" },
+        { percent: "0",  above: null, below: "Poll<br/>created" },
+        { percent: "50", above: this.votingStart, below: "Voting</br>start" },
         { percent: "95", above: this.votingEnd, below: "Voting<br/>end" }
       ]
+		},
+		// return a list of user's proposals that match the search string, case insensitive
+		matchingProposals() {
+			var val = this.searchVal.toLowerCase().trim()
+			this.selectedUserProposal = undefined			// disable joinProposalButton again
+			if (val == "") {
+				return this.userProposals.slice(0,3)		// remember: slice returns copy of array, whilst splice() only removes array elements
+			}
+			return this.userProposals.filter(prop => {
+				return prop.title.toLowerCase().indexOf(val) != -1
+			})
+		},
+		//join proposal button is only active, when one of the user's proposal has been selected
+		joinProposalButtonClass() {
+			return { 'disabled' : this.selectedUserProposal === undefined }
 		}
 	},
 
@@ -85,16 +147,71 @@ export default {
   		})
   		
   	},
+
+		canJoinPoll() {
+			var alreadyJoined = false
+
+			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
+		},
+
+		toggleCollapse() {
+			$('#joinPollDiv').collapse('toggle')
+			$('#joinPollPanel').collapse('toggle')
+		},
+		
+		selectUserProposal(proposal) {
+			this.searchVal = proposal.title
+			this.$nextTick(function() {
+			  this.selectedUserProposal = proposal
+			})
+		},
+
+		joinPoll() {
+			return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
+				console.log("joined proposal into poll.", res)
+			})
+		}
   },
 	
-	created () {
+	created() {
 		this.$root.api.getPoll(this.pollId).then(poll => { 
 			this.poll = poll
 		})
+		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
+			this.userProposals = proposals
+		})		
 	},
+
+	mounted() {
+		$('#joinPollButton').popover({trigger: 'hover'})
+	}
 }
 </script>
 
-<style scoped>
+<style>
+	.panelTitle{
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	.grey{
+		color: grey;
+	}
+  .searchInput {
+    display: inline-block;
+    height: 22px;
+    width: 50%;
+    padding-left: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  ul.dropdown-menu li {
+  	padding: 0 !important;
+  	margin: 0 !important;
+  }
+  ul.dropdown-menu > li > a {
+  	overflow: hidden;
+  	padding: 5px;
+  	margin: 0;
+  }
 </style>
 

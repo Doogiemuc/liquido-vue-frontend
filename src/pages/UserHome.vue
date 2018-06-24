@@ -7,16 +7,21 @@
 
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 				
-				<!-- Alternative to pollPanel -->
+				<h2>Alternative to pollPanel</h2>
+        <p>This shows a poll with all its proposals in a compact form</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
-            <router-link :to="{ path: '/showPoll', query: { poll: getPollURI(poll) }}" role="button" class="btn btn-default btn-xs pull-right">
-              Goto poll &raquo;
-            </router-link>
-            <i aria-hidden="true" class="fa fa-balance-scale fa-lg pull-left"></i>
-            <h4>Poll</h4>
+            <div class="pull-right">
+              <router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
+                <i class="fas fa-angle-double-right"></i>
+              </router-link>
+            </div>
+            <h4><i class="fas fa-balance-scale"></i> Poll
+              <template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
+              <template v-if="poll.status === 'VOTING'">in voting phase</template>
+            </h4>           
             <div style="padding: 10px">
-              <timeline :timelineData="getTimelineDataFor(poll)"></timeline>
+              <timeline :height="60" :percentFilled="getTimelinePercentFilled(poll)" :events="getTimelineEvents(poll)"></timeline>
             </div>
           </div>
           <table class="table pollTable">
@@ -31,11 +36,10 @@
                 </td>
                 <td class="greyDataRight">
                   <ul class="fa-ul">
-                    <li><i class="fa-li fa fa-user"></i>{{proposal.createdBy.profile.name}}</li>
-                    <li><i class="fa-li fa fa-clock-o"></i>{{getFromNow(proposal.createdAt)}}</li>
-                    <!-- <li><i class="fa-li fa fa-check-circle-o"></i>{{getFromNow(proposal.reachedQuorumAt)}} </li> -->
-                    <li><i class="fa-li fa fa-bookmark"></i>{{proposal.area.title}}</li>                  
-                    <li><i class="fa-li fa fa-thumbs-o-up"></i> {{proposal.numSupporters}}</li> 
+                    <li><span class="fa-li"><i class="far fa-user"></i></span>{{proposal.createdBy.profile.name}}</li>
+                    <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(proposal.createdAt)}}</li>
+                    <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{proposal.area.title}}</li>
+                    <li><span class="fa-li"><i class="far fa-thumbs-up"></i></span>{{proposal.numSupporters}}</li>
                   </ul>
                 </td>
               </tr>
@@ -45,7 +49,12 @@
         
         
         <h2 v-if="recentIdeas">Recently created ideas</h2>
-        <idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel>
+        <law-panel v-for="idea in recentIdeas" 
+          :law="idea" 
+          :showTimeline="false">  
+        </law-panel> 
+
+        <!-- idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel -->
 
       </div>
 
@@ -61,8 +70,8 @@
             <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
               <i class="fa fa-fw fa-balance-scale pull-left"></i>
               <p style="overflow: hidden">Your idea 
-                <router-link :to="{ path: '/ideas/31' }">'{{proposal.title}}'</router-link> reached its quorum. You can now 
-                <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or 
+                <router-link :to="{ path: '/proposal/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum. You can now 
+                <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or       <!-- /proposal/4711/joinPoll  ?? also on client -->
                 <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
               </p>
             </li>
@@ -94,7 +103,7 @@
           <div class="panel-body">
             <div class="media">
               <div class="media-left">
-                <i class="fa fa-lightbulb-o fa-2x"></i>
+                <i class="fas fa-lightbulb-o fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
@@ -224,20 +233,25 @@ export default {
       return moment(dateVal).fromNow();
     },
     
-    getPollURI: function(poll) {
-    	return this.$root.api.getURI(poll)
-    },
-    
     loadRecentIdeas: function() {
       this.$root.api.getRecentIdeas().then(recentIdeas => {   
         this.recentIdeas = recentIdeas
       })
     },
     
+    getTimelinePercentFilled(poll) {
+      var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
+      var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
+      var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
+      var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
+      var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
+      return percentFilled
+    },
+
     /** a lot of data calculations for our pretty timeline
 	    SEE ALSO   LawPanel!  Same function ?!?!??!
     	*/
-    getTimelineDataFor(poll) {
+    getTimelineEvents(poll) {
       //TODO: simply past dates into timeline and let all the calculation be done in the timeline class */
     	if (poll === undefined) return {}
       var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
@@ -249,21 +263,17 @@ export default {
       var votingStartsLoc       = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
       var votingEndsLoc         = moment(poll.createdAt).add(durationInDays, 'days').format('L')
       var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
-      var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
       
-    	var timelineData = {
-        percentFilled: percentFilled,
-        events: [ 
-          { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
-          { percent: percentVotingStarts, above: votingStartsLoc, below: "Voting<br/>starts"},
-          { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends"}
-        ]
-      }
-      return timelineData
+      return [ 
+        { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
+        { percent: percentVotingStarts, above: votingStartsLoc, below: "Voting<br/>starts" },
+        { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends" }
+      ]
     }
   }
-  
 }
+ 
+
 </script>
 
 <style scoped>
@@ -318,7 +328,7 @@ export default {
     background-color: rgb(245,245,245);
   }
   .greyDataRight ul.fa-ul {
-    margin-left: 1.5em;
+    margin-left: 1.5em; 
   }
   .greyDataRight .userPicture {
     margin-bottom: 8px;

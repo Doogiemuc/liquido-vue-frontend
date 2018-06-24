@@ -1,5 +1,8 @@
 <template>
-	<button v-if="row.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
+	<button v-if="readOnly" type="button" class="btn btn-default btn-xs disabled">
+		<i class="far fa-thumbs-up"></i> {{row.numSupporters}}
+	</button>
+	<button v-else-if="row.supportedByCurrentUser" type="button" class="btn btn-default btn-xs active">
 		<i class="far fa-thumbs-up"></i> {{row.numSupporters}}
 	</button>
 	<button v-else type="button" class="btn btn-default btn-xs" v-on:click="likeToDiscuss()">
@@ -12,10 +15,10 @@
 <script>
 export default {
 	props: {
-		row: { type: Object, required: true },
-		supporterAdded: { type: Function, required: false }	//callback when supporter was added
+		row: { type: Object, required: true },		//TODO: SupportButton should not know row. It should only now numLikes and alreadyLiked <=> but check with table need at least a PK of row for the callback
+		supporterAdded: { type: Function, required: false },	//callback when supporter was added
+		readOnly: { type: Boolean, required: false, default: function() { return false } },   // if true, then no button is inactive
 	},
-	
 	methods: {
 		likeToDiscuss() {
 			this.$emit("like", this.row)  // notify parent. Keep in mind that this.row is the old state with numSupportes not yet incremented!

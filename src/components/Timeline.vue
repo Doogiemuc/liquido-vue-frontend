@@ -20,17 +20,17 @@
 <template>
   <div class="timeline" :style="{ height: height+'px' }" >
     <div class="timeline_grey"></div>
+    <span class="filling_line" v-bind:style="{ width: percentFilled+'%' }"></span>
+    <span class="timeline_arrow_right"></span>  
     <ol style="list-style: none">
       <li v-for="event in this.events" 
           class="timeline_event circle" 
           v-bind:style="{ left: event.percent+'%'}" 
           v-bind:class="{ selected: event.percent <= percentFilled }" >
-        <div class="event_above" v-html="event.above"></div>
+        <div class="event_above" v-html="event.above || '&nbsp;'"></div>
         <div class="event_below" v-html="event.below"></div>
       </li>
     </ol>
-    <span class="filling_line" v-bind:style="{ width: percentFilled+'%' }"></span>
-    <span class="glyphicon glyphicon-play timeline_arrow_right"></span>  
   </div>
 
 </template>
@@ -82,17 +82,17 @@
   position: absolute; 
   z-index: 0;
   left:0; 
-  top: 18px; 
+  top: 2em; 
   width: 99%; 
-  height:2px; 
+  height: 2px; 
   background: #dfdfdf;
 }
 
 .timeline .filling_line {
-  z-index: 10;
+  z-index: 2;
   position: absolute;
   left: 0;
-  top: 18px;
+  top: 2em;
   height: 2px;
   background-color: #66A;
 }
@@ -100,20 +100,19 @@
 .timeline .timeline_event {
   position: absolute;
   top: 0;
-  /* left: 40% can be set in style="..." to position the evnet */
+  /* left: 40% will be set in style="..." to position the evnet */
   text-align: center;
   color: #999;
   transform: translateX(-50%);
 }
 
 .timeline .timeline_event .event_above {
-  /* nothing to set here */
   color: #999;
 }
 
 .timeline .timeline_event .event_below {
   color: #999;
-  margin-top: 8px;
+  margin-top: 15px;
   white-space: nowrap;
 }
 
@@ -122,7 +121,7 @@
   z-index: 3;
   content: '';
   position: absolute;
-  top: 14px;
+  top: 2em;
   left: 50%;
   right: auto;
   width: 10px;
@@ -130,7 +129,7 @@
   background-color: #FFF;
   border: 2px solid #ddd;
   border-radius: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .timeline .selected:after {
@@ -142,8 +141,14 @@
 .timeline_arrow_right {
   z-index: 3;
   position: absolute;
-  color: #ddd;
-  right: 0;
-  top: 13px;
+  content: "";
+  top: 1.4em;
+  right: 0px;
+  width: 0px;
+  height: 0px;
+  border-style: solid;
+  border-width: 8px 0 8px 15px;
+  border-color: transparent transparent transparent #ddd;
+
 }
 </style>

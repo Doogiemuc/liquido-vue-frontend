@@ -1,25 +1,28 @@
 <template>
   <div class="container">
-    <div class="page-heading">
-      <h2>Cast your vote</h2>
-      <p>
-        Drag the proposals you want to vote for from the left into the ballot on the right. 
-        Sort your favorite proposals to the top of your ballot.
-      </p>
-      <p>
-        This poll will run for {{1111}} more days until {{votingEndsAtLoc}}.
-      </p>
+
+    <h1><i class="fas fa-balance-scale"></i> Cast your vote</h1>
+    
+    <div class="panel panel-default">
+      <div class="panel-body"">
+        <p>You have {{untilVotingEnd}} left to cast your vote. Drag the proposals you want to vote for from the poll on the left into your ballot on the right.
+        In Liquid Democracy you do not just vote for or against a proposal, but you sort the proposals into your preferred order.</p>
+        <timeline :height="80" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
+      </div>
     </div>
+
     <table class="table pollTable">
       <tbody>
         <tr>
-          <th width="49%" class="tableTitle">
-            Proposals in this poll
-          </th>
-          <th width="2%"></th>
-          <th width="49%" class="tableTitle">
-            Your sorted ballot
-          </th>
+          <td width="49%" class="text-center">
+            <h3>Proposals</h3>
+            <p>These are the competing alternative proposals in this poll.</p>
+          </td>
+          <td width="2%"></td>
+          <td width="49%" class="text-center">
+            <h3>Your ballot</h3>
+            <p>Sort your favorite proposal to the top.</p>
+          </td>
         </tr>
         <tr>
           <td width="49%" id="leftContainer">
@@ -27,7 +30,8 @@
             <law-panel v-for="proposal in proposals" 
               :law="proposal" 
               :showTimeline="false"
-              :showGotoPoll="false">  
+              :fixedHeight="100"
+              :readOnly="true">
             </law-panel>
         
           </td>
@@ -45,35 +49,57 @@
       </tbody>
     </table>
 
-    <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.ballotIsEmpty" @click="castVote()">Cast vote</button>
+    <button type="button" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="castVote()">Cast vote</button>
     
   </div>
 </template>
 
 <script>
 import LawPanel from '../components/LawPanel'
+import timeline from '../components/Timeline'
 import moment from 'moment'
 import dragula from 'dragula'
+
 // import bootbox from 'bootbox'
 
 export default {
-  components: { LawPanel },
+  components: { LawPanel, timeline }, 
+
+  props: {
+    'pollId': { type: String, required: true }
+  },
 
   data () {
     return {
       poll: {},
       proposals: [],
-      votingEndsAtLoc: "",
       ballotIsEmpty: true
     }
   },
+
+  computed: {
+    pollCreated() { return moment(this.poll.createdAt).format('L') },
+    votingStart() { return moment(this.poll.votingStartAt).format('L') },
+    votingEnd()   { return moment(this.poll.votingEndAt).format('L') },
+    untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. 14 days
+    votingEndsAt() { return moment(this.proposals[0].votingEndsAt).format('L') },
+    timelinePercentFilled() { return 30 },      // TODO: make timeline specific to polls and laws
+    timelineEvents() {
+      return [ 
+        { percent: "0",  above: this.pollCreated, below: "Poll<br/>created" },
+        { percent: "50", above: this.votingStart, below: "Voting</br>start" },
+        { percent: "95", above: this.votingEnd, below: "Voting<br/>end" }
+      ]
+    },
+  },
   
+  //TODO: Can I do this in created()  ????
   mounted () {
-    var pollURI = this.$route.query.poll
-    if (pollURI == undefined) {
-      console.error("Poll.vue: Missing URL parameter for poll!")
-    }
-    this.loadPoll(pollURI).then(() => {
+    this.$root.api.noCacheForNextRequest()
+    this.$root.api.getPoll(this.pollId).then(poll => { 
+      this.poll = poll
+      this.proposals = poll._embedded.proposals
+      //this.votingEndsAtLoc = moment(this.proposals[0].votingEndsAt).format('L')
       this.$nextTick(() => {
         var drake = dragula([document.getElementById('leftContainer'), document.getElementById('rightContainer')]);
         //console.log(drake, document.getElementById('test'))
@@ -85,15 +111,6 @@ export default {
   methods: {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
-    },
-
-    loadPoll: function(pollURI) {
-      this.$root.api.noCacheForNextRequest()
-      return this.$root.api.getPoll(pollURI).then(poll => {
-        this.poll = poll
-        this.proposals = poll._embedded.proposals
-        this.votingEndsAtLoc = moment(this.proposals[0].votingEndsAt).format('L')
-      })
     },
 
     ballotDropped: function(el, target, source, sibbling) {

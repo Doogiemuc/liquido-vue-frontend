@@ -36,6 +36,7 @@
     "tinymce": "^4.5.3",
     "vue": "^2.1.0",
     "vue-router": "^2.0.0",
+    "vue2-typeahead": "^1.0.30",
     "vuelidate": "^0.2.0",
     "whatwg-fetch": "^2.0.1"
   },
