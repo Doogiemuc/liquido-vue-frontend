@@ -1,0 +1,35 @@
+@startuml
+== Register for voting ==
+
+Voter -> Server : ""GET /poll/<id>/token""
+
+rnote over Server
+ voterToken = hash(
+   user.email,
+   user.passwordHash,
+   poll.id, 
+   secretSeed
+ )
+endrnote
+
+database DB
+Server -> DB : ""upsert hash(voterToken)"" 
+
+Voter <-- Server : ""return voterToken""
+
+== anonomously ==
+
+Voter -> Server : \n""POST /poll/<id>/castVote""\n""{voterToken, voterOrder}""
+
+alt If hash(voterToken) is already in DB
+
+  Server -> DB : ""update voteOrder""\n""for hash(voterToken)""
+
+  Voter <-- Server : ""return HTTP 200 Ok""
+  |||
+else Token not allowed to vote
+  
+  Voter <-- Server : ""return HTTP 401 Forbidden""
+
+end
+@enduml
