@@ -1,18 +1,18 @@
 <template>
-	<div class="panel panel-default lawPanel" :data-proposaluri="law._links.self.href">
+	<div class="panel panel-default lawPanel" :data-proposaluri="getURI">
     <div class="panel-heading">
-      <span v-if="readOnly">
-        <i class="far lawIcon pull-left" :class="getIconForLaw" aria-hidden="true"></i>
-        <h4 class="lawTitle">{{law.title}}</h4>
-      </span>
-			<router-link v-if="!readOnly" :to="getLinkToLaw()">
-        <i class="far lawIcon pull-left" :class="getIconForLaw" aria-hidden="true"></i>
-				<h4 class="lawTitle">{{law.title}}</h4>
-			</router-link>
+      
+      <router-link v-if="!readOnly" :to="getLinkToLaw()" role="button" class="btn btn-default btn-xs pull-right">
+        <i class="fas fa-angle-double-right"></i>
+      </router-link>
+			<h4 class="lawTitle">
+          <i class="far" :class="getIconForLaw" aria-hidden="true"></i>
+          {{law.title}}
+      </h4>
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
       {{law.description}}
-      <timeline v-if="showTimeline" :height="60" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
+      <timeline v-if="showTimeline" :height="60" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
 			<table class="table lawFooterTable">
@@ -62,6 +62,10 @@ export default {
 	},
 
   computed: {
+    getURI() {
+      return this.$root.api.getURI(this.law)
+    },
+
     // dynamically set icon depending on law.status  
     // BUGFIX: Must be a computed prop. Not a method!
     getIconForLaw: function() {
@@ -72,6 +76,7 @@ export default {
       }
     },
 
+    /*
     timelinePercentFilled() {
       var start = new Date(this.law.createdAt)
       var today = new Date()
@@ -92,6 +97,7 @@ export default {
       }
       return timeline.methods.date2percent(today, start, end)
     },
+    */
 
     timelineEvents() {
       if (this.law.status === "IDEA") return [ 

@@ -20,4 +20,6 @@ module.exports = {
       
       .end()
   }
+
+  //Test Drag'n'Drop with nightwatch: https://github.com/RobK/nightwatchjs-drag-n-drop-example/blob/master/spec/drag-and-drop.js
 }

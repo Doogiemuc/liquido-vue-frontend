@@ -1,11 +1,9 @@
 <template>
 	<div class="panel panel-default pollPanel">
 		<div class="panel-heading">
-			<div class="pull-right">
-				<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
-					<i class="fas fa-angle-double-right"></i>
-				</router-link>
-			</div>
+			<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
+				<i class="fas fa-angle-double-right"></i>
+			</router-link>
 			<h4><i class="fas fa-balance-scale"></i> Poll
 				<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
 				<template v-if="poll.status === 'VOTING'">in voting phase</template>
@@ -13,7 +11,7 @@
 		</div>
 		<div class="panel-body poll-list" :id="pollPanelID">
 			<div v-for="(proposal, index) in poll._embedded.proposals">
-				<h4 :class="{ firstHeader: isFirst(index), lastHeader: isLast(index) }">{{proposal.title}}</h4>
+				<h4 class="proposalTitle collapsedTitle" :class="{ firstHeader: isFirst(index), lastHeader: isLast(index) }">{{proposal.title}}</h4>
 				<p class="collapse">{{proposal.description}}</p>
 				<p class="pfooter collapse">
 					<i class="far fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
@@ -64,6 +62,7 @@ export default {
 		 */
 		toggleCollapse(evt) {
 			$('#'+this.pollPanelID+' .collapse').collapse('toggle')
+			$('#'+this.pollPanelID+' .proposalTitle').toggleClass('collapsedTitle');
 			$(evt.currentTarget)
 			  .find('[data-fa-i2svg]')
         .toggleClass('fa-caret-up')
@@ -88,6 +87,10 @@ export default {
 	}
 	.pollPanel .panel-body .lastHeader {
 	  margin-bottom: 0;
+	}
+	.pollPanel .collapsedTitle {
+	 	font-size: 14px;
+		font-weight: normal;
 	}
 	
 	.poll-list {

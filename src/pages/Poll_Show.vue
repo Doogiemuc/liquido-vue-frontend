@@ -15,7 +15,7 @@
 	    <div class="panel-body"">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
 	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
-	      <timeline :height="80" :percentFilled="timelinePercentFilled" :events="timelineEvents"></timeline>
+	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="getTimelineEvents()"></timeline>
 	      <router-link :to="{ path: '/castVote/'+poll.id }" role="button" class="btn btn-primary text-center">
 					Cast your vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
@@ -102,14 +102,10 @@ export default {
 		pollCreated() { return moment(this.poll.createdAt).format('L') },
 		votingStart() { return moment(this.poll.votingStartAt).format('L') },
 		votingEnd()   { return moment(this.poll.votingEndAt).format('L') },
-		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. 14 days
-		timelinePercentFilled() { return 30 },
-		timelineEvents() {
-		  return [ 
-        { percent: "0",  above: null, below: "Poll<br/>created" },
-        { percent: "50", above: this.votingStart, below: "Voting</br>start" },
-        { percent: "95", above: this.votingEnd, below: "Voting<br/>end" }
-      ]
+		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
+		canJoinPoll() {
+			var alreadyJoined = false  //TODO: Can a user join a poll with more than one of its own proposals?  Maybe not?
+			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
 		},
 		// return a list of user's proposals that match the search string, case insensitive
 		matchingProposals() {
@@ -134,6 +130,14 @@ export default {
       return moment(dateVal).fromNow();
     },
 
+		getTimelineEvents() {
+		  return [ 
+        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
+        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
+        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd, below: "Voting<br/>end" }
+      ]
+		},
+
 		/** 
 		 * When a user likes a proposal, then we update its properties
 		 * (a little bit of a small dirty hack, but better than reloading the whole poll from the backend)
@@ -147,12 +151,6 @@ export default {
   		})
   		
   	},
-
-		canJoinPoll() {
-			var alreadyJoined = false
-
-			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
-		},
 
 		toggleCollapse() {
 			$('#joinPollDiv').collapse('toggle')

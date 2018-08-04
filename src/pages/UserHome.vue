@@ -8,7 +8,7 @@
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 				
 				<h2>Alternative to pollPanel</h2>
-        <p>This shows a poll with all its proposals in a compact form</p>
+        <p>This also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
             <div class="pull-right">
@@ -21,7 +21,7 @@
               <template v-if="poll.status === 'VOTING'">in voting phase</template>
             </h4>           
             <div style="padding: 10px">
-              <timeline :height="60" :percentFilled="getTimelinePercentFilled(poll)" :events="getTimelineEvents(poll)"></timeline>
+              <timeline :height="60" :fillTo="new Date()" :events="getTimelineEvents(poll)"></timeline>
             </div>
           </div>
           <table class="table pollTable">
@@ -68,17 +68,17 @@
           </div>
           <ul class="list-group">
             <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-balance-scale pull-left"></i>
-              <p style="overflow: hidden">Your idea 
-                <router-link :to="{ path: '/proposal/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum. You can now 
-                <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or       <!-- /proposal/4711/joinPoll  ?? also on client -->
-                <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
-              </p>
+              <i class="far fa-lightbulb "></i>
+              Your idea 
+              <router-link :to="{ path: '/proposal/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum. 
+              <!--
+              You can now 
+              <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or       
+              <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
+              //-->
             </li>
-            
             <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-lightbulb-o pull-left"></i>
-              <p style="overflow: hidden">Your idea "liasdf lkasdkl fj" reached its quorum</p>
+              ----
             </li>
             <li class="list-group-item item-condensed">
               <i class="fa fa-fw fa-balance-scale pull-left"></i>
@@ -103,7 +103,7 @@
           <div class="panel-body">
             <div class="media">
               <div class="media-left">
-                <i class="fas fa-lightbulb-o fa-2x"></i>
+                <i class="far fa-lightbulb fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
@@ -117,7 +117,7 @@
         
             <div class="media">
               <div class="media-left">
-                <i class="fa fa-lightbulb-o fa-2x"></i>
+                <i class="far fa-lightbulb fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
@@ -131,7 +131,7 @@
      
             <div class="media">
               <div class="media-left">
-                <i class="fa fa-lightbulb-o fa-2x"></i>
+                <i class="far fa-lightbulb fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
@@ -208,18 +208,18 @@ export default {
 
     this.$root.api.noCacheForNextRequest()
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
-      this.reachedQuorum = proposals
+      this.reachedQuorum = proposals.slice(0,10)
     })
     
     this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       console.log("findSupportedBy returned", proposals)
-      this.supportedIdeasAndProps = proposals
+      this.supportedIdeasAndProps = proposals.slice(0,10)
     })
 
     this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      this.trendingProposals = proposals
+      this.trendingProposals = proposals.slice(0,10)
     })
 
     this.$root.api.noCacheForNextRequest()
@@ -235,10 +235,11 @@ export default {
     
     loadRecentIdeas: function() {
       this.$root.api.getRecentIdeas().then(recentIdeas => {   
-        this.recentIdeas = recentIdeas
+        this.recentIdeas = recentIdeas.slice(0,10)
       })
     },
     
+    /*
     getTimelinePercentFilled(poll) {
       var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
       var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
@@ -247,27 +248,30 @@ export default {
       var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
       return percentFilled
     },
+    */
 
     /** a lot of data calculations for our pretty timeline
 	    SEE ALSO   LawPanel!  Same function ?!?!??!
     	*/
     getTimelineEvents(poll) {
-      //TODO: simply past dates into timeline and let all the calculation be done in the timeline class */
     	if (poll === undefined) return {}
-      var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
-      var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
-      var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
-      var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
+      //var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
+      //var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
+      //var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
+      //var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
 
       var pollCreatedLoc        = moment(poll.createdAt).format('L')
-      var votingStartsLoc       = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
-      var votingEndsLoc         = moment(poll.createdAt).add(durationInDays, 'days').format('L')
-      var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
+      var votingStartLoc        = moment(poll.votingStartAt).format('L')
+      var votingEndLoc          = moment(poll.votingEndAt).format('L')
+
+      //var votingStartLoc        = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
+      //var votingEndLoc          = moment(poll.createdAt).add(durationInDays, 'days').format('L')
+      //var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
       
       return [ 
-        { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
-        { percent: percentVotingStarts, above: votingStartsLoc, below: "Voting<br/>starts" },
-        { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends" }
+        { date: new Date(poll.createdAt),     above: pollCreatedLoc,  below: "Poll<br/>created" },
+        { date: new Date(poll.votingStartAt), above: votingStartLoc, below: "Voting<br/>starts" },
+        { date: new Date(poll.votingEndAt),   above: votingEndLoc,   below: "Voting<br/>ends" }
       ]
     }
   }

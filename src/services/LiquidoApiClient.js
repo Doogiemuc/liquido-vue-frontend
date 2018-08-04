@@ -94,7 +94,9 @@ module.exports = {
     } else {
       try {
         var uri = model._links.self.href     // this will fail if that json path does not exist, ie. model wasn't a HATEOS object
-        //TODO: remove "{?projection}" from the end
+        if (uri.endsWith("{?projection}")) {
+          uri = uri.slice(0, -13);    //remove "{?projection}" from the end  !!!
+        }
         return uri    
       } catch (err) {
 				console.log("Cannot get URI of ", model, err)

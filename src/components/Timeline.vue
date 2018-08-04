@@ -3,32 +3,35 @@
   Horizontal timeline 
   Inspired by https://codyhouse.co/demo/horizontal-timeline/index.html
 
+  This is how you initialize the events along the timeline
 
       exampleTimelineData = {
-        height: 40,  // pixels
-        percentFilled: 80,
+        height: 40,             // height in pixels
+        fillTo: new Date(),     // how far the timeline shall be filled
         events: [ 
-          { percent:  "0", above: "Proposal", below: "created"},  //TODO: make it possible to pass dates instead of percentage values
-          { percent: "10", above: "Quorum", below: "reached"},
-          { percent: "20", above: "Voting", below: "starts"},
-          { percent: "95", above: "Voting", below: "ends"}
+          { date: new Date(...), above: "Proposal", below: "start"},  
+          { date: new Date(...), above: "Quorum", below: "in between"},
+          { date: new Date(...), above: "Voting", below: "starts"},
+          { date: new Date(...), above: "Voting", below: "end"}
         ]
       }
+
+  You can also pass percent values instead of dates.
 
    */
 
 <template>
   <div class="timeline" :style="{ height: height+'px' }" >
     <div class="timeline_grey"></div>
-    <span class="filling_line" v-bind:style="{ width: percentFilled+'%' }"></span>
+    <span class="filling_line" v-bind:style="{ width: this.percentFilled+'%' }"></span>
     <span class="timeline_arrow_right"></span>  
     <ol style="list-style: none">
       <li v-for="event in this.events" 
           class="timeline_event circle" 
           v-bind:style="{ left: event.percent+'%'}" 
-          v-bind:class="{ selected: event.percent <= percentFilled }" >
+          v-bind:class="{ filledCircle: isFilled(event) }" >
         <div class="event_above" v-html="event.above || '&nbsp;'"></div>
-        <div class="event_below" v-html="event.below"></div>
+        <div class="event_below" v-html="event.below || '&nbsp;'"></div>
       </li>
     </ol>
   </div>
@@ -40,29 +43,60 @@
   export default {
   	props: {
       height: { type: Number, required: false, default: function() { return 40 } },
-      percentFilled: { type: Number, required: true },
-  	  events: { type: Array, required: true }    //TODO: make it possible to pass dates instead of percentage values
+      fillTo: { type: Date,   required: false, default: function() { return new Date() } },
+  	  events: { type: Array,  required: true, validator: 
+        function(events) {
+          if (events == null) { return false }
+          events.forEach(event => {
+            if (event.date === undefined && event.percent === undefined) { return false }
+            if (event.date && typeof event.date.getMonth !== 'function') { return false }
+          })
+        return true
+        } 
+      }      
   	},
 
+    computed: {
+      startDate() { return this.events[0].date },
+      endDate() { return this.events[this.events.length-1].date },
+      percentFilled() { return this.date2percent(this.fillTo, this.startDate, this.endDate) }
+    },
+
+
     methods: {
+      /** limit val between min and max, so that min <= returned val <= max */
       limit(val, min, max) {
         if (val < min) return min
         if (val > max) return max
         return val
       },
 
+      isFilled(event) {
+        return event.percent <= this.percentFilled
+      },
+
+      /** 
+       * Utility method to convert a date to a percentage value between start and end date 
+       * This can be accessed as 'timeline.methods.date2percent' from parent components
+       * Needs three Date() objects. Will return 0 otherwise.
+       */
       date2percent(date, start, end) {
+        if (date == null || start == null || end == null) return 0
         var period = end.getTime() - start.getTime()     // number of millisecdons between start and end
         var rel    = date.getTime() - start.getTime()    // number of milliseconds from start until date (might be negative if date is bevor start)
+        if (period == 0) return 0;
         var percent = rel / period * 100
         return this.limit(percent, 0, 100)
       }
     },
 
-    mounted () {
-      this.percentFilled = this.limit(this.percentFilled, 0, 100)
+    created () {
       this.events.forEach(event => {
-        event.percent = this.limit(event.percent, 0, 100)
+        if (event.date !== undefined) {
+          event.percent = this.date2percent(event.date, this.startDate, this.endDate)
+        } else {
+          event.percent = this.limit(event.percent, 0, 100)
+        }
       })
     }
   }
@@ -132,7 +166,7 @@
   transform: translate(-50%, -50%);
 }
 
-.timeline .selected:after {
+.timeline .filledCircle:after {
   z-index: 3;
   border: 2px solid #66A;
   background-color: #66A; 
