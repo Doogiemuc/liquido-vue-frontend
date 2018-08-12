@@ -15,7 +15,7 @@
 	    <div class="panel-body"">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
 	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
-	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="getTimelineEvents()"></timeline>
+	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
 	      <router-link :to="{ path: '/castVote/'+poll.id }" role="button" class="btn btn-primary text-center">
 					Cast your vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
@@ -99,10 +99,18 @@ export default {
 	},
 	
 	computed: {
-		pollCreated() { return moment(this.poll.createdAt).format('L') },
-		votingStart() { return moment(this.poll.votingStartAt).format('L') },
-		votingEnd()   { return moment(this.poll.votingEndAt).format('L') },
+		pollCreated()    { return moment(this.poll.createdAt).format('L') },
+		votingStart()    { return moment(this.poll.votingStartAt).format('L') },
+		votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
 		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
+		timelineEvents() {
+			console.log("========= poll show timelineEvents ", this.poll)
+		  return [ 
+        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
+        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
+        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
+      ]
+		},
 		canJoinPoll() {
 			var alreadyJoined = false  //TODO: Can a user join a poll with more than one of its own proposals?  Maybe not?
 			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
@@ -124,19 +132,25 @@ export default {
 		}
 	},
 
-  methods: {
+	created() {
+		this.$root.api.noCacheForNextRequest()
+		this.$root.api.getPoll(this.pollId).then(poll => { 
+			this.poll = poll
+		})
+		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
+			this.userProposals = proposals
+		})		
+	},
+
+	mounted() {
+		$('#joinPollButton').popover({trigger: 'hover'})
+	},
+
+	methods: {
 		/** get localized display Value of a date */
     getFromNow(dateVal) {
       return moment(dateVal).fromNow();
     },
-
-		getTimelineEvents() {
-		  return [ 
-        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
-        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
-        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd, below: "Voting<br/>end" }
-      ]
-		},
 
 		/** 
 		 * When a user likes a proposal, then we update its properties
@@ -169,20 +183,7 @@ export default {
 				console.log("joined proposal into poll.", res)
 			})
 		}
-  },
-	
-	created() {
-		this.$root.api.getPoll(this.pollId).then(poll => { 
-			this.poll = poll
-		})
-		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
-			this.userProposals = proposals
-		})		
-	},
-
-	mounted() {
-		$('#joinPollButton').popover({trigger: 'hover'})
-	}
+  }
 }
 </script>
 

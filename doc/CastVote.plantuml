@@ -10,17 +10,16 @@ Voter -> Server : ""GET /voterToken?area=<area.id>""
 
 Server -> Server : ""voterToken=hash(""\n""  user.id,""\n""  user.password,""\n""  area.id,""\n""  salt)""
 
-
 database DB
 Server -> DB : ""insert checksum=hash(voterToken)""\n""into ValidTokens"" 
 
-Voter <-- Server : ""return voterToken for this area""
+Voter <-- Server : ""return voterTokens: [] for this area""\n""user's own token and tokens of his delegees""
 
 |||
 
 == Anonymously cast a vote ==
 
-Voter -> Server : ""POST /polls/<id>/castVote""\n""{voterToken, voterOrder}""
+Voter -> Server : ""POST /polls/<id>/castVote""\n""{voterTokens: [], voterOrder}""
 
 Server -> DB : ""query for checksum=hash(voterToken)""\n""in ValidTokens""
 

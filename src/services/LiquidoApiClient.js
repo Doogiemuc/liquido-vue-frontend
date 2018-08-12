@@ -5,9 +5,16 @@
  *  - caching of requests
  *  - error handling
  * Under the hood REST requests are sent with the CuJoJs REST client and its powerfull interceptors.
+ * 
+ * Error handling
+ * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
+ * with an error message.
  */
 
 import httpClient from './httpClient'
+import rest from 'rest'  
+import mime from 'rest/interceptor/mime'
+import pathPrefix from 'rest/interceptor/pathPrefix'
 import loglevel from 'loglevel'
 
 var log = loglevel.getLogger("LiquidoApiClient");
@@ -70,7 +77,7 @@ module.exports = {
 	/** enable cache when searching for laws */
   enableCache(){
     log.debug("enableCache")
-		// only cache requests when searching for ideas, proposals or laws
+		// only cache requests when searching for ideas, proposals or laws   and for globalProperties
 		httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
 		httpClient.setCacheTTL(10)
 	},
@@ -527,7 +534,7 @@ module.exports = {
   },
 
   joinPoll(proposal, poll) {
-    log.debug("joinPoll", proposal, poll)
+    log.debug("joinPoll()", proposal, poll)
     //TODO: make some basic checks about proposal and poll
     var proposalURI = this.getURI(proposal)
     var pollURI = this.getURI(poll)
@@ -544,31 +551,56 @@ module.exports = {
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) }) 
   },
 
-  /** called when a user casts a vote. Will either insert a new ballot or update the existing one .
-   * Exmaple payload for newBallot:
-   *   {
-   *    "initialProposal": "/liquido/v2/laws/42",
-   *     "voteOrder": [
-   *       "/liquido/v2/laws/42",
-   *       "/liquido/v2/laws/43"
-   *     ]
-   *   }
+
+  /** 
+   * Get user's voter token for the given area
+   * @param  areaId Numeric numerical ID of area
+   * @return Array list of voter Tokens
    */
-  postBallot(newBallot) {
-    log.debug("postBallot: "+JSON.stringify(newBallot))
-    return client({
+  getVoterTokens(areaId) {
+    log.debug("getVoterTokens()", areaId)
+    return client("/voterTokens?area="+areaId)  // spring does require the numerical ID and not the URI in this case
+      .then(res => { return res.entity.voterTokens })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterTokens()", areaId: areaId, err: err}) })
+  },
+
+  /** 
+   * Cast a vote 
+   * Example POST Payload 
+   * <pre>
+   * {
+   *   "poll": "/liquido/v2/polls/253",
+   *   "voterTokens": ["$2a$10$1IdrGrRAN2Wp3U7QI.JIzu59hbhW04IPhKE7ius5yICV5KNhFnIee","$2a$10$1IdrGrRAN2Wp3U7QI.JIzuXiumrW37cI87gOLaQA/2kJmEr4MiYxm","$2a$10$1IdrGrRAN2Wp3U7QI.JIzuKgaoXgUrT4Xb4IK7bBxJBSYQltsiehy","$2a$10$1IdrGrRAN2Wp3U7QI.JIzuMm9bsvJm.RaaJgNq0VwXeCVvzuMV4fq"],
+   *   "voteOrder": [
+   *     "/liquido/v2/laws/246",
+   *     "/liquido/v2/laws/261"
+   *   ]
+   * }
+   * </pre>
+   */
+  castVote(poll, voterTokens, voteOrder) {
+    log.debug("castVote()", poll, voteOrder, voterTokens.length)  // do not log secret voterTokens
+
+    // Use an anonymous HTTP client
+    var anonymousClient = rest
+      .wrap(mime, { mime: 'application/json'} )                   // convert entity according to mime type
+      .wrap(pathPrefix, { prefix: process.env.backendBaseURL })   // add path prefix to request
+
+    return anonymousClient({
       method: 'POST',
-      path: '/postBallot',
+      path: '/castVote',
       headers: { 'Content-Type' : 'application/json' },
-      entity: newBallot
+      entity: {
+        poll: this.getURI(poll),
+        voterTokens: voterTokens,
+        voteOrder: voteOrder
+      }
     })
-    .then(response => { return response.entity })
-    .catch(err => {
-      log.error("ERROR in LiquidoApiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot postBallot()")
-    }) 
+    .then(res => { return res.entity })
+    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err}) })
   },
 
 }
 
+/** By default the cache (for some preconfigured URLs) is enabled */
 module.exports.enableCache()

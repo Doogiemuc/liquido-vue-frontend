@@ -28,7 +28,7 @@
     <ol style="list-style: none">
       <li v-for="event in this.events" 
           class="timeline_event circle" 
-          v-bind:style="{ left: event.percent+'%'}" 
+          v-bind:style="{ left: getPercent(event)+'%'}" 
           v-bind:class="{ filledCircle: isFilled(event) }" >
         <div class="event_above" v-html="event.above || '&nbsp;'"></div>
         <div class="event_below" v-html="event.below || '&nbsp;'"></div>
@@ -62,6 +62,7 @@
       percentFilled() { return this.date2percent(this.fillTo, this.startDate, this.endDate) }
     },
 
+    //TODO:  maybe it would be easier to watch: { events : function(newEvents, oldEvents) { ... } }
 
     methods: {
       /** limit val between min and max, so that min <= returned val <= max */
@@ -72,7 +73,7 @@
       },
 
       isFilled(event) {
-        return event.percent <= this.percentFilled
+        return this.getPercent(event) <= this.percentFilled
       },
 
       /** 
@@ -87,6 +88,14 @@
         if (period == 0) return 0;
         var percent = rel / period * 100
         return this.limit(percent, 0, 100)
+      },
+
+      getPercent(event) {
+        if (event.percent !== undefined) { 
+          return event.percent
+        } else {
+          return this.date2percent(event.date, this.startDate, this.endDate)
+        }
       }
     },
 
