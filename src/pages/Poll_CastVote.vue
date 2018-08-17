@@ -225,6 +225,9 @@ export default {
     clickModalMain() {
       if (this.loading) return
       $('#castVoteModal').modal('hide')
+      if (this.step3_status === "success") {
+        this.$root.$router.push('/polls/'+this.poll.id)
+      }
       this.resetModal()
     },
 

@@ -12,6 +12,11 @@ var webpackConfig = process.env.NODE_ENV === 'testing'
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
+
+console.log("process.env.PORT = "+process.env.PORT)
+console.log("Starting dev-server.js on PORT "+port+" in env "+process.env.NODE_ENV)
+console.log("dev.env = "+JSON.stringify(config.dev.env))
+
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware
 var proxyTable = config.dev.proxyTable

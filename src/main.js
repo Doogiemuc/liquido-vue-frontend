@@ -150,7 +150,7 @@ var isBackendAlive = function() {
   .catch(err => {
     var errorMsg = "FATAL ERROR: Backend is NOT available at "+process.env.backendBaseURL + ": "+err 
     console.error(errorMsg)
-    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available! Please try again later.</p>')
+    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available at '+process.env.backendBaseURL+' !</p><p>Please try again later.</p>')
     return Promise.reject(errorMsg)
   })
 }
@@ -172,7 +172,7 @@ var checkDevelopmentMode = function() {
 }
 
 var startApp = function(props) {
-  log.debug("Starting Vue app (with currentUser.email="+currentUser.email+" and props=", props)
+  log.debug("Starting Vue app (with currentUser.email="+ (currentUser ? currentUser.email : "<null>") +" and props=", props)
 
   const rootVue = new Vue({
     el: '#app',
@@ -181,7 +181,7 @@ var startApp = function(props) {
       api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information
-      currentUserURI: currentUser._links.self.href   // URI of the currently logged in user, e.g. http://localhost:8080/liquido/v2/users/1
+      currentUserURI: currentUser ? currentUser._links.self.href : undefined   // URI of the currently logged in user, e.g. http://localhost:8080/liquido/v2/users/1
     },
     ...RootApp
   }).$mount()

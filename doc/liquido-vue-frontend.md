@@ -79,17 +79,20 @@ Cast you vote, ie. sort proposals into your personally preferred order.
     
 
 
-# Backlog / Roadmap
+# Functional Roadmap
+
+ - See result of poll.
+ - Validate my vote by copy&past CSV chechsums.
+ - Proxies are able to accept or reject delegations.
+
+
+# Technical Spikes
 
  - Bootstrap [Nav Pills as Arrows](https://benjii.me/2014/03/wizard-style-navigation-tabs-for-bootstrap/)   *DONE*
  
  - Try [vue2-datatable-component](https://onewaytech.github.io/vue2-datatable/examples/dist/#)  supports folding and grouping
 
  - How to handle events that should buuble up [My Forum post](https://forum.vuejs.org/t/a-call-for-bringing-back-broadcast-events/6067)
-
- - Flash messages: 
-   - Show confirmation and error messages that disapear (like in JIRA at the top right)
-   - Show introduction at the top of pages like UserHome when visiting a page for the first time.
 
 ## Thoughts about IDs
 
