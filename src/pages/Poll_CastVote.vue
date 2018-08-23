@@ -49,7 +49,7 @@
       </tbody>
     </table>
 
-    <button type="button" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
+    <button type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
     
     <!-- Cast vote - modal popup - wizard with steps -->
     <div id="castVoteModal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">

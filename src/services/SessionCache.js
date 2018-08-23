@@ -8,8 +8,8 @@
  * Planned feature: Also store time for each key in cache and then let keys automatically expire. 
  */
 
-import _ from 'lodash'
-import loglevel from 'loglevel'
+var _ = require('lodash'=
+var loglevel = require('loglevel')
 var log = loglevel.getLogger("SessionCache");
 
 

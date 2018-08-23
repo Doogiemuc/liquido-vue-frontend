@@ -8,9 +8,9 @@
  * - forceNoCache: do not use the cache for the next request.
  */
 
-import loglevel from 'loglevel'
-var log = loglevel.getLogger("cachingInterceptor");
-var interceptor = require('rest/interceptor');
+var loglevel = require('loglevel')
+var log = loglevel.getLogger("cachingInterceptor")
+var interceptor = require('rest/interceptor')
 
 /** 
  * The cache is an Object. So you can practically store up to 1 million responses by url in here. 
@@ -61,7 +61,7 @@ var getFromCache = function(key) {
 }
 
 /** ES6 module default export creates interceptor via cujos factory */
-export default interceptor({
+module.exports = interceptor({
   /**
    * setup the cache 
    */

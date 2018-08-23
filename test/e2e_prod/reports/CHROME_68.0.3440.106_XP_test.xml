@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="1"
+            tests="2">
+
+  <testsuite name="test"
+    errors="0" failures="1" hostname="" id="" package="test" skipped="0"
+    tests="2" time="19.16" timestamp="Mon, 20 Aug 2018 11:27:03 GMT">
+  
+    <testcase name="Liquido startpage - check that backend is available" time="9.723" assertions="2">
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="User Home - open poll in voting" time="9.440" assertions="1">  <failure message="Timed out while waiting for element &lt;body &gt; div.container div.panel.panel-default.pollPanel div.panel-heading &gt; h4&gt; to be present for 3000 milliseconds.">    at Object.User Home - open poll in voting (C:\Doogie\Coding\git-repos\liquido-vue-frontend\test\e2e_prod\specs\test.js:16:6)
+    at _combinedTickCallback (internal/process/next_tick.js:131:7)</failure>
+
+    
+    </testcase>
+  
+  
+  </testsuite>
+</testsuites>

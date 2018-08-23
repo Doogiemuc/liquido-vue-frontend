@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="1"
+            tests="1">
+
+  <testsuite name="pollTests"
+    errors="0" failures="1" hostname="" id="" package="pollTests" skipped="0"
+    tests="1" time="11.17" timestamp="Tue, 21 Aug 2018 12:59:52 GMT">
+  
+    <testcase name="Show poll in voting phase" time="11.17" assertions="3">
+
+    
+
+      <failure message="Timed out while waiting for element &lt;#rightContainer &gt; div.panel.panel-default.lawPanel&gt; to be present for 3000 milliseconds.">    at Show poll in voting phase.apiClient.findPollsByStatus.then.res (C:\Doogie\Coding\git-repos\liquido-vue-frontend\test\e2e_prod\specs\pollTests.js:36:7)
+    at &lt;anonymous&gt;
+    at process._tickCallback (internal/process/next_tick.js:188:7)</failure>
+
+    
+    </testcase>
+  
+  
+  </testsuite>
+</testsuites>

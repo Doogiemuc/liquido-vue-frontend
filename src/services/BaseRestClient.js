@@ -1,4 +1,8 @@
 /**
+
+  DEPRECATED !!!! Superseeded by LiquidoApiClient.js !!!!!!!!
+
+
  * This is a base class for a RESTful Client of one MongoDB collection using the mLabDataAPI.
  *
  * It is responsible for

@@ -4,16 +4,16 @@
  * CuJOs REST is a quite powerful REST lib. 
  */
 
-import rest from 'rest'  
-import mime from 'rest/interceptor/mime'
-import errorCode from 'rest/interceptor/errorCode'
-import pathPrefix from 'rest/interceptor/pathPrefix'
-import template from 'rest/interceptor/template'
-import basicAuth from 'rest/interceptor/basicAuth'
-import uriListConverter from './uriListConverter'               // for handling Content-Type: "text/uri-list", used e.g. when adding a supporter to an idea
-import cachingInterceptor     from './cachingInterceptor'       // cache requests by URL (with TTL)
-import logRequestsInterceptor from './logRequestsInterceptor'   // very detailed loging of all HTTP requests and responses incl. payload
-import loglevel from 'loglevel'
+var rest = require('rest')
+var mime = require('rest/interceptor/mime')
+var errorCode = require('rest/interceptor/errorCode')
+var pathPrefix = require('rest/interceptor/pathPrefix')
+var template = require('rest/interceptor/template')
+var basicAuth = require('rest/interceptor/basicAuth')
+var uriListConverter = require('./uriListConverter')              // for handling Content-Type: "text/uri-list", used e.g. when adding a supporter to an idea
+var cachingInterceptor     = require('./cachingInterceptor')      // cache requests by URL (with TTL)
+var logRequestsInterceptor = require('./logRequestsInterceptor')  // very detailed loging of all HTTP requests and responses incl. payload
+var loglevel = require('loglevel')
 
 var log = loglevel.getLogger("LiquidoApiClient");
 log.debug("Creating httpClient for backend at "+process.env.backendBaseURL)
@@ -34,7 +34,7 @@ var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// convert
 
 
 
-export default {
+module.exports = {
   /** 
    * Login a user. Every future request will send these credentials with HTTP BasicAuth
    * @username {string} the username

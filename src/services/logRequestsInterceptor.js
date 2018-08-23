@@ -7,7 +7,7 @@
  *   var client = rest.wrap(logRequestsInterceptor)
  */
 
-import loglevel from 'loglevel'
+var loglevel = require('loglevel')
 // import MD5 from 'crypto-js/md5'
 var log = loglevel.getLogger("logRequestsInterceptor");
 var interceptor = require('rest/interceptor');
@@ -35,7 +35,7 @@ var hashStr = function(str) {
 
 
 
-export default interceptor({
+module.exports = interceptor({
   
   init: function (config) {
     config.requestPrefix  = config.requestPrefix  || '=> '

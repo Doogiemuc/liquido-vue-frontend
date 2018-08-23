@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="1"
+            failures="0"
+            tests="1">
+
+  <testsuite name="smokeTest"
+    errors="1" failures="0" hostname="" id="" package="smokeTest" skipped="0"
+    tests="1" time="6.002" timestamp="Tue, 21 Aug 2018 12:35:17 GMT">
+  
+    <testcase name="Liquido startpage - check that backend is available" time="6.002" assertions="2">
+
+    
+
+    
+    </testcase>
+      <system-err>
+          Error while running [Smoke Test / Liquido startpage - check that backend is available]:
+
+  TypeError: Cannot read property &#39;1&#39; of null
+    at logEntries.forEach.log (C:\Doogie\Coding\git-repos\liquido-vue-frontend\test\e2e_prod\custom-commands\appendLog.js:58:81)
+    at Array.forEach (&lt;anonymous&gt;)
+    at Object.self.api.getLog.logEntries (C:\Doogie\Coding\git-repos\liquido-vue-frontend\test\e2e_prod\custom-commands\appendLog.js:56:16)
+    at Object.&lt;anonymous&gt; (C:\Doogie\Coding\git-repos\liquido-vue-frontend\node_modules\nightwatch\lib\api\client-commands.js:464:20)
+    at HttpRequest.&lt;anonymous&gt; (C:\Doogie\Coding\git-repos\liquido-vue-frontend\node_modules\nightwatch\lib\index.js:365:18)
+    at emitTwo (events.js:125:13)
+    at HttpRequest.emit (events.js:213:7)
+    at HttpRequest.&lt;anonymous&gt; (C:\Doogie\Coding\git-repos\liquido-vue-frontend\node_modules\nightwatch\lib\index.js:381:15)
+    at emitThree (events.js:135:13)
+    at HttpRequest.emit (events.js:216:7)
+      </system-err>
+  
+  
+  </testsuite>
+</testsuites>

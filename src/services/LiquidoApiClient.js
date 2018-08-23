@@ -11,11 +11,11 @@
  * with an error message.
  */
 
-import httpClient from './httpClient'
-import rest from 'rest'  
-import mime from 'rest/interceptor/mime'
-import pathPrefix from 'rest/interceptor/pathPrefix'
-import loglevel from 'loglevel'
+var httpClient = require('./httpClient')
+var rest = require('rest')
+var mime = require('rest/interceptor/mime')
+var pathPrefix = require('rest/interceptor/pathPrefix')
+var loglevel = require('loglevel')
 
 var log = loglevel.getLogger("LiquidoApiClient");
 

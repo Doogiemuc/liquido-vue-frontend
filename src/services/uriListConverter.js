@@ -2,7 +2,7 @@
  * MIME type interceptor for our REST client that can handle 
  * Content-type: "text/uri"
  */
-import registry from 'rest/mime/registry'
+var registry = require('rest/mime/registry')
 
 var uriListConverter = {
 	read: function (str, opts) {

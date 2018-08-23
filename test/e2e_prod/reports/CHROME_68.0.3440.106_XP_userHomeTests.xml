@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="1"
+            tests="1">
+
+  <testsuite name="userHomeTests"
+    errors="0" failures="1" hostname="" id="" package="userHomeTests" skipped="0"
+    tests="1" time="3.663" timestamp="Tue, 21 Aug 2018 12:35:23 GMT">
+  
+    <testcase name="UserHome with poll in voting" time="3.663" assertions="1">  <failure message="Expected element &lt;body div.container div.panel.panel-default.pollPanel div.panel-heading &gt; h4&gt; text to equal: &quot;Poll in voting phase&quot; - element was not found">    at Object.UserHome with poll in voting (C:\Doogie\Coding\git-repos\liquido-vue-frontend\test\e2e_prod\specs\userHomeTests.js:11:18)
+    at _combinedTickCallback (internal/process/next_tick.js:131:7)</failure>
+
+    
+    </testcase>
+  
+  
+  </testsuite>
+</testsuites>

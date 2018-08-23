@@ -1,0 +1,47 @@
+ # Liquido Startpage - backend is available   [INFO] 1534763309000 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido Startpage - backend is available   [DEBUG] 1534763310013 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # Liquido Startpage - backend is available   [DEBUG] 1534763310014 : enableCache
+ # Liquido Startpage - backend is available   [DEBUG] 1534763310074 : Backend is alive at http://localhost:8080/liquido/v2
+ # Liquido Startpage - backend is available   [INFO] 1534763310075 : Running in development mode. Increase log level and automatically log in a default user.
+ # Liquido Startpage - backend is available   [DEBUG] 1534763310076 : LiquidoApiClient User login: testuser0@liquido.de
+ # Liquido Startpage - backend is available   [INFO] 1534763310078 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido Startpage - backend is available   [DEBUG] 1534763310127 : Starting Vue app (with currentUser.email=testuser0@liquido.de and props=
+ # Liquido Startpage - backend is available   [INFO] 1534763310148 : ===== Liquido web app has started.
+ # Liquido Startpage - backend is available   [INFO] 1534763329324 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido Startpage - backend is available   [DEBUG] 1534763329879 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # Liquido Startpage - backend is available   [DEBUG] 1534763329880 : enableCache
+ # Liquido Startpage - backend is available   [DEBUG] 1534763329945 : Backend is alive at http://localhost:8080/liquido/v2
+ # Liquido Startpage - backend is available   [INFO] 1534763329946 : Running in development mode. Increase log level and automatically log in a default user.
+ # Liquido Startpage - backend is available   [DEBUG] 1534763329946 : LiquidoApiClient User login: testuser0@liquido.de
+ # Liquido Startpage - backend is available   [INFO] 1534763329948 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido Startpage - backend is available   [DEBUG] 1534763329994 : Starting Vue app (with currentUser.email=testuser0@liquido.de and props=
+ # Liquido Startpage - backend is available   [INFO] 1534763330023 : ===== Liquido web app has started.
+ # Liquido startpage - check that backend is available   [INFO] 1534764138903 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764139617 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764139617 : enableCache
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764139716 : Backend is alive at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [INFO] 1534764139717 : Running in development mode. Increase log level and automatically log in a default user.
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764139717 : LiquidoApiClient User login: testuser0@liquido.de
+ # Liquido startpage - check that backend is available   [INFO] 1534764139717 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764139791 : Starting Vue app (with currentUser.email=testuser0@liquido.de and props=
+ # Liquido startpage - check that backend is available   [INFO] 1534764139829 : ===== Liquido web app has started.
+ # Liquido startpage - check that backend is available   [INFO] 1534764175006 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764175658 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764175659 : enableCache
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764175721 : Backend is alive at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [INFO] 1534764175721 : Running in development mode. Increase log level and automatically log in a default user.
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764175722 : LiquidoApiClient User login: testuser0@liquido.de
+ # Liquido startpage - check that backend is available   [INFO] 1534764175737 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764175825 : Starting Vue app (with currentUser.email=testuser0@liquido.de and props=
+ # Liquido startpage - check that backend is available   [INFO] 1534764175889 : ===== Liquido web app has started.
+ # Liquido startpage - check that backend is available   [INFO] 1534764431420 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764431966 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764431967 : enableCache
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764432025 : Backend is alive at http://localhost:8080/liquido/v2
+ # Liquido startpage - check that backend is available   [INFO] 1534764432025 : Running in development mode. Increase log level and automatically log in a default user.
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764432026 : LiquidoApiClient User login: testuser0@liquido.de
+ # Liquido startpage - check that backend is available   [INFO] 1534764432028 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [DEBUG] 1534764432091 : Starting Vue app (with currentUser.email=testuser0@liquido.de and props=
+ # Liquido startpage - check that backend is available   [INFO] 1534764432119 : ===== Liquido web app has started.
+ # Liquido startpage - check that backend is available   [INFO] 1534854845504 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # Liquido startpage - check that backend is available   [INFO] 1534854920932 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
