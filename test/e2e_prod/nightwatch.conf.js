@@ -5,10 +5,9 @@
 // See http://nightwatchjs.org/guide#settings-file   for infos about this file
 //
 
-// var webapp = "https://testuser1%40liquido.de:dummyPasswordHash@liquido-vue-frontend-doogiemuc.c9users.io:443"
-var webapp = "http://testuser1%40liquido.de:dummyPasswordHash@localhost:3001"
-var backend = "http://localhost:8080/liquido/v2"
-console.log("Nightwatchjs is testing liquido\nwebapp: "+webapp+"\nbackend: "+backend)
+// Dummy credentials
+var user   = "testuser1%40liquido.de"
+var pass   = "dummyPasswordHash"
 
 module.exports = {
   "src_folders": ["test/e2e_prod/specs"],
@@ -29,15 +28,13 @@ module.exports = {
 
   "test_settings": {
     "default": {
-      "launch_url" : webapp,
+      "launch_url" : "http://"+user+":"+pass+"@localhost:3001",
       "selenium_port": 4444,
       "selenium_host": "localhost",
       "silent": true,
       "globals" : {
         "user1"   : "testuser1@liquido.de",
         "pass1"   : "dummyPasswordHash",
-				"webapp"  : webapp,
-				"backend" : backend,
         "appendToLog" : {
           "log2File" : "test/e2e_prod/logs/chrome_console.log",
           "log2Console" : true,
@@ -46,18 +43,58 @@ module.exports = {
       }
     },
 
-    "chrome": {
+    "iron_aws": {
+      "launch_url" : "http://"+user+":"+pass+"@ec2-34-245-164-48.eu-west-1.compute.amazonaws.com:80",
+      "globals" : {
+        "webapp"  : "http://ec2-34-245-164-48.eu-west-1.compute.amazonaws.com:80",
+        "backend" : "http://localhost:8080/liquido/v2",
+      },
       "desiredCapabilities": {
         "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "loggingPrefs": { "browser": "ALL" },    // needed to capture logs https://groups.google.com/forum/#!topic/nightwatchjs/KWdF37qE038
         "chromeOptions": {
-					 "args": [
-             "--user-agent=Headless",
-             "--window-size=1024,768"
-        ]
-        //  "binary": "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe"
+          "args": [
+            "--window-size=1024,768"
+          ],
+          "binary": "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe"
+        }
+      }
+    },
+
+    "iron_local": {
+      "launch_url" : "http://localhost:3001",
+      "globals" : {
+        "webapp"  : "http://localhost:3001",
+        "backend" : "http://localhost:8080/liquido/v2",
+      },
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true,
+        "loggingPrefs": { "browser": "ALL" },    // needed to capture logs https://groups.google.com/forum/#!topic/nightwatchjs/KWdF37qE038
+        "chromeOptions": {
+          "args": [
+            "--window-size=1024,768"
+          ],
+          "binary": "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe"
+        }
+      }
+    },
+
+    "chrome_cloud9": {
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true,
+        "loggingPrefs": { "browser": "ALL" },    // needed to capture logs https://groups.google.com/forum/#!topic/nightwatchjs/KWdF37qE038
+        "chromeOptions": {
+					"args": [
+            "--user-agent=Headless",             // needed for frontend running on cloud9.io
+            "--window-size=1024,768"
+          ],
+          "binary": "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe"
         }
       }
     },
@@ -68,6 +105,6 @@ module.exports = {
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }
-    }
+    },
   }
 }

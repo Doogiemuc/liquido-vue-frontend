@@ -45,3 +45,73 @@
  # Liquido startpage - check that backend is available   [INFO] 1534764432119 : ===== Liquido web app has started.
  # Liquido startpage - check that backend is available   [INFO] 1534854845504 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
  # Liquido startpage - check that backend is available   [INFO] 1534854920932 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997424758 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997424758 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425067 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425068 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425072 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425072 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425104 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425104 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425104 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997425123 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555451 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555451 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555751 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555752 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555755 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555755 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555774 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555775 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555775 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997555791 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612004 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612004 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612300 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612301 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612305 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612305 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612332 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612332 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612332 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536997612348 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116284 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116284 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116586 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116586 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116590 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116590 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116613 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116616 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116616 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998116632 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384345 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384345 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384643 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384644 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384648 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384648 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384680 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384680 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384680 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998384694 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591001 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591001 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591289 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591290 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591293 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591294 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591310 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591310 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591310 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1536998591325 : ===== Liquido web app has started.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003415709 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003415709 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416009 : Creating httpClient for backend at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416010 : enableCache
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416013 : Download the Vue Devtools extension for a better development experience:\nhttps://github.com/vuejs/vue-devtools
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416014 : You are running Vue in development mode.\nMake sure to turn on production mode when deploying for production.\nSee more tips at https://vuejs.org/guide/deployment.html
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416033 : Backend is alive at http://localhost:8080/liquido/v2
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416033 : Running in development mode.
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416033 : Starting Vue app (with currentUser.email=\u003Cnull> and props=
+ # smokeTest - Liquido startpage - check that backend is available   [INFO] 1537003416049 : ===== Liquido web app has started.

@@ -12,11 +12,17 @@
           <router-link to="/" class="navbar-brand"><i class="fa fa-university"></i> Liquido</router-link>
         </div>
         <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav nav-arrows">
+          <ul class="nav navbar-nav nav-arrows" v-if="currentUser">
             <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
             <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
             <li><router-link active-class="active" to="/polls">Polls</router-link></li>
             <li><router-link active-class="active" to="/laws">Laws</router-link></li>
+          </ul>
+          <ul class="nav navbar-nav nav-arrows" v-else>
+            <li><a href="#">Ideas</a></li>
+            <li><a href="#">Proposals</a></li>
+            <li><a href="#">Polls</a></li>
+            <li><a href="#">Laws</a></li>
           </ul>
 
           <ul class="nav navbar-nav navbar-right" v-if="currentUser">
@@ -32,14 +38,12 @@
                 <li><router-link to="/account">My Account</router-link></li>
                 <li><router-link to="/messages">Messages</router-link></li>
                 <li class="divider"></li>
-                <li><router-link to="/logout'">Logout</router-link></li>
+                <li><router-link to="/logout">Logout via URL</router-link></li>
               </ul>
             </li>
           </ul>
-          <ul class="nav navbar-nav navbar-right" v-else="currentUser">
-            <li><router-link to="/login">Login</router-link></li>
-            <li><router-link to="/signup">Create Account</router-link></li>
-          </ul>
+          <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
+          <div></div>
         </div>
       </div>
     </div>
@@ -50,13 +54,19 @@
 <script>
 /**
  * RootApp.vue - Vue component at the root of the component tree.
+ * Renders the NavBar at the top.
  */
-export default {
 
+import apiClient from '../services/LiquidoApiClient'
+
+export default {
   //TODO: make RootApp testable on its own: Problem: How to hanlde <router-view> ?
 
-  //TODO: I could load the default user here in  beforeCreate()
+  methods: {
+    //MAYBE: these methods could be called from all components as this.$root.method()
+  }
 }
+
 </script>
 
 <style>
@@ -68,7 +78,7 @@ export default {
   .navbar-brand {
     font-size: 25px;
   }
-  
+
   /* Arrows for nav links */
   .navbar-nav.nav-arrows {
     margin-left: 25px;

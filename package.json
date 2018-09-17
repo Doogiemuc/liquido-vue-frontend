@@ -12,9 +12,10 @@
     "build": "node build/build.js",
     "smoke": "babel-node test/jasmine/runJasmineTestsWithNode.js",
     "unit": "karma start test/unit/karma.conf.js --single-run",
-    "e2e": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env chrome",
-    "e2e_dev": "node test/e2e/runner.js",
-    "test": "npm run unit && npm run e2e"
+    "test_aws": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_aws",
+    "test_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
+    "e2e_with_devServer": "node test/e2e/runner.js",
+    "test": "npm run unit && npm run e2e-dev"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 /**
  * appendLog.js Nightwatch custom command that appends browser console log entries to a text file
- * appendLog can be used like this in your nicht watch test
+ * appendLog can be used like this in your nigtwatch test
  * <pre>
  *    'TestCase1': function (browser) {
  *       browser.url(browser.launchUrl)
@@ -46,7 +46,7 @@ AppendLog.prototype.command = function(logFile, callback) {
   this.api.globals.appendToLog = this.api.globals.appendToLog || {}
   var logFile = logFile || this.api.globals.appendToLog.log2File
   //console.log("   AppendLog to "+logFile+ "test name = "+self.api.currentTest.name)
-  if (!logFile) { 
+  if (!logFile) {
     console.log("WARN: need logFile to AppendLog")
     return
   }
@@ -58,7 +58,7 @@ AppendLog.prototype.command = function(logFile, callback) {
       var msgStr = '   [' + log.level + '] ' + log.timestamp + ' : ' + parsedMsg[1]
       if (self.api.globals.appendToLog.log2Console) { console.log(msgStr) }
       if (self.api.globals.appendToLog.logTestNames) {
-        logStream.write(" # "+self.api.currentTest.name)
+        logStream.write(" # "+self.api.currentTest.module+" - "+self.api.currentTest.name)
       }
       logStream.write(msgStr+"\n")
     })

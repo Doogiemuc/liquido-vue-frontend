@@ -1,7 +1,9 @@
-/** 
+/**
  * HTTP client for sending requests to the backend.
  * I am using (CuJoJs Rest Client)[https://github.com/cujojs/rest] and its interceptors
- * CuJOs REST is a quite powerful REST lib. 
+ * CuJOs REST is a quite powerful REST lib.
+ *
+ * This module handles all the HTTP specific stuff. It is in no way liquido specific.
  */
 
 var rest = require('rest')
@@ -20,13 +22,15 @@ log.debug("Creating httpClient for backend at "+process.env.backendBaseURL)
 
 /* This is a whitelist for requests that will be cached locally in the browser */
 var cacheConfig     = { urlFilter: /CACHE_NOTHING/ }
+
+/* Username and password for HTTP BasicAuth. This JS object can be updated later on. */
 var basicAuthConfig = { username: null, password: null }
 
 // !!!!! The order of these interceptors is EXTREMELY important !!!!!
 // !!!!! The *outer* interceptors at the *bottom* come first. The inner interceptors are executed last.
 var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// convert entity according to mime type
 		                 .wrap(cachingInterceptor, cacheConfig)  				 			// caching interceptor must be BEFORE the mime interceptor!
-		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400 
+		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400
 		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // logs a lot of data. Also try your browsers debug console
                      .wrap(basicAuth, basicAuthConfig)                    // login
 										 .wrap(template)																			// support query parameters in the url
@@ -35,22 +39,25 @@ var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// convert
 
 
 module.exports = {
-  /** 
+  /**
    * Login a user. Every future request will send these credentials with HTTP BasicAuth
    * @username {string} the username
    * @password {string} the password
-   * @return a REST client that will send this basicAuth information on each request. (A CuJo REST client wraped with a CuJo basicAuth interceptor.)
    */
   login(username, password) {
     basicAuthConfig.username = username
-    basicAuthConfig.password = password 
+    basicAuthConfig.password = password
   },
 
+  /**
+   * log out the current user
+   */
   logout() {
     basicAuthConfig.username = null
     basicAuthConfig.password = null
+    //TODO: cachingInterceptor.flush()    // empty the cache
   },
- 
+
   /**
    * Configure which urls shall be cached. (whitelist)
    * @urlFilter {String or RegEx} urls that match this regex will be cached.
@@ -62,7 +69,7 @@ module.exports = {
   	} else {
   		cacheConfig.urlFilter = urlFilter
   	}
-  },  
+  },
 
   /**
    * disable cache for next request only
