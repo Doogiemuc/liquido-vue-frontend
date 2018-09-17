@@ -21,7 +21,21 @@ module.exports = {
     port: 3001,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+			/*
+			// proxy all requests starting with /liquido/v2 to AWS EC2 server 
+      '/liquido/v2': {
+        target: 'http://ec2-34-242-101-191.eu-west-1.compute.amazonaws.com',
+        changeOrigin: true,
+        //pathRewrite: {
+        //  '^/api': ''
+        //}
+				//router: {
+				//	'localhost:3001' : 'http://ec2-34-242-101-191.eu-west-1.compute.amazonaws.com:80'
+				//}
+			}
+			*/
+		},
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README
     // (https://github.com/webpack/css-loader#sourcemaps)
