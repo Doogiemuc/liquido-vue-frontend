@@ -5,11 +5,13 @@
  *  - caching of requests
  *  - error handling
  * Under the hood REST requests are sent with the CuJoJs REST client and its powerfull interceptors.
- * 
+ *
  * Error handling
  * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
  * with an error message.
  */
+
+//TODO: Also try https://github.com/marmelab/restful.js   or better even go with GraphQL
 
 var httpClient = require('./httpClient')
 var rest = require('rest')
@@ -28,11 +30,12 @@ if (process.env.backendBaseURL === undefined) {
 // Module private fields and methods
 //==================================================================================================================
 
-//TODO: Also try https://github.com/marmelab/restful.js   or better even go with GraphQL 
-
+// httpClient is configuring CuJoJS REST client
+// This client variable is used throughout this module.
+// The inner httpClient is only used for login/logout
 var client = httpClient.getClient()
 
-/** 
+/**
  * Get the internal DB id of a model. IDs are numbers.
  * This is an internal method and should not be exposed.
  */
@@ -48,16 +51,22 @@ var getId = function(model) {
 
 module.exports = {
 
+  /**
+   * Login this user
+   * @return full user object or Promise.reject() on error
+   */
   login(username, password) {
     log.debug("LiquidoApiClient User login: "+username)
     httpClient.login(username,password)
+    return this.findUserByEmail(username)
   },
 
   logout() {
     httpClient.logout()
+    //TODO: flush the cache
   },
 
-  /** 
+  /**
    * Check if backend is alive.
    * @return A Promise that will reject (quickly) when the backend is not reachable.
    */
@@ -87,12 +96,12 @@ module.exports = {
     httpClient.noCacheForNextRequest()
   },
 
-  /** 
-   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource, 
+  /**
+   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource,
    * e.g. <pre>http://localhost:8080/liquido/v2/areas/42</pre>
    * @param {String|Object} model If you already pass a valid URI as a string, then that URI will be returned as is.
    *        Otherwise you can also pass a model that you loaded before. Then its _links.self_href will be returned.
-   * @return {URI} an URI that points to a resource on our REST backend 
+   * @return {URI} an URI that points to a resource on our REST backend
    */
   getURI(model) {
     var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'[\\w/]*/\\d+$')
@@ -104,7 +113,7 @@ module.exports = {
         if (uri.endsWith("{?projection}")) {
           uri = uri.slice(0, -13);    //remove "{?projection}" from the end  !!!
         }
-        return uri    
+        return uri
       } catch (err) {
 				console.log("Cannot get URI of ", model, err)
         throw new Error("Cannot get URI of "+model+": "+err)
@@ -113,21 +122,21 @@ module.exports = {
   },
 
   //MAYBE: getModelById(id, modelClass),  e.g   getModelById(4711, 'laws') => process.env.backendBaseURL + '/' + modelClass + '/' + id
-	
+
 //==================================================================================================================
 // Users
 //==================================================================================================================
 
   getAllUsers() {
-    return client('/users').then( 
+    return client('/users').then(
       res => { return res.entity._embedded.users }
     )
   },
 
   findUserByEmail(email) {
-    return client('/users/search/findByEmail?email='+email).then(
-      res => { return res.entity }
-    )
+    return client('/users/search/findByEmail?email='+email)
+     .then(res => { return res.entity })
+     .catch(err => { return Promise.reject({msg: "Cannot findUserByEmail", email: email, err: err}) })
   },
 
 //==================================================================================================================
@@ -138,17 +147,17 @@ module.exports = {
   // They would also be cached by our cachingInterceptor, but we want a longer TTL
   globalPropertiesCache : undefined,
 
-  /** 
-   * Global configuration properties from the backend. 
+  /**
+   * Global configuration properties from the backend.
    * Values will be cached via lazy loading.
    */
   getGlobalProperties() {
     if (this.globalPropertiesCache !== undefined) return this.globalPropertiesCache;
     log.debug("Loading global properties from backend (and caching them)")
     return client('/globalProperties').then(
-      res => { 
+      res => {
         this.globalPropertiesCache = res.entity
-        return res.entity 
+        return res.entity
       }
     )
   },
@@ -221,9 +230,9 @@ module.exports = {
   removeProxy(category) {
     if (!category) throw new Error("Missing category for removeProxy()")
     return client({
-      method: 'DELETE', 
+      method: 'DELETE',
       path:   process.env.backendBaseURL+'/deleteProxy/'+getId(category),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
@@ -242,17 +251,17 @@ module.exports = {
 	 */
 	getLaw(lawIdOrURI, projected) {
     var lawURI
-    if (!isNaN(lawIdOrURI)) lawURI = process.env.backendBaseURL+'/laws/'+lawIdOrURI 
-    else lawURI = this.getURI(lawIdOrURI) 
+    if (!isNaN(lawIdOrURI)) lawURI = process.env.backendBaseURL+'/laws/'+lawIdOrURI
+    else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
     httpClient.noCacheForNextRequest()
-    return client(lawURI).then(res => { 
-      return res.entity 
+    return client(lawURI).then(res => {
+      return res.entity
     }).catch(err => {
       log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
       return Promise.reject({msg: "Cannot get law", lawURI: lawURI, httpStatusCode: err.status.code})
-      //throw new Error(err)  NO! See https://stackoverflow.com/questions/33445415/javascript-promises-reject-vs-throw 
+      //throw new Error(err)  NO! See https://stackoverflow.com/questions/33445415/javascript-promises-reject-vs-throw
     })
   },
 
@@ -266,7 +275,7 @@ module.exports = {
 	 * @param {number} page number of page to load
 	 * @param {size}   size length of one page
 	 * @param {string} sort <name of attribute>[,asc|desc]
-   * @return paged list of ideas, proposals or laws 
+   * @return paged list of ideas, proposals or laws
    */
   findByStatus(status, page, size, sort) {
     log.debug("findByStatus(status="+status+")")
@@ -305,7 +314,7 @@ module.exports = {
    * @param user URI of a user or a user object
    */
   findSupportedBy(user, status) {
-    var userURI = this.getURI(user)     
+    var userURI = this.getURI(user)
     log.debug("findSupportedBy(user="+userURI+")")
     return client('/laws/search/findSupportedBy?status='+status+'&user='+encodeURIComponent(userURI))   //BUGFIX: Need to encode URI otherwise rest client gets confued.  THIS STOLE ME A WEEK ARGL!!! :-(
     .then(res => { return res.entity._embedded.laws })
@@ -323,17 +332,17 @@ module.exports = {
       path:   '/laws',
       headers: { 'Content-Type' : 'application/json' },
       entity: newIdea
-    }).then(res => { 
-      return res.entity 
+    }).then(res => {
+      return res.entity
     }).catch(err => {
       log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
       return Promise.reject(err)
     })
   },
 
-  /** 
+  /**
    * Update some fields of an existing(!) idea, proposal or law.
-   * @param URI the absolute REST path to the resource on the server. 
+   * @param URI the absolute REST path to the resource on the server.
    * @param the fields that shall be updated. (Does not need to contain all fields.)
    * @return the response sent from the server which is normally the complete updated resource with all its fields.
    */
@@ -341,13 +350,13 @@ module.exports = {
     log.debug("PATCH "+uri+" "+JSON.stringify(update))
     if (!uri.startsWith('http')) return Promise.reject("ERROR in patchIdea: URI must start with http(s)! wrong_uri="+uri)
     if (!update) return Promise.reject("patchIdea called with empty update")
-    return client({ 
-      method: 'PATCH', 
-      path:   uri, 
+    return client({
+      method: 'PATCH',
+      path:   uri,
       headers: { 'Content-Type' : 'application/json' },
       entity: update
-    }).then(res => { 
-      return res.entity 
+    }).then(res => {
+      return res.entity
     }).catch(err => {
       log.error("Cannot patch "+uri+" : "+err)
       return Promise.reject(err)
@@ -378,7 +387,7 @@ module.exports = {
     })
   },
 
-  /** 
+  /**
    * get recently created ideas
    * @param {String} (optional) since date in the format "yyyy-MM-dd"
    * @return {Promise} (a Promise that will resolve to) a list of LawModels of type == IDEA
@@ -390,7 +399,7 @@ module.exports = {
 			.catch(err => {
 				log.error("ERROR in apiClient: ", JSON.stringify(err))
 				return Promise.reject("LiquidoApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
-			}) 
+			})
   },
 
 //==================================================================================================================
@@ -428,7 +437,7 @@ module.exports = {
       .catch(err => { return Promise.reject("LiquidoApiClient: Cannot getComments(id="+proposalId+"): "+err) })
   },
 
-  /** 
+  /**
     * Upvote a comment of a proposal. Will add current user to the list of upvoters. Backend will not add an upvoter twice.
     * @param comment a comment model (JSON with comment._links.upVoters.href)
     * @return Promise (HTTP 204)
@@ -439,7 +448,7 @@ module.exports = {
     log.debug("upvoteComment", upvotersURI, userURI)
     return client({
       method: 'POST',
-      path: upvotersURI,     
+      path: upvotersURI,
       headers: { 'Content-Type' : 'text/uri-list' },
       entity: userURI
     })
@@ -453,20 +462,20 @@ module.exports = {
     log.debug("downvoteComment", downvotersURI, userURI)
     return client({
       method: 'POST',
-      path: downvotersURI,     
+      path: downvotersURI,
       headers: { 'Content-Type' : 'text/uri-list' },
       entity: userURI
     })
     .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot downvoteComment", comment: comment, err: err}) })
   },
 
-  /** 
+  /**
    * save a new comment (will automatically be createdBy currently logged in user)
    * @param newCommentText text of new comment
    * @param parent parent comment
    */
   saveComment(newCommentText, parent) {
-    var newComment = { comment: newCommentText }    
+    var newComment = { comment: newCommentText }
     if (parent) newComment['parent'] = parent._links.self.href
     log.debug("saveComment", newComment)
     return client({
@@ -496,7 +505,7 @@ module.exports = {
         headers: { 'Content-Type' : 'text/uri-list' },
         entity: createdComment._links.self.href
       })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot suggestImprovement", newImprovementText: newImprovementText, err: err}) })  
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot suggestImprovement", newImprovementText: newImprovementText, err: err}) })
     })
   },
 
@@ -518,7 +527,7 @@ module.exports = {
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
   },
 
-  /** 
+  /**
    * Get a poll with all its proposals
    * @param pollSelector a poll or a poll URI
    * @return a poll as JSON
@@ -526,11 +535,11 @@ module.exports = {
   getPoll(pollIdOrUri) {
     log.debug("getPoll", pollIdOrUri)
     var pollURI
-    if (!isNaN(pollIdOrUri)) pollURI = process.env.backendBaseURL+'/polls/'+pollIdOrUri 
-    else pollURI = this.getURI(pollIdOrUri) 
+    if (!isNaN(pollIdOrUri)) pollURI = process.env.backendBaseURL+'/polls/'+pollIdOrUri
+    else pollURI = this.getURI(pollIdOrUri)
     return client(pollURI)
       .then( res => { return res.entity })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) }) 
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) })
   },
 
   joinPoll(proposal, poll) {
@@ -548,11 +557,11 @@ module.exports = {
       }
       })
       .then( res => { return "" })  // returns HTTP status 201
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) }) 
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) })
   },
 
 
-  /** 
+  /**
    * Get user's voter token for the given area
    * @param  areaId Numeric numerical ID of area
    * @return Array list of voter Tokens
@@ -564,9 +573,9 @@ module.exports = {
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterTokens()", areaId: areaId, err: err}) })
   },
 
-  /** 
-   * Cast a vote 
-   * Example POST Payload 
+  /**
+   * Cast a vote
+   * Example POST Payload
    * <pre>
    * {
    *   "poll": "/liquido/v2/polls/253",

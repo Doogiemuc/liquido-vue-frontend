@@ -6,8 +6,6 @@ Liquido - a modern aproach for interactive, representative and direct democracy.
 
 Liquid Democracy or Proxy Voting is a modern variant of direct demorcacy. Voters cast their votes for polls, just as you do it today. But a voter can also delegate his vote to a proxy. Then the proxy votes for him. A proxy may accumulate multiple delegated votes. This is what political parties do in today's democracy. But in Liquid Democracy, a voter may revoke his delegation at any time. A voter may simply decide to vote for himself per every poll. A voter may also decide to delegate his vote to another proxy at any time. Not just every four years.
 
-
-
 # Liquido Architecture
 
 ![Liquido Architecture](./doc/Liquido Architecture.png)
@@ -32,6 +30,22 @@ This is my playground for learning the client side Java script framework [Vue 2.
  * A powerfull homebrew Vue Table component with filtering, sorting and pagination
  * Tests, tests and more tests.  I am a big fan of TDD!
 
+## Roadmap
+
+### Feature Roadmap
+
+ * Configuration: User may opt out to become a proxy. (Because his delegees would know how he voted.)
+
+### Technical Roadmap
+
+ * Deploy production build to AWS EC2 instance with https://wiki.alpinelinux.org/wiki/Lighttpd
+ * Automate this deployment
+   * via Bash script?
+   * Via AWS code deploy?
+ * MAYBE NOT: Deploy as docker image to ECS? Or is that overengeneering? I think so. In the end this is a simple HTML page with a lot of javascript! :-)
+
+
+
 ## Build Setup
 
 - `npm run dev`: first-in-class development experience.
@@ -55,11 +69,14 @@ This is my playground for learning the client side Java script framework [Vue 2.
   - Supports all webpack loaders.
   - Easy mock injection.
 
-- `npm run e2e`: End-to-end tests with [Nightwatch](http://nightwatchjs.org/).
+- `npm run e2e`: End-to-end tests that run against a given environment (e.g. PROD)
+
+- `npm run e2e_dev`: End-to-end tests with [Nightwatch](http://nightwatchjs.org/) that start their own dev-server locally.
   - Run tests in multiple browsers in parallel.
   - Works with one command out of the box:
     - Selenium and chromedriver dependencies automatically handled.
     - Automatically spawns the Selenium server.
+    - Automatically spawns a local dev-server that servers the frontend node app.
 
 
 
