@@ -34,7 +34,10 @@ const routes = [
     component: LoginPage,
     meta: { requiresAuth: false }
   },
-  { path: '/logout',    component: LogoutPage },
+  { path: '/logout',
+    component: LogoutPage,
+    meta: { requiresAuth: false }
+  },
 
   // asyncronously require components for lazy loading, WebPack code split point
   { path: '/categories',
