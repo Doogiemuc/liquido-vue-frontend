@@ -13,17 +13,19 @@ util.inherits(Login, events.EventEmitter);
 
 Login.prototype.command = function(user, pass, callback) {
   var self = this;
-  if (!user || !pass) {
+	if (!user || !pass) {
     console.log("ERROR: need user and pass to login")
     throw new Error("Need user and pass to login")
   }
   this.client.api
     .url(this.client.api.launchUrl+"/#/login")
-    .waitForElementVisible("#emailInput", 2000)
-    .setValue('#emailInput', this.api.globals.user1)
-    .setValue('#passwordInput', [this.api.globals.pass1, this.api.Keys.ENTER])
+    .waitForElementVisible('#emailInput', 2000)
+    .setValue('#emailInput', user)
+    .setValue('#passwordInput', pass)  // this.api.Keys.ENTER
+		.click('#loginButton')
+		.waitForElementVisible("#userMenu", 4000)
     .perform(function() {
-      console.log("   "+this.api.globals.user1+" logged in")
+      console.log("\x1b[32m √\x1b[0m", user, "logged in")
     })
     .end()
 

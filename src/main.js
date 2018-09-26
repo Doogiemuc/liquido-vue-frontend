@@ -192,19 +192,19 @@ router.beforeEach((to, from, next) => {
 */
 
 // ==============================================================================
-// Here we actually start the app.
+// Here we start the forontend app. 
 // A lot of things are happening here
 //
 // First we make a dummy request to the backend to check whether it's there at all. If not we show an error.
 // IF we are in development mode, then we load the first user by default and log him in.
-// Then we actually start the vue-router RootApp.vue which will replace the content of index.html
+// Then we start the vue-router RootApp.vue which will replace the content of index.html 
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
 var isBackendAlive = function() {
   return apiClient.ping()
   .then(() => {
-    log.debug("Backend is alive at "+process.env.backendBaseURL)
+    log.info("Backend is alive at "+process.env.backendBaseURL)
     return Promise.resolve("Backend is ok")
   })
   .catch(err => {
@@ -220,21 +220,21 @@ var currentUser = undefined
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
     log.info("Running in development mode.")
-    loglevel.setLevel("trace")                             // trace == log everything
+    loglevel.setLevel("trace")                              // trace == log everything		
   }
   // automatically login a user if values are set
   if (process.env.autoLoginUser && process.env.autoLoginPass) {
     log.info("Automatic login of "+process.env.autoLoginUser)
-    apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)
-    return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => {
-      currentUser = user
-    })
-  }
+		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)         
+		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => { 
+			currentUser = user  
+		})
+	}
   return Promise.resolve()
 }
 
 var startApp = function(props) {
-  log.debug("Starting Vue app (with currentUser.email="+ (currentUser ? currentUser.email : "<null>") +" and props=", props)
+  log.info("Starting Vue app (with currentUser.email="+ (currentUser ? currentUser.email : "<null>") +" and props=", props)
 
   const rootVue = new Vue({
     el: '#app',

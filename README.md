@@ -84,6 +84,59 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 
 ## History
 
+ * 2018-09-17 12:24:31 +0200 - Merge branch 'master' of https://github.com/Doogiemuc/liquido-vue-frontend
+ * 2018-09-17 12:17:18 +0200 - make auto login of user optional and configurable
+ * 2018-09-17 06:53:49 +0200 - Login is WORKING
+ * 2018-08-23 15:43:57 +0200 - added e2e tests against prod
+ * 2018-08-17 12:26:10 +0200 - E2E Tests with a lot of logging
+ * 2018-08-12 10:11:09 +0200 - Voting is working! With nice error checking.
+ * 2018-08-05 00:17:14 +0200 - Working on casting a vote. WIP
+ * 2018-07-21 08:10:11 +0200 - Added sequence diagram for casting a vote
+ * 2018-06-24 20:56:14 +0200 - Nicely working version of polls and cast ballot
+ * 2018-05-12 09:20:01 +0200 - Nicely working Proposal_Show, Poll_Show and Comments. Many Bugfixes in SupportButton, TableFitlers etc
+ * 2018-04-22 22:48:30 +0200 - Working on Poll page and improving LawPanel
+ * 2018-04-22 07:49:30 +0200 - Larger renaming. Working version of Poll_Show page.
+ * 2018-04-17 16:16:25 +0200 - Started working on polls page
+ * 2018-04-12 07:05:50 +0200 - working on ideaspage
+ * 2018-04-10 18:05:02 +0200 - SupportButton now is a dynamic vue component.
+ * 2018-04-10 16:10:47 +0200 - Filters now work. Full reload from server can be triggerd.
+ * 2018-04-08 11:28:39 +0200 - Filters are now working with DoogieTable
+ * 2018-04-06 15:46:03 +0200 - Working on table filtering
+ * 2018-04-06 13:19:05 +0200 - Nice working vrsion of new table filters
+ * 2018-04-05 07:15:28 +0200 - Working on DoogieFilterSelect
+ * 2018-04-01 20:25:21 +0200 - Created first version of GUI for table filters
+ * 2018-03-24 17:33:17 +0100 - new LiquidoApiClient is working nicely. Happy case works without erros in the log for the first time.
+ * 2018-03-12 22:07:40 +0100 - Bugfix in ApiClients with non encoded URI
+ * 2018-03-08 19:03:41 +0100 - Moved controllers to pages dir
+ * 2018-03-06 12:29:22 +0100 - Merge branch 'master' of https://github.com/Doogiemuc/liquido-vue-frontend
+ * 2018-03-06 12:28:53 +0100 - added new screenshots
+ * 2018-03-04 22:14:16 +0100 - Bugfix in sorting of DoogieTable
+ * 2018-02-28 23:18:23 +0100 - Working on IdeasProposalApiClient and pretty nice bugfix in cachingInterceptor
+ * 2018-02-25 11:14:44 +0100 - Very nice nav pills
+ * 2018-02-10 00:07:53 +0100 - Bugfix in DoogieTable. Sorting now works together with editing
+ * 2018-02-04 22:44:30 +0100 - minor updates
+ * 2017-10-09 14:20:17 +0200 - Nice working version. Addes local cache for URLs.
+ * 2017-07-24 09:40:44 +0200 - Nice working version for local developlment. Even offline.
+ * 2017-04-02 22:08:44 +0200 - Introducing PollModel in frontend
+ * 2017-02-28 15:59:19 +0100 - UI for a poll is working. Phui that was a CSS nightmare.
+ * 2017-02-26 15:18:45 +0100 - Small design updates
+ * 2017-02-26 15:03:28 +0100 - Supporting an idea works.
+ * 2017-02-24 12:58:31 +0100 - nice working version. Improved UserHome. A lot of work on LiquidoAPIClient
+ * 2017-02-10 15:52:06 +0100 - UserHome works again with a list of proposals and ideas
+ * 2017-02-09 20:22:02 +0100 - Cleaned up main App startup. Is now much faster
+ * 2017-02-08 18:19:29 +0100 - Working on Create and edit Idea page. Added PageNotFound.vue and logRequestInterceptor.js  Removed old *Service.js classes that have been replaced by LiquidoApiClient.js
+ * 2017-02-06 22:46:53 +0100 - added to gitignore
+ * 2017-02-06 22:45:53 +0100 - Edit idea page is working again. Replaced vue-form with vuelidate.
+ * 2017-02-04 19:35:03 +0100 - Ideas page works with new LiquidoApiClient
+ * 2017-01-30 14:34:16 +0100 - Working version after Vue2.0 update. Also updated many package and build dependencies
+ * 2017-01-26 10:08:20 +0100 - New RestClient with Tests
+ * 2017-01-19 11:50:55 +0100 - Upgraded to VueJS 2.0 - Work in progress ...
+ * 2017-01-17 08:16:11 +0100 - Added architecture drawing
+ * 2017-01-13 22:07:34 +0100 - HTTP Basic Auth Login is working
+ * 2017-01-13 14:05:28 +0100 - Added Law and IdeaPanel. Working on LoginPage
+ * 2017-01-08 15:19:39 +0100 - Addes new lightweight RestClient that works better with HATEOAS backend
+ * 2016-12-18 20:15:19 +0000 - Create new idea now with confirmation. GREEN TESTS
+ * 2016-12-15 14:47:04 +0000 - TinyMce now with placeholder text and live update of content via event
  * 2016-12-14 21:44:46 +0000 - WORKING TinyMceComponent.vue
  * 2016-12-14 16:51:51 +0000 - Working on Add Idea - with TinyMCE
  * 2016-11-28 21:34:50 +0100 - Saving a proxy now works. With green smoke tests.
