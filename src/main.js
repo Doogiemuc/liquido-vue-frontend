@@ -140,6 +140,12 @@ const routes = [
 
 const router = new VueRouter({routes})
 
+/** check if ANY of the matched routes requires authentication */
+var requiresAuth = function(to) {
+  return to.matched.some(record => {
+    return record.meta.requiresAuth !== false
+  })
+}
 
 /**
  * If route matches nothing => PageNotFound
@@ -147,17 +153,10 @@ const router = new VueRouter({routes})
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
-  console.log("checking path ",to.matched)
-  if (to.matched.length == 0) console.log("no match")
-
-
-  if (to.matched.some(record => {
-    //console.log("checking ", record)
-    return record.meta.requiresAuth !== false
-  }) &&
-      router.app.$root.currentUser === undefined)
-  {
-    console.log("needs login")
+  if (to.matched.length == 0) {
+    next({path: '/pageNotFound'})
+  } else
+  if (requiresAuth(to) && router.app.$root.currentUser === undefined) {
     next({
        path: '/login',
        query: { redirect: to.fullPath }
@@ -168,36 +167,13 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-/*
-router.beforeEach((to, from, next) => {
-  console.log("checking path ",to.path)
-  if (to.path === "/" || to.path === '/login') {
-    next();
-    return
-  }
-
-  Object.keys(routes).forEach(function(key,index) {
-    if (routes[key].path.startsWith())
-  }
-
-  if (router.app.$root.currentUser === undefined && (to.path !== "/" && to.path !== '/login')) {
-    console.log("need login!!")
-    //TODO: forward to error page if to.path is not contained in routes.path ?
-    next("/login")
-  } else {
-    console.log("normal navigation")
-    next()
-  }
-})
-*/
-
 // ==============================================================================
-// Here we start the forontend app. 
+// Here we start the forontend app.
 // A lot of things are happening here
 //
 // First we make a dummy request to the backend to check whether it's there at all. If not we show an error.
 // IF we are in development mode, then we load the first user by default and log him in.
-// Then we start the vue-router RootApp.vue which will replace the content of index.html 
+// Then we start the vue-router RootApp.vue which will replace the content of index.html
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
@@ -220,14 +196,14 @@ var currentUser = undefined
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
     log.info("Running in development mode.")
-    loglevel.setLevel("trace")                              // trace == log everything		
+    loglevel.setLevel("trace")                              // trace == log everything
   }
   // automatically login a user if values are set
   if (process.env.autoLoginUser && process.env.autoLoginPass) {
     log.info("Automatic login of "+process.env.autoLoginUser)
-		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)         
-		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => { 
-			currentUser = user  
+		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)
+		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => {
+			currentUser = user
 		})
 	}
   return Promise.resolve()

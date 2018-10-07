@@ -27,7 +27,7 @@ module.exports = {
       "launch_url" : "http://localhost:3001",
       "selenium_port": 4444,
       "selenium_host": "localhost",
-      "silent": true,
+      "silent": false,
       "globals" : {
         "user1"   : "testuser1@liquido.de",
         "pass1"   : "dummyPasswordHash",
