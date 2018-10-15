@@ -26,7 +26,7 @@
           </ul>
 
           <ul id="userMenu" class="nav navbar-nav navbar-right" v-if="currentUser">
-            <button type="button" @click="$router.push('/addIdea')" class="btn btn-default navbar-btn">Add Idea</button>
+            <button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">Add Idea</button>
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle">
                 <img v-bind:src="currentUser.profile.picture" alt="Avatar Image">

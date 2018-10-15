@@ -3,19 +3,25 @@
     <span v-html="loadingMessage"></span>
   </div>
   <div v-else class="container">
-		<h1>Proposal
-			<template v-if="proposal.poll && proposal.poll.status === 'ELABORATION'">in elaboration</template>
-			<template v-if="proposal.poll && proposal.poll.status === 'VOTING'">in voting phase</template>
-		</h1>
+  	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
+		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
+  	<h1 v-else-if="proposal.status === 'VOTING'">Proposal in voting phase</h1>
+  	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
+		<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
 
-		<law-panel v-if="proposal" :law="proposal" :showTimeline="true" class="proposalPanel"></law-panel>
+		<law-panel v-if="proposal" :law="proposal" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
 
-    <div v-if="proposalCreatedByCurrentUser()" class="panel panel-default">
+    <div v-if="createdByCurrentUser" class="panel panel-default">
 	    <div class="panel-heading">
-				<h4 class="panelTitle">This is your proposal</h4>
+				<h4 class="panelTitle">This is your {{nameByStatus}}</h4>
 	    </div>
 	    <div class="panel-body">
-	      <div v-if="proposal.status === 'PROPOSAL'">
+	    	<div v-if="proposal.status === 'IDEA'">
+	    		<p>Your idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then your idea
+	    		will become a proposal that can be discussed.</p>
+	    		<p><button type="button" class="btn sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
+	    	</div>
+	      <div v-else-if="proposal.status === 'PROPOSAL'">
 	        <p>Your ideas has reached its quorum. It became a proposal. All members can now discuss your proposal and suggest improvements below.
 	        You should consider and respect these suggestions since they come from your potential voters. Once you are happy with your
 	        proposal, then you can either</p>
@@ -24,30 +30,36 @@
 	        	<li style="margin-top:10px"><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - which must still be in its elaboration phase</li>
 					</ul>
 	      </div>
-	      <div v-if="proposal.status === 'ELABORATION'">
+	      <div v-else-if="proposal.status === 'ELABORATION'">
 	        <p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
 	        Once the voting phase starts, you cannot edit your proposal anymore.</p>
-	        <p><button type="button" class="btn btn-sm btn-default">Edit your proposal</button></p>
+	        <p><button type="button" class="btn btn-sm btn-default" @click="editProposal()">Edit your proposal</button></p>
 	      </div>
-	      <p v-if="proposal.status === 'VOTING'">
-	        Voting has started. Good luck in the poll.
-	      </p>
-
+	      <div v-else-if="proposal.status === 'VOTING'">
+	      	<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+ 						<i class="fas fa-angle-double-right"></i>
+	  			</button>
+	        <p>Voting has started. Good luck in the poll.</p>
+	      </div>
 	    </div>
 	  </div>
 	  <div v-else class="panel panel-default" id="infoPanel">
 	    <div class="panel-body">
-	    	<div v-if="proposal.status === 'PROPOSAL'">
+	    	<div v-if="proposal.status === 'IDEA'">
+	    		<p>This idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
+	    		will become a proposal that can be discussed.</p>
+	    	</div>
+	    	<div v-else-if="proposal.status === 'PROPOSAL'">
 	  			<p>This idea got enough supporters so it became a proposal. It can now be discussed further. You may suggest
 	  			improvements to the proposal's author below.</p>
 	  		</div>
-	  		<div v-if="proposal.status === 'ELABORATION'">
+	  		<div v-else-if="proposal.status === 'ELABORATION'">
 	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
  						<i class="fas fa-angle-double-right"></i>
 	  			</button>
 	  			<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
 	  		</div>
-	  		<div v-if="proposal.status === 'VOTING'">
+	  		<div v-else-if="proposal.status === 'VOTING'">
 	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
  						<i class="fas fa-angle-double-right"></i>
 	  			</button>
@@ -56,10 +68,9 @@
 	  	</div>
 	  </div>
 
-		<h4>Suggestions for improvement</h4>
-    <hr/>
+		<h4 v-if="showComments">Suggestions for improvement</h4>
 
-    <div v-for="comment in comments" class="media">
+    <div v-if="showComments" v-for="comment in comments" class="media">
       <div class="media-left">
         <img :src="comment.createdBy.profile.picture" />
       </div>
@@ -121,7 +132,7 @@
       <hr/>
     </div>
 
-		<div v-if="discussionIsOpen" class="media">
+		<div v-if="showComments && discussionIsOpen" class="media">
       <div class="media-left">
         <img :src="currentUser.profile.picture" />
       </div>
@@ -144,13 +155,9 @@ import LawPanel from '../components/LawPanel'
 import timeline from '../components/Timeline'
 
 
-
 //
 //TODO:  Very nice RESPONSIVE layout for comments: https://bootsnipp.com/snippets/featured/comment-posts-layout
 //
-
-
-
 
 export default {
 	props: {
@@ -174,6 +181,11 @@ export default {
 
 
 	computed: {
+		nameByStatus: function() {
+			if (this.proposal.status === 'IDEA') return "idea"
+			if (this.proposal.status === 'LAW' || this.proposal.status === "DROPPED") return "law"
+			return "proposal"
+		},
 		ideaCreated: function() { return moment(this.proposal.createdAt).format('L') },
 		reachedQuorumAt: function() { return moment(this.proposal.reachedQuorumAt).format('L') },
 		votingStart : function() { return moment(this.proposal.poll.votingStartAt).format('L') },
@@ -194,8 +206,14 @@ export default {
 		},
 		currentUser: function() { return this.$root.currentUser },
 		discussionIsOpen: function() {
-			return this.proposal.status === 'IDEA' || this.proposal.status === 'PROPOSAL' || this.proposal.status === 'ELABORATION'
+			return this.proposal.status === 'PROPOSAL' || this.proposal.status === 'ELABORATION'
 		},
+		showComments: function() {
+			return this.proposal.status !== 'IDEA'
+		},
+		createdByCurrentUser() {
+    	return this.$root.currentUser.id === this.proposal.createdBy.id
+    },
 	},
 
 
@@ -205,12 +223,12 @@ export default {
       return moment(dateVal).fromNow()
     },
 
-    proposalCreatedByCurrentUser() {
-    	return this.$root.currentUser.id === this.proposal.createdBy.id
-    },
-
     goToPoll() {
     	this.$router.push('/polls/'+this.proposal.poll.id)
+    },
+
+    editProposal() {
+			//TODO: this.$router.push('/proposals/'+this.proposal.poll.id+"/edit")
     },
 
 		upvoteComment(comment) {
@@ -263,10 +281,11 @@ export default {
 		this.$root.api.getProposal(this.proposalId, /*load projection*/true)
 		.then(proposal => {
 			this.proposal = proposal
-			this.reloadComments()
+			if (this.proposal.status !== 'IDEA') this.reloadComments()
 		})
 		.catch(err => {
 			this.loadingMessage = "<h3>Error: Could not load proposal with id="+this.proposalId+"</h3><p><pre>"+JSON.stringify(err)+"</pre></p>"
+			//TODO: use AlertPanel
 		})
 
 	},

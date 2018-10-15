@@ -58,15 +58,15 @@ const routes = [
       require(['./pages/Ideas_List.vue'], resolve)
     }
   },
-  { path: '/addIdea',   // add a new idea
+  { path: '/ideas/add',
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: { ideaId: undefined }
   },
-  { path: '/ideas/:ideaId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
+  { path: '/ideas/:proposalId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
     component: function(resolve) {
-      require(['./pages/Idea_Edit.vue'], resolve)
+      require(['./pages/Proposal_Show.vue'], resolve)
     },
     props: true
   },

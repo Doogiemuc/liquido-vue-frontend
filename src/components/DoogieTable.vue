@@ -74,11 +74,11 @@
         <tr v-else-if="getFilteredRowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
         </tr>
-        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)" :key="getPath(row, primaryKeyForRow)">
+        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
             {{page*rowsPerPage + index + 1}}
           </th>
-          <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}">
+          <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}"  @click="cellClicked(row, col, $event)">
             <editable-cell
               v-if="col.editable"
               :pk="getPath(row, primaryKeyForRow)"
@@ -181,9 +181,6 @@ export default {
 
     // button for adding a new row. Will fire the 'addButtonClicked' event
     showAddButton: { type: Boolean, required: false, default: false },
-
-    // shall rows be selecteable via click
-    selectableRows: { type: Boolean, required: false, default: false },
 
 		// client side filtering of tableData. When rowFilterFunc(row) returns false, that row will not be shown.
 		rowFilterFunc: { type: Function, required: false },
@@ -402,12 +399,14 @@ export default {
       this.$emit('saveNewValue', pk, col, value)   // let event from editable cell bubble up to parent component
     },
 
-    /** emit "rowSelected" event when this.selectableRows == true and a row was clicked */
-    rowClicked(row) {
-      if (this.selectableRows) {
-        this.selectedRow = row
-      }
+    /** emit "rowSelected" event when table row was clicked */
+    rowClicked(row, event) {
+      this.selectedRow = row
       this.$emit('rowSelected', row)
+    },
+
+    cellClicked(row, col, event) {
+      this.$emit('cellClicked', row, col)
     },
 
     /** emit an event so that the parent component can for example show a popup where the new entry can be created. */
@@ -488,9 +487,10 @@ nav ul.pagination {
 .pagination > li > a:hover {
   cursor: pointer;
 }
-
+/*
 .selectedRow {
   color: white;
   background: #337ab7;
 }
+*/
 </style>

@@ -148,7 +148,7 @@ export default {
     // Inactive filters will normally have the value null. But there are exceptions: Unselected multi will have the value []
     currentFilters: {
       handler: function(newFilters, oldFilters) {
-        console.log("currentFilters handler", newFilters)
+        //console.log("currentFilters handler", newFilters)
 				this.$emit('filtersChanged', newFilters)
       },
       deep: true

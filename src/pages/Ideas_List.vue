@@ -1,8 +1,8 @@
 <template>
 <div class="container-fluid">
   <h1>Ideas</h1>
-  <p class="lead">Spontaneous suggestions for improvement</p>
-  <p>Here you can see all currently active ideas. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least NN supporters, then it is moved onto the table and can be voted upon.</p>
+  <p>An idea is a spontaneous suggestions for improvement. If you want to support an idea, then click the button "Like to discuss this!" When an idea reaches at least {{$root.props['liquido.supporters.for.proposal']}} supporters, then it is moved onto the table and can be discussed further. Click on an idea's title in the first column to navigate to that idea. You can use the filters to search for a specific idea.</p>
+
 
 	<div class="row">
 		<div class="col-sm-10">
@@ -20,8 +20,6 @@
 		</div>
 	</div>
 
-  <button type="button" class="btn btn-default" @click="doItDummy">Do It Dummy</button>
-
   <doogie-table
     :row-data="ideas"
     :columns="ideaColumns"
@@ -31,6 +29,7 @@
     :show-add-button="false"
 		:rowFilterFunc="rowFilterFunc"
     v-on:saveNewValue="saveNewValue"
+    v-on:cellClicked="cellClicked"
     ref="ideatable"
   />
 </div>
@@ -40,7 +39,7 @@
 <script>
 import DoogieTable from '../components/DoogieTable'
 import DoogieFilter from '../components/DoogieFilter'
-import SupportButton from  '../components/SupportButton'
+import TableSupportButton from  '../components/TableSupportButton'
 import moment from 'moment'
 
 /** compare user names of createdBy */
@@ -51,12 +50,20 @@ var createdByComparator = function(val1, val2) {
 var allUsersOptions = []
 var allCategories = []
 
+
 export default {
+  components: {
+    DoogieTable,
+    DoogieFilter,
+    TableSupportButton,
+  },
+
   data () {
+    var that = this
     return {
       // Data for DoogieTable.vue
       ideaColumns: [
-        { title: "Title", path: "title", editable: true },
+        { title: "Title", path: "title", editable: false, vueFilter: 'titleLink', rawHTML: true },
 
         //TODO: Description contains HTML.   Show a small exerpt? Or Remove HTML tags?
         { title: "Description", path: "description", editable: false },
@@ -64,7 +71,7 @@ export default {
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
         { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
 				  path: "numSupporters",
-					editComponent: SupportButton,
+					editComponent: TableSupportButton,
 					editCompProps: {
             supporterAdded: this.supporterAdded
           }
@@ -124,41 +131,32 @@ export default {
               //"this" is the DoogieFilter.vue component here
               //But I cannot just simply call this.setFilterValue({id:'createdByID'}, currentUser.profile.name, currentUser.id)
               this.$refs.createdByID[0].setFilterValue(currentUser.profile.name, currentUser.id)
-
             } else {
               this.$refs.createdByID[0].clearSelectFilter()
             }
           },
+        },
+        {
+          type: "quickFilter",
+          id: "supportedByCurrentUser",
+          displayName: "Supported by you",
         }
+
       ],
     }
   },
 
-  components: {
-    DoogieTable,
-    DoogieFilter,
-		SupportButton,
-  },
-
-
   methods: {
-    doItDummy() {
-      console.log("doItDummy")
-
-
-    },
-
-
-
-
-
-    shownRowNumbers: function() {
+    /**
+     * Which rows are currently shown
+     */
+     shownRowNumbers: function() {
       var table = this.$refs.ideatable
       if (!table) return "all"
-      //TODO: take filters into account
+      var numFilterdRows = table.getFilteredRowData.length
       var first = table.page*table.rowsPerPage + 1
-      var last  = (table.page+1)*table.rowsPerPage
-      return first+"-"+last
+      var last  = Math.min((table.page+1)*table.rowsPerPage, numFilterdRows)
+      return first+"-"+last+"/"+table.getFilteredRowData.length
     },
 
     /**
@@ -190,17 +188,26 @@ export default {
 		supporterAdded(idea) {
       this.$root.api.addSupporterToIdea(idea, this.$root.currentUser).then(res => {
         //update local values by hand
-        var index = this.$refs.ideatable.getIndexOf(idea)
-        //TODO:  don't add twice.  Cleanup in supportbutton.vue  this.ideas[index].numSupporters++
-        this.ideas[index].supportedByCurrentUser = true
+        //var index = this.$refs.ideatable.getIndexOf(idea)
+        //this.ideas[index].numSupporters   has already been incremented by SupportButton
+        //this.ideas[index].supportedByCurrentUser = true
 
         //OLD: reload idea completely from server
         //this.$root.api.getIdea(idea, true).then(reloadedIdea => {
         //  this.$set(this.ideas, index, reloadedIdea)  // Important: Must use Vue's reactive $setter when replacing an array element
         //})
+
+        iziToast.success({
+            title: 'OK',
+            message: 'Thank you for supporting this idea.',
+        });
       })
 
 		},
+
+    cellClicked(idea, col) {
+      if (col.path === "title") { this.$router.push('/ideas/'+idea.id) }
+    },
 
     /**
      * Fast client side filtering of table rows
@@ -214,7 +221,9 @@ export default {
    		var dateRange   = currentFilters.updatedAtID.value  	// dateRange == {start: ..., end: ... }
 			var categoryID  = currentFilters.categoryID.value
 			var createdByID = currentFilters.createdByID.value
+      var supported   = currentFilters.supportedByCurrentUser.value
 			//console.log("rowFilterFunc", dateRange === undefined? "undefined" : this.$refs.ideaTableFilter.isInDateRange(row.updatedAt, dateRange))
+      console.log(this.filterForSupportedByCurrentUser, row.supportedByCurrentUser)
 			return (!currentFilters.searchID.value || (
           searchRegex.test(row.title) ||
           searchRegex.test(row.description) ||
@@ -223,7 +232,8 @@ export default {
         )) &&
 				(dateRange === undefined || this.$refs.ideaTableFilter.isInDateRange(row.updatedAt, dateRange)) &&   // row.updatedAt is a string!! ISO date format
 				(categoryID === undefined || row.area.id == categoryID) &&
-				(createdByID === undefined || row.createdBy.id == createdByID)
+				(createdByID === undefined || row.createdBy.id == createdByID) &&
+        (supported === false || row.supportedByCurrentUser === true)
 		},
 
     /**

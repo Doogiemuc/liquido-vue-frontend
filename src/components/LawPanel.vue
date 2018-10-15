@@ -1,7 +1,6 @@
 <template>
-	<div class="panel panel-default lawPanel" :data-proposaluri="getURI">
+	<div v-if="law" class="panel panel-default lawPanel" :data-proposaluri="getURI">
     <div class="panel-heading">
-
       <router-link v-if="!readOnly" :to="getLinkToLaw()" role="button" class="btn btn-default btn-xs pull-right">
         <i class="fas fa-angle-double-right"></i>
       </router-link>
@@ -11,7 +10,7 @@
       </h4>
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
-      {{law.description}}
+      <div v-html="law.description"></div>
       <timeline v-if="showTimeline" :height="60" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
@@ -30,7 +29,7 @@
               <span v-if="law.poll !== null && readOnly">Poll</span>
 						</td>
 						<td class="likeButtonCell">
-							<support-button :row="law" v-on:like="likeToDiscuss" :readOnly="readOnly"></support-button>
+							<support-button :law="law" v-on:like="likeToDiscuss" :readOnly="readOnly || createdByCurrentUser"></support-button>
 						</td>
 					</tr>
 				</tbody>
@@ -50,7 +49,7 @@ import SupportButton from '../components/SupportButton'
 
 export default {
   props: {
-    'law' : { type: Object, required: true },     // the idea, proposal or law we show in a bootstrap panel
+    'law' : { type: Object, required: true },                 // the idea, proposal or law we show in a bootstrap panel
     'showTimeline' : { type: Boolean, required: false, default: function() { return true } }, // whether to show a timeline
     'fixedHeight' : { type: Number, required: false, default: function() { return undefined } },  // fixed height of lawDescription, can be used  to make several LawPanels all the same height.
     'readOnly' : { type: Boolean, required: false, default: function() { return false } },   // if true, then no links and inactive supportButton
@@ -63,6 +62,7 @@ export default {
 
   computed: {
     getURI() {
+      if (!this.law || !this.law.self) return ""
       return this.$root.api.getURI(this.law)
     },
 
@@ -74,6 +74,10 @@ export default {
         case "LAW":  return { "fa-university": true }
         default:     return { "fa-file-alt": true }
       }
+    },
+
+    createdByCurrentUser: function() {
+      return this.$root.currentUser.id == this.law.createdBy.id
     },
 
     /*
@@ -125,12 +129,15 @@ export default {
       return moment(dateVal).fromNow();
     },
 
+    /** event from SupportButton */
     likeToDiscuss() {
       this.$root.api.addSupporterToIdea(this.law, this.$root.currentUser).then(res => {
-        console.log(res)
+        iziToast.success({
+          title: 'Liked!',
+          message: 'Thank you for supporting this.',
+        });
         //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
         this.$emit("like", this.law)  // notify parent to reload this law
-        //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+this.law.title+"' => event emmited")
       })
     },
 

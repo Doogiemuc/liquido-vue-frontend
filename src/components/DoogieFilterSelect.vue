@@ -39,7 +39,7 @@ export default {
 
 	watch: {
 		value: function(newValue, oldValue) {   // "value" is the name of the Vue prop
-      console.log("DoogieFilterSelect.value changed to ", newValue)
+      //console.log("DoogieFilterSelect.value changed to ", newValue)
 			this.$emit('input', newValue /*{displayValue: this.displayValue, value: this.value}*/)				//  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 		},
 	},
@@ -88,9 +88,6 @@ export default {
     }
   },
 
-  mounted () {
-    console.log("DoogieFilterSelect.mounted value=", this.value)
-  }
 }
 </script>
 
