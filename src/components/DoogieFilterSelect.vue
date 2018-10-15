@@ -14,7 +14,7 @@
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
-      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter">Clear</button>
+      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearSelectFilter">Clear</button>
     </div>
   </div>
 </template>
@@ -24,30 +24,28 @@
 export default {
   props: {
     id: { type: String, required: true },								// id of this filter
-		displayName: { type: String, required: true },			// name to display to the user 
-		options: { type: Array, required: true },						// (long) list of possible options [{ value: 5, displayValue: "Fünf" }, ... ]
+		displayName: { type: String, required: true },			// filter name to display to the user. Will be concatenated with displayValue
+		options: { type: Array, required: true },						// (possibly long) list of possible options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
   },
 
   data () {
     return {
       searchText: "",           // search input field
-      displayValue: "Any",      // text displayed to the user for the currently selected option
-      value: undefined,         // real value of currently selection option or null when nothing is selcted
-      //filteredOptions: this.options,      // list of options filtered by searchText
+      displayValue: "Any",      // text displayed to the user for the currently selected option  (==option[i].displayValue)
+      value: undefined,         // intenal value of currently selection option  (== options[i].value)
+                                //   OR null when nothing is selcted. When option contains objects, then this is an object!
     }
   },
 
 	watch: {
-		value: function(newValue, oldValue) {
-			this.$emit('input', {displayValue: this.displayValue, value: this.value})				//  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
+		value: function(newValue, oldValue) {   // "value" is the name of the Vue prop
+      console.log("DoogieFilterSelect.value changed to ", newValue)
+			this.$emit('input', newValue /*{displayValue: this.displayValue, value: this.value}*/)				//  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 		},
-    options: function(newValue, oldValue) {
-      this.filteredOptions = this.options
-    },
 	},
 
   computed: {
-    /** 
+    /**
      * Filter a list of options by their displayName or by their value. Compares case-insensitive.
      * The result of this computed propery is cached. Will be updated, everytime when this.searchText changes
      * @returns filtered sublist of this.options
@@ -58,7 +56,7 @@ export default {
     },
 
   },
-	
+
   methods: {
     /**
      * set the value of this filter
@@ -74,12 +72,12 @@ export default {
     /**
      * Reset filter. Will also clear search field. All options will be shown.
      */
-    clearFilter() {
+    clearSelectFilter() {
       this.searchText = ""
-      this.filteredOptions = this.options
-      this.setFilterValue('Any', undefined)  
-    },    
-   
+      //this.filteredOptions = this.options
+      this.setFilterValue('Any', undefined)
+    },
+
     /** When a filter is active, then style it accordingly */
     getActiveClass() {
       var filterCleared = this.value === undefined
@@ -87,11 +85,11 @@ export default {
         'btn-default': filterCleared,
         'btn-primary': !filterCleared
       }
-    } 
+    }
   },
 
-  created () {
-    //this.filteredOptions = this.options     
+  mounted () {
+    console.log("DoogieFilterSelect.mounted value=", this.value)
   }
 }
 </script>
@@ -121,7 +119,7 @@ export default {
   .selectList li:hover {
     background-color: #f5f5f5;
     cursor: pointer;
-  } 
+  }
   .applyButton {
     margin-left: 5px;
   }

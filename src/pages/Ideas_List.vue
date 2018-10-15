@@ -11,7 +11,7 @@
 				ref="ideaTableFilter"
 				v-on:filtersChanged="filtersChanged"
 			/>
-		</div>
+    </div>
 		<div class="col-sm-2 text-right">
 		  <b>{{shownRowNumbers()}}</b> of <b>{{ideas.length}}</b>
       <span v-on:click="reloadFromServer" class="reloadIcon">
@@ -19,6 +19,8 @@
       </span>
 		</div>
 	</div>
+
+  <button type="button" class="btn btn-default" @click="doItDummy">Do It Dummy</button>
 
   <doogie-table
     :row-data="ideas"
@@ -46,7 +48,7 @@ var createdByComparator = function(val1, val2) {
   return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
 }
 //Cannot have these as data properties, cause they are initialized to late. Will be filled in reloadFromServer()
-var allUsers = []
+var allUsersOptions = []
 var allCategories = []
 
 export default {
@@ -55,14 +57,16 @@ export default {
       // Data for DoogieTable.vue
       ideaColumns: [
         { title: "Title", path: "title", editable: true },
+
+        //TODO: Description contains HTML.   Show a small exerpt? Or Remove HTML tags?
         { title: "Description", path: "description", editable: false },
+
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
         { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
 				  path: "numSupporters",
 					editComponent: SupportButton,
 					editCompProps: {
             supporterAdded: this.supporterAdded
-            //TODO: disable supporterButton when idea is created by currently logged in user
           }
 				},
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
@@ -96,7 +100,7 @@ export default {
           type: "selectWithSearch",
           id: "createdByID",
           displayName: "Created by",
-          options: allUsers
+          options: allUsersOptions
         },
         /*
         {
@@ -110,7 +114,22 @@ export default {
           ],
         },
         */
+        {
+          type: "quickFilter",
+          id: "myIdeas",
+          displayName: "My Ideas",
+          onToggle: function(filter, active) {
+            if (active) {
+              var currentUser = this.$root.currentUser
+              //"this" is the DoogieFilter.vue component here
+              //But I cannot just simply call this.setFilterValue({id:'createdByID'}, currentUser.profile.name, currentUser.id)
+              this.$refs.createdByID[0].setFilterValue(currentUser.profile.name, currentUser.id)
 
+            } else {
+              this.$refs.createdByID[0].clearSelectFilter()
+            }
+          },
+        }
       ],
     }
   },
@@ -123,9 +142,20 @@ export default {
 
 
   methods: {
+    doItDummy() {
+      console.log("doItDummy")
+
+
+    },
+
+
+
+
+
     shownRowNumbers: function() {
       var table = this.$refs.ideatable
       if (!table) return "all"
+      //TODO: take filters into account
       var first = table.page*table.rowsPerPage + 1
       var last  = (table.page+1)*table.rowsPerPage
       return first+"-"+last
@@ -161,7 +191,7 @@ export default {
       this.$root.api.addSupporterToIdea(idea, this.$root.currentUser).then(res => {
         //update local values by hand
         var index = this.$refs.ideatable.getIndexOf(idea)
-        this.ideas[index].numSupporters++
+        //TODO:  don't add twice.  Cleanup in supportbutton.vue  this.ideas[index].numSupporters++
         this.ideas[index].supportedByCurrentUser = true
 
         //OLD: reload idea completely from server
@@ -211,9 +241,9 @@ export default {
 				results[0].forEach(category => {
 					allCategories.push({ value: category.id, displayValue: category.title })
 				})
-				allUsers.length = 0
+				allUsersOptions.length = 0
 				results[1].forEach(user => {
-					allUsers.push({ value: user.id, displayValue: user.profile.name })
+					allUsersOptions.push({ value: user.id, displayValue: user.profile.name })
 				})
 				this.ideas = results[2]
 				this.ideasTableMessage = undefined

@@ -238,8 +238,3 @@ isBackendAlive()
     $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR while loading Liquido App. Please try again later.</p>')
   })
 
-
-
-
-
-
