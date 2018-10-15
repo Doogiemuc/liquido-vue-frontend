@@ -15,13 +15,15 @@
 <script>
 export default {
 	props: {
-		row: { type: Object, required: true },		//TODO: SupportButton should not know row. It should only now numLikes and alreadyLiked <=> but check with table need at least a PK of row for the callback
+		row: { type: Object, required: true },		//TODO: SupportButton should not know row. It should only now numLikes and alreadyLiked <=> but check with table need at least a PK of row for the callback.  OR:  curry the callback function
 		supporterAdded: { type: Function, required: false },	//callback when supporter was added
-		readOnly: { type: Boolean, required: false, default: function() { return false } },   // if true, then no button is inactive
+		readOnly: { type: Boolean, required: false, default: function() { return false } },   // if true, then support button is inactive
 	},
 	methods: {
 		likeToDiscuss() {
-			this.$emit("like", this.row)  // notify parent. Keep in mind that this.row is the old state with numSupportes not yet incremented!
+			this.$emit("like", this.row)  // notify parent. Maybe parent want's to reload
+			this.row.numSupportes++
+			this.row.supportedByCurrentUser = true
 			if (typeof this.supporterAdded === "function") this.supporterAdded(this.row)
 		}
 	},
@@ -35,5 +37,5 @@ export default {
 		background-color: #9C9;
 		cursor: default;
 	}
-	
+
 </style>

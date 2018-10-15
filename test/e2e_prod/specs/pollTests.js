@@ -17,9 +17,23 @@ module.exports = {
 	'Show poll in voting phase': function(browser) {
 		browser
 		  .login(browser.globals.user1, browser.globals.pass1)
-			.url(browser.launchUrl+"/#/userHome")
-			.waitForElementVisible("#goToCastVoteButton", 3000)
+			.url(browser.launchUrl+"/#/polls")
+			.waitForElementPresent("#pollsInVoting > div > div.panel-heading > a", 3000, "Found poll in voting")
+			.click("#pollsInVoting > div > div.panel-heading > a")
+			.waitForElementPresent("#goToCastVoteButton", 3000, "On show poll page")
 			.click("#goToCastVoteButton")
+			.waitForElementPresent("#leftContainer", 3000, "On cast vote page")
+			.moveToElement('#leftContainer > div:nth-child(1)',  10,  60)		// must move below (>50px) the fixed nav-bar at the top
+			.mouseButtonDown(0)
+			.moveToElement('#rightContainer', 20, 60)
+			.mouseButtonUp(0)
+			.waitForElementPresent("#rightContainer div.lawPanel", 3000, "Dragged one proposal to the right")
+
+		browser.expect.element('#castVoteButton').to.not.have.attribute('disabled', "Cast vote button is enabled")
+
+		browser
+		  .click("#castVoteButton")
+			.pause(5000)
     	.end()
 
    /*

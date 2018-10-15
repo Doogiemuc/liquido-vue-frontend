@@ -19,15 +19,12 @@ Login.prototype.command = function(user, pass, callback) {
   }
   this.client.api
     .url(this.client.api.launchUrl+"/#/login")
-    .waitForElementVisible('#emailInput', 2000)
+    .waitForElementPresent('#emailInput', 2000, "On login page")
     .setValue('#emailInput', user)
     .setValue('#passwordInput', pass)  // this.api.Keys.ENTER
 		.click('#loginButton')
-		.waitForElementVisible("#userMenu", 4000)
-    .perform(function() {
-      console.log("\x1b[32m √\x1b[0m", user, "logged in")
-    })
-    .end()
+		.waitForElementVisible("#userMenu", 4000, "User "+user+" logged in sucessfully.")
+    //Do not call .end() ! We do not want to close the session
 
   setTimeout(function() {
     if (callback) { callback.call(self.client.api) }  // if we have a callback, call it right before the complete event

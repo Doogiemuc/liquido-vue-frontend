@@ -9,30 +9,51 @@
 		</h1>
 
 		<law-panel v-if="proposal" :law="proposal" :showTimeline="true" class="proposalPanel"></law-panel>
-		
-    <div v-if="proposalCreatedByCurrentUser" class="panel panel-default">
+
+    <div v-if="proposalCreatedByCurrentUser()" class="panel panel-default">
 	    <div class="panel-heading">
 				<h4 class="panelTitle">This is your proposal</h4>
 	    </div>
 	    <div class="panel-body">
-	      <p v-if="proposal.status == 'VOTING'">
-	        Voting has started. Good luck.
-	      </p>
-	      <p v-if="proposal.poll && proposal.poll.status === 'ELABORATION'">
-	        Your proposal is part of a poll. Voting has not yet started. Users can suggest improvements to your proposal.
-	        Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
-	      </p>
-	      <div v-if="proposal.poll == undefined">
-	        <p>Your ideas has reached its quorum. It became a proposal. Other members can now discuss your proposal and suggest improvements below.
+	      <div v-if="proposal.status === 'PROPOSAL'">
+	        <p>Your ideas has reached its quorum. It became a proposal. All members can now discuss your proposal and suggest improvements below.
 	        You should consider and respect these suggestions since they come from your potential voters. Once you are happy with your
 	        proposal, then you can either</p>
-
 	        <ul class="startJoinList">
 	        	<button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - but then you need alternative suggestions before the voting phase can start</li>
 	        	<li style="margin-top:10px"><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - which must still be in its elaboration phase</li>
-					</ul>	        
+					</ul>
 	      </div>
+	      <div v-if="proposal.status === 'ELABORATION'">
+	        <p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
+	        Once the voting phase starts, you cannot edit your proposal anymore.</p>
+	        <p><button type="button" class="btn btn-sm btn-default">Edit your proposal</button></p>
+	      </div>
+	      <p v-if="proposal.status === 'VOTING'">
+	        Voting has started. Good luck in the poll.
+	      </p>
+
 	    </div>
+	  </div>
+	  <div v-else class="panel panel-default" id="infoPanel">
+	    <div class="panel-body">
+	    	<div v-if="proposal.status === 'PROPOSAL'">
+	  			<p>This idea got enough supporters so it became a proposal. It can now be discussed further. You may suggest
+	  			improvements to the proposal's author below.</p>
+	  		</div>
+	  		<div v-if="proposal.status === 'ELABORATION'">
+	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+ 						<i class="fas fa-angle-double-right"></i>
+	  			</button>
+	  			<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
+	  		</div>
+	  		<div v-if="proposal.status === 'VOTING'">
+	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+ 						<i class="fas fa-angle-double-right"></i>
+	  			</button>
+	  			<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
+	  		</div>
+	  	</div>
 	  </div>
 
 		<h4>Suggestions for improvement</h4>
@@ -84,13 +105,13 @@
 		        <p>{{reply.comment}}</p>
 		      </div>
 	      </div>
-	      <div class="media reply">
+	      <div v-if="discussionIsOpen" class="media reply">
 		      <div class="media-left">
 		        <img class="replyUserImg" :src="currentUser.profile.picture" />
 		      </div>
 		      <div class="media-body">
 			      <div class="input-group col-xs-12 col-md-6">
-						  <input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id" 
+						  <input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
 						   v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Reply to this suggestion" >
 						  <span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
 						</div>
@@ -99,14 +120,14 @@
       </div>
       <hr/>
     </div>
-    
-		<div class="media">
+
+		<div v-if="discussionIsOpen" class="media">
       <div class="media-left">
         <img :src="currentUser.profile.picture" />
       </div>
       <div class="media-body">
         <div class="input-group col-xs-12 col-md-8">
-				  <input type="text" class="form-control" v-model="suggestionText" 
+				  <input type="text" class="form-control" v-model="suggestionText"
 				   v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
 				  <span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
 				</div>
@@ -114,7 +135,7 @@
       <hr/>
     </div>
 
-	</div>	
+	</div>
 </template>
 
 <script>
@@ -135,7 +156,7 @@ export default {
 	props: {
 		'proposalId': { type: String, required: true }
 	},
-	
+
 	data () {
     return {
     	loadingMessage: "<h3>Loading ...</h3>",
@@ -145,13 +166,13 @@ export default {
       suggestionText: ""
 		}
 	},
-	
+
 	components: {
 		timeline: timeline,
 		'law-panel': LawPanel
 	},
-	
-	
+
+
 	computed: {
 		ideaCreated: function() { return moment(this.proposal.createdAt).format('L') },
 		reachedQuorumAt: function() { return moment(this.proposal.reachedQuorumAt).format('L') },
@@ -165,16 +186,18 @@ export default {
 			return percent
 		},
 		timelineEvents: function() {
-		  return [ 
+		  return [
         { percent: "5",  above: this.ideaCreated, below: "Idea<br/>created"},  //TODO: make it possible to pass dates instead of percentage values
         { percent: "50", above: this.reachedQuorumAt, below: "Voting</br>start"},
         { percent: "95", above: this.votingEnd, below: "Voting<br/>end"},
       ]
 		},
-		currentUser: function() { return this.$root.currentUser }
-
+		currentUser: function() { return this.$root.currentUser },
+		discussionIsOpen: function() {
+			return this.proposal.status === 'IDEA' || this.proposal.status === 'PROPOSAL' || this.proposal.status === 'ELABORATION'
+		},
 	},
-	
+
 
   methods: {
 		/** get localized display Value of a date */
@@ -184,6 +207,10 @@ export default {
 
     proposalCreatedByCurrentUser() {
     	return this.$root.currentUser.id === this.proposal.createdBy.id
+    },
+
+    goToPoll() {
+    	this.$router.push('/polls/'+this.proposal.poll.id)
     },
 
 		upvoteComment(comment) {
@@ -205,19 +232,19 @@ export default {
 
 		reloadComments() {
 			this.$root.api.noCacheForNextRequest()
-			this.$root.api.getComments(this.proposal, true).then(comments => { 
+			this.$root.api.getComments(this.proposal, true).then(comments => {
 				this.comments = comments.slice(0,10).sort(this.commentComparator)		//sort comments by votes and limit to 10 comments and 20 replies max
 				this.replyText = []
 				this.suggestionText = ""
-			})	
+			})
 		},
 
 		replyToSuggestion(comment) {
 			if (!this.replyText[comment.id]) return;
 			//console.log("replyToSuggestion: "+this.replyText)
-			//Would also work:  var newReplyText = $('#replyTo'+comment.id).val() 
+			//Would also work:  var newReplyText = $('#replyTo'+comment.id).val()
 			this.$root.api.saveComment(this.replyText[comment.id], comment, this.$root.currentUserURI).then(res => {
-				this.reloadComments() 
+				this.reloadComments()
 				this.replyText = []
 			})
 		},
@@ -231,17 +258,17 @@ export default {
 		}
 
   },
-	
+
 	created () {
 		this.$root.api.getProposal(this.proposalId, /*load projection*/true)
-		.then(proposal => { 
+		.then(proposal => {
 			this.proposal = proposal
 			this.reloadComments()
 		})
 		.catch(err => {
 			this.loadingMessage = "<h3>Error: Could not load proposal with id="+this.proposalId+"</h3><p><pre>"+JSON.stringify(err)+"</pre></p>"
 		})
-		
+
 	},
 }
 </script>
@@ -254,6 +281,10 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+#infoPanel p:last-child {
+	margin-bottom: 0;
+}
+
 .startJoinList {
 	list-style: none
 }

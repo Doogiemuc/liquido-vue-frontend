@@ -16,6 +16,7 @@
 var httpClient = require('./httpClient')
 var rest = require('rest')
 var mime = require('rest/interceptor/mime')
+var errorCode = require('rest/interceptor/errorCode')
 var pathPrefix = require('rest/interceptor/pathPrefix')
 var loglevel = require('loglevel')
 
@@ -44,6 +45,11 @@ var getId = function(model) {
   var uriRegEx = new RegExp('^https?://.*/(\d?)$')
   var id = uri.match(uriRegEx)
 }
+
+// local cache of globalProperties
+// They would also be cached by our cachingInterceptor, but we want a longer TTL
+var globalPropertiesCache = undefined
+
 
 //==================================================================================================================
 // Public/Exported methods
@@ -143,20 +149,17 @@ module.exports = {
 // Global Properties from backend DB
 //==================================================================================================================
 
-  // local cache of globalProperties
-  // They would also be cached by our cachingInterceptor, but we want a longer TTL
-  globalPropertiesCache : undefined,
 
   /**
    * Global configuration properties from the backend.
    * Values will be cached via lazy loading.
    */
   getGlobalProperties() {
-    if (this.globalPropertiesCache !== undefined) return this.globalPropertiesCache;
+    if (globalPropertiesCache !== undefined) return globalPropertiesCache;
     log.debug("Loading global properties from backend (and caching them)")
     return client('/globalProperties').then(
       res => {
-        this.globalPropertiesCache = res.entity
+        globalPropertiesCache = res.entity
         return res.entity
       }
     )
@@ -205,23 +208,25 @@ module.exports = {
 
   /** fetch all proxies of a user per area */
   getProxyMap(user) {
-    var userURI = user._links.self.href
-    return client(userURI+'/getProxyMap').then(
+    return client('/my/proxyMap').then(
       response => { return response.entity }
     )
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
-  saveProxy(category, proxy) {
+  assignProxy(category, proxy) {
     if (!category) throw new Error("Missing category for saveProxy()")
     if (!proxy) throw new Error("Missing proxy for saveProxy()")
+    var categoryURI = this.getURI(category)
+    var proxyURI = this.getURI(proxy)
+    log.debug("assignProxy(categor="+categoryURI+", proxy="+proxyURI+")")
     return client({
       method: 'PUT',
-      path: '/saveProxy',
+      path: '/assignProxy',
       headers: { 'Content-Type' : 'application/json' },
       entity: {
-        area:     this.getURI(category),   // the ID of any model is its URI, eg.  /area/4
-        toProxy:  this.getURI(proxy)
+        area:     categoryURI,
+        toProxy:  proxyURI
       }
     })
   },
@@ -229,9 +234,11 @@ module.exports = {
   /** remove the proxy of the currently logged in user in the given category */
   removeProxy(category) {
     if (!category) throw new Error("Missing category for removeProxy()")
+    var categoryURI = this.getURI(category)
+    log.debug("removeProxy(category="+categoryURI+")")
     return client({
       method: 'DELETE',
-      path:   process.env.backendBaseURL+'/deleteProxy/'+getId(category),
+      path:   '/deleteProxy/'+category.id,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -566,11 +573,11 @@ module.exports = {
    * @param  areaId Numeric numerical ID of area
    * @return Array list of voter Tokens
    */
-  getVoterTokens(areaId) {
-    log.debug("getVoterTokens()", areaId)
-    return client("/voterTokens?area="+areaId)  // spring does require the numerical ID and not the URI in this case
-      .then(res => { return res.entity.voterTokens })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterTokens()", areaId: areaId, err: err}) })
+  getVoterToken(areaId) {
+    log.debug("getVoterToken(area.id="+areaId+")")
+    return client("/my/voterToken?area="+areaId)  // spring does require the numerical ID and not the URI in this case
+      .then(res => { return res.entity.voterToken })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err}) })
   },
 
   /**
@@ -587,12 +594,13 @@ module.exports = {
    * }
    * </pre>
    */
-  castVote(poll, voterTokens, voteOrder) {
-    log.debug("castVote()", poll, voteOrder, voterTokens.length)  // do not log secret voterTokens
+  castVote(poll, voteOrder, voterToken) {
+    log.debug("castVote(poll.id="+poll.id+", voteOrder=", voteOrder)  // do not log secret voterTokens
 
     // Use an anonymous HTTP client
     var anonymousClient = rest
       .wrap(mime, { mime: 'application/json'} )                   // convert entity according to mime type
+      .wrap(errorCode)                                            // Promise.reject responses with httpStatus >= 400
       .wrap(pathPrefix, { prefix: process.env.backendBaseURL })   // add path prefix to request
 
     return anonymousClient({
@@ -601,12 +609,15 @@ module.exports = {
       headers: { 'Content-Type' : 'application/json' },
       entity: {
         poll: this.getURI(poll),
-        voterTokens: voterTokens,
+        voterToken: voterToken,
         voteOrder: voteOrder
       }
     })
     .then(res => { return res.entity })
-    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err}) })
+    .catch(err => {
+      console.log("Error in apiClient.castVote", err)
+      return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err})
+    })
   },
 
 }

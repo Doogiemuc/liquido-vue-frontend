@@ -31,7 +31,7 @@ var basicAuthConfig = { username: null, password: null }
 var httpClient = rest.wrap(mime, { mime: 'application/json'} )   					// convert entity according to mime type
 		                 .wrap(cachingInterceptor, cacheConfig)  				 			// caching interceptor must be BEFORE the mime interceptor!
 		                 .wrap(errorCode)               											// Promise.reject() responses with http status code >= 400
-		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // logs a lot of data. Also try your browsers debug console
+		                 //.wrap(logRequestsInterceptor, { logPayload: true })  // logs a lot of data. Also look at your browsers network console for debugging
                      .wrap(basicAuth, basicAuthConfig)                    // login
 										 .wrap(template)																			// support query parameters in the url
 		                 .wrap(pathPrefix, { prefix: process.env.backendBaseURL })  // add path prefix to request

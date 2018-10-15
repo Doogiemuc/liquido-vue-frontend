@@ -64,7 +64,7 @@ const routes = [
     },
     props: { ideaId: undefined }
   },
-  { path: '/idea/:ideaId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
+  { path: '/ideas/:ideaId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
     },
@@ -76,7 +76,7 @@ const routes = [
       require(['./pages/Proposals_List.vue'], resolve)
     }
   },
-  { path: '/proposal/:proposalId',  // show one proposal
+  { path: '/proposals/:proposalId',  // show one proposal
     component: function(resolve) {
       require(['./pages/Proposal_Show.vue'], resolve)
     },
@@ -119,7 +119,7 @@ const routes = [
     },
 		props: true  // pass URL parameter to prop in component
   },
-  { path: '/castVote/:pollId',
+  { path: '/polls/:pollId/castVote',
     component: function(resolve) {
       require(['./pages/Poll_CastVote.vue'], resolve)
     },
@@ -162,7 +162,6 @@ router.beforeEach((to, from, next) => {
        query: { redirect: to.fullPath }
      })
   } else {
-    console.log("ok")
     next()        // make sure to always call next()!
   }
 })
@@ -232,7 +231,7 @@ var startApp = function(props) {
 
 isBackendAlive()
   .then(checkDevelopmentMode)
-  .then(apiClient.fetchGlobalProperties)
+  .then(apiClient.getGlobalProperties)
   .then(startApp)
   .catch(err => {
     console.error("Error during startup", err)

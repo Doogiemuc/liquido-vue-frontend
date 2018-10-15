@@ -10,7 +10,7 @@ module.exports = merge(prodEnv, {
   autoLoginUser: '""',
   autoLoginPass: '""',
 
-  // This user can be automatically logged in with one click on the original login page
-  devLoginUser: '"testuser1@liquido.de"',
+  // This user can be logged in with one click on the original login page
+  devLoginUser: '"testuser2@liquido.de"',
   devLoginPass: '"dummyPasswordHash"',
 })

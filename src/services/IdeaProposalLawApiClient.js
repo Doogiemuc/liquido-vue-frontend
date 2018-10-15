@@ -1,7 +1,9 @@
 /**
- * Client for Liquido backend API for LawModels (ideas, proposals and laws)
  *
- * @version 2.0 This is the new REST client with cachingInterceptor.js
+ * @DEPRECATED:  replaced by central LiquidoApiClient
+ *
+
+ * Client for Liquido backend API for LawModels (ideas, proposals and laws)
  *
  * This is the client side for the spring data jpa rest data repository in
  * org.doogie.liquido.datarepos.LawRepo
@@ -14,7 +16,7 @@ import httpClient from './httpClient'
 import loglevel from 'loglevel'
 
 var log = loglevel.getLogger("IdeaAndProposalApiClient");
-                 
+
 
 
 //==================================================================================================================
@@ -30,8 +32,8 @@ var client = httpClient.getClient()
 //==================================================================================================================
 
 module.exports = {
-  
-  /** 
+
+  /**
    * login a given user. Every future request will send these credentials with HTTP BasicAuth.
    * You MUST call this before you can use any other mehtod in this module!
    */
@@ -39,7 +41,7 @@ module.exports = {
     log.debug("IdeaProposalLawApiClient User login: "+username)
     client = httpClient.basicAuth(username,password)
   },
-  
+
   /**
    * save a new(!) idea in the backend
    * The new idea will automatically be createdBy the currently logged in user.
@@ -51,8 +53,8 @@ module.exports = {
       path:   '/laws',
       headers: { 'Content-Type' : 'application/json' },
       entity: newIdea
-    }).then(res => { 
-      return res.entity 
+    }).then(res => {
+      return res.entity
     }).catch(err => {
       log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
       return Promise.reject(err)
@@ -60,9 +62,9 @@ module.exports = {
     })
   },
 
-  /** 
+  /**
    * Update some fields of an existing(!) idea, proposal or law.
-   * @param URI the absolute REST path to the resource on the server. 
+   * @param URI the absolute REST path to the resource on the server.
    * @param the fields that shall be updated. (Does not need to contain all fields.)
    * @return the response sent from the server which is normally the complete updated resource with all its fields.
    */
@@ -70,13 +72,13 @@ module.exports = {
     log.debug("PATCH "+uri+" "+JSON.stringify(update))
     if (!uri.startsWith('http')) throw new Error("ERROR in patch: URI must start with http(s)! wrong_uri="+uri)
     if (!update) log.warn("WARNING: PATCH called with empty update")
-    return client({ 
-      method: 'PATCH', 
-      path:   uri, 
+    return client({
+      method: 'PATCH',
+      path:   uri,
       headers: { 'Content-Type' : 'application/json' },
       entity: update
-    }).then(res => { 
-      return res.entity 
+    }).then(res => {
+      return res.entity
     }).catch(err => {
       log.error("Cannot patch "+uri+" : "+err)
       throw new Error(err)
@@ -104,7 +106,7 @@ module.exports = {
     })
   },
 
-  /** 
+  /**
    * get recently created ideas
    * @param since date in the format "yyyy-MM-dd"
    * @return (a Promise that will resolve to) a list of LawModels of type == IDEA
@@ -122,18 +124,18 @@ module.exports = {
     .catch(err => {
       log.error("ERROR in apiClient: ", JSON.stringify(err))
       return Promise.reject("IdeaAndProposalApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
-    }) 
+    })
   },
-  
+
   /**
    * Get all ideas, propsals or laws (paged)
    * @param status IDEA|PROPOSAL|LAW
-   * @return list of ideas, proposals or laws 
+   * @return list of ideas, proposals or laws
    */
   findByStatus(status) {
     log.debug("findByStatus(status="+status+")")
     return client('/laws/search/findByStatus?status='+status)
-    .then(res => { 
+    .then(res => {
       return res.entity._embedded.laws
     })
     .catch(err => {
@@ -149,7 +151,7 @@ module.exports = {
   getReachedQuorumSince(since) {
     log.debug("getReachedQuorumSince("+since+")")
     return client('/laws/search/reachedQuorumSince?since='+since)
-    .then(res => { 
+    .then(res => {
       return res.entity._embedded.laws
     })
     .catch(err => {
@@ -163,7 +165,7 @@ module.exports = {
    * @param user URI of a user or a user object
    */
   findSupportedBy(user) {
-    var userURI = getURI(user)     
+    var userURI = getURI(user)
     log.debug("findSupportedBy(user="+userURI+")")
     return client('/laws/search/findSupportedBy?status=PROPOSAL&user='+encodeURIComponent(userURI))   //BUGFIX: Need to encode URI otherwise rest client gets confued.  THIS STOLE ME A WEEK ARGL!!! :-(
     .then(
@@ -173,7 +175,7 @@ module.exports = {
       log.error("ERROR in apiClient: ", JSON.stringify(err))
       return Promise.reject("IdeaAndProposalApiClient: Cannot findSupportedBy(user="+userURI+")")
     })
-    
+
   },
 
 

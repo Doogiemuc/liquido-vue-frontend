@@ -2,7 +2,7 @@
 // ./node_modules/.bin/nightwatch --config .\test\e2e_prod\nightwatch.conf.js --env iron_local --tag regression
 
 module.exports = {
-  '@tags': ['regression', 'single'],
+  '@tags': ['regression'],
 
   beforeEach: function(browser) {
     console.log(browser.globals.webapp, "=>", browser.globals.backend)

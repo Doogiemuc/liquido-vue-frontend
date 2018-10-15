@@ -1,12 +1,12 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-sm-6" id="pollsInElaboration">
         <h2>Polls in elaboration phase</h2>
         <p>The proposals in these polls can be discussed and improved.</p>
 				<poll-panel v-for="poll in pollsInElaboration" :poll="poll"></poll-panel>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-6" id="pollsInVoting">
         <h2>Polls currently open for voting</h2>
         <p>You can cast your ballot in these polls.</p>
 				<poll-panel v-for="poll in pollsInVotingPhase" :poll="poll"></poll-panel>
@@ -33,7 +33,7 @@ export default {
       pollsInVotingPhase: [],
     }
   },
-  
+
   created () {
     this.$root.api.findPollsByStatus('ELABORATION').then(elaborationPolls => {
       this.pollsInElaboration = elaborationPolls
@@ -47,12 +47,12 @@ export default {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
-    
+
     getPollURI: function(poll) {
     	return this.$root.api.getURI(poll)
     },
-    
-   
+
+
     /** a lot of data calculations for our pretty timeline
 	    SEE ALSO   LawPanel!  Same function ?!?!??!
     	*/
@@ -69,10 +69,10 @@ export default {
       var votingEndsLoc         = moment(poll.createdAt).add(durationInDays, 'days').format('L')
       var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
       var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
-      
+
     	var timelineData = {
         percentFilled: percentFilled,
-        events: [ 
+        events: [
           { percent:   "0", above: pollCreatedLoc,  below: "Poll<br/>created" },
           { percent: percentVotingStarts, above: votingStartsLoc, below: "Voting<br/>starts"},
           { percent: "100", above: votingEndsLoc,   below: "Voting<br/>ends"}
@@ -81,7 +81,7 @@ export default {
       return timelineData
     }
   }
-  
+
 }
 </script>
 
@@ -135,17 +135,17 @@ export default {
     position: relative;
   }
   .maxHeightPreview {
-    height:55px; 
-    overflow:hidden;  
+    height:55px;
+    overflow:hidden;
   }
   .maxHeightPreview:before {
     content:'';
     width:100%;
-    height:100%;    
+    height:100%;
     position:absolute;
     left:0;
     top:0;
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */  
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */
     background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
     background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
     background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
@@ -161,6 +161,6 @@ export default {
   .item-condensed p {
     margin-bottom: 0;
   }
-  
-   
+
+
 </style>

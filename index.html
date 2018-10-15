@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name='viewport', content='width=device-width, initial-scale=1.0'>
-    <meta name='csrf-token', content=_csrf>
+    <meta name='csrf-token', content='_csrf'>
     <title>Liquido</title>
 
     <link rel="stylesheet" href="/static/css/Liquido.css" />
@@ -18,20 +18,21 @@
     <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist/css/bootstrap.min.css"/>
     <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
 
-    <!-- No Bootstrap theme yet
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-    -->
-
     <!-- Font-awesome icons -->
-    <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
-    <!-- link href="/static/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script> -->
+    <script src="/static/fontawesome-5.3.1/all.min.js"></script>
+    <!-- <link href="/static/font-awesome-/css/font-awesome.min.css" rel="stylesheet"> -->
 
     <!-- x-editable https://vitalets.github.io/x-editable/  -->
     <link href="/static/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet" />
     <script src="/static/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
 
+    <!-- iziToast Flash Messages http://izitoast.marcelodolce.com/-->
+    <link rel="stylesheet" href="/static/iziToast/css/iziToast.min.css" />
+    <script src="/static/iziToast/js/iziToast.min.js" type="text/javascript"></script>
+
     <!-- The georgous TinyMCE  WYSIWYG editor -->
-	<!-- TODO: only load tinymce once its necessary -->
+	  <!-- TODO: only load tinymce once its necessary -->
     <script src='/static/tinymce/tinymce.min.js'></script>
 
     <!-- Sweet alert http://t4t5.github.io/sweetalert/ -->
@@ -92,7 +93,7 @@
     <footer>
       <div class="container text-right">
         <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
-          <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png">
+          <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
         </a>
         <br/>
       </div>

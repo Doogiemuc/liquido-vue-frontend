@@ -57,10 +57,13 @@ export default {
         { title: "Title", path: "title", editable: true },
         { title: "Description", path: "description", editable: false },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
-        { htmlTitle: '<i class="fas fa-thumbs-up"></i>', 
-				  path: "numSupporters", 
-					editComponent: SupportButton, 
-					editCompProps: { supporterAdded: this.supporterAdded } 
+        { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
+				  path: "numSupporters",
+					editComponent: SupportButton,
+					editCompProps: {
+            supporterAdded: this.supporterAdded
+            //TODO: disable supporterButton when idea is created by currently logged in user
+          }
 				},
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
@@ -70,7 +73,7 @@ export default {
       ideasTableMessage: "loading ...",
       ideas: [],
 			rowsPerPage: 20,
-			
+
 			// data for DoogieFilter.vue
 			filtersConfig: [
         {
@@ -137,21 +140,21 @@ export default {
      */
     saveNewValue(ideaURI, column, value) {
       console.log("saveNewValue event in IdeasPage.vue:", ideaURI, column, value);
-      var patchedIdea = {} 
+      var patchedIdea = {}
       patchedIdea[column.path] = value    // only send the updated key, e.g. { title: "new title" } in a PATCH request
       this.$root.api.patch(ideaURI, patchedIdea)
     },
 
-		/** 
+		/**
      * Called when the advanced filters above the table changed.
      * @param {object} newFilters the new filter configuration
      */
 		filtersChanged(newFilters) {
 			//console.log("ideaTable.FiltersChanged", newFilters)
 		},
-		
+
 		/**
-		 * callback when supporter was added to idea 
+		 * callback when supporter was added to idea
 		 * @param {object} idea the supported idea <b>IN ITS OLD STATE!!!</b>.  Needs to be reloaded!
 		 */
 		supporterAdded(idea) {
@@ -166,9 +169,9 @@ export default {
         //  this.$set(this.ideas, index, reloadedIdea)  // Important: Must use Vue's reactive $setter when replacing an array element
         //})
       })
-			
+
 		},
-		
+
     /**
      * Fast client side filtering of table rows
      * This reactive function will automatically be called, when currentFilters changes.
@@ -192,7 +195,7 @@ export default {
 				(categoryID === undefined || row.area.id == categoryID) &&
 				(createdByID === undefined || row.createdBy.id == createdByID)
 		},
-		
+
     /**
      * (re)load all tabledata from the server. Cache will temporarily be disabled for this.
      */
@@ -217,11 +220,11 @@ export default {
 				this.$root.api.enableCache()
 			})
 			.catch(err => { console.log("ERROR loading data for ideasPage: ", err) })
-			
+
 		},
 
   },
-	
+
   created () {
 		this.reloadFromServer()
   },
@@ -244,7 +247,7 @@ export default {
       return '<small>'+moment(dateVal).fromNow()+'</small>'
     }
   },
-  
+
 }
 </script>
 

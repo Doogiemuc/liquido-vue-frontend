@@ -46,10 +46,10 @@
           <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearMultiSelect(filter)">Clear</button>
         </div>
       </div>
-			
+
 			<doogie-filter-select v-if="filter.type === 'selectWithSearch'"
 			  :id="filter.id"
-        :ref="filter.id" 
+        :ref="filter.id"
 				:displayName="filter.displayName"
 				:options="filter.options"
 				v-model="currentFilters[filter.id]"
@@ -58,7 +58,7 @@
     </div>
 
     <small><a href="" v-on:click.prevent="clearAllFilters">Clear all filters</a></small>
-		
+
   </div>
 </template>
 
@@ -68,13 +68,41 @@ import DoogieFilterSelect from '../components/DoogieFilterSelect'
 
 /**
  * Filter functionality for rows in DoogieTable.
- * !!! Do not confuse this with Vue's "filters" !!! Vue's filters are for string conversion in vue templates, e.g. {{ value | capitalize }}
+ * Do not confuse this with Vue's "filters" !!! Vue's filters are for string conversion in vue templates, e.g. {{ value | capitalize }}
+ * And by the way they should be called converters by Vue.
  *
- * This component offers powerfull default filters that can be dynamically be combined. Maybe you know the filters of JIRA. 
+ * This component offers powerfull filters that can be dynamically be combined. Maybe you know the filters of JIRA.
  */
 export default {
   props: {
-    // Array of configoration info for each filter, eg. [ { type: "dateRange", name: "Created at"  }, { ... } ]
+    /*
+      Array of configoration info for each filter, eg.
+
+      filtersConfig: [
+        {
+          type: "search",
+          id: "searchID",
+          displayName: "Free text search"
+        },
+        {
+          type: "dateRange",
+          id: "updatedAtID",
+          displayName: "Updated"
+        },
+        {
+          type: "select",
+          id: "categoryID",
+          displayName: "Category",
+          options: allCategories
+        },
+        {
+          type: "selectWithSearch",
+          id: "createdByID",
+          displayName: "Created by",
+          options: allUsers
+        }
+      }
+    */
     filtersConfig: { type: Array, required: true },
   },
 
@@ -85,7 +113,7 @@ export default {
   data () {
     return {
       currentFilters: {},       // current values of all applied filters.
-			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" select 
+			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" select
     }
   },
 
@@ -101,9 +129,9 @@ export default {
   },
 
   computed: {
-   
+
   },
-  
+
   methods: {
     /**
      * set the value of one filter
@@ -136,17 +164,17 @@ export default {
       this.setFilterValue(filter, newDisplayValue, newValue)
     },
 
-		/** 
+		/**
 		 * @param {object|string|number} date Can be passed as JS Date object, ISO date string or number of milliseconds
 		 * @param {object} dateRange {start: <date>, end: <date> }    Keep in mind that JS dates are actually datetime.
-		 * @return true, when date is within dateRange.start and dateRange.end 
+		 * @return true, when date is within dateRange.start and dateRange.end
 		 */
 		isInDateRange(date, dateRange) {
-			date = new Date(date)  // allow everything new Date is able to parse,  e.g. ISO strings			
+			date = new Date(date)  // allow everything new Date is able to parse,  e.g. ISO strings
 			//console.log("isInDateRange", date, dateRange, dateRange.start <= date && date <= dateRange.end)
 			return dateRange.start <= date && date <= dateRange.end
 		},
-		
+
     /**
      * Set the value of a multi select.
      * newValue will be an array with the ids of all selected checkboxes
@@ -159,7 +187,7 @@ export default {
     },
 
     /**
-     * Set all checkboxes of a multi select to unselected 
+     * Set all checkboxes of a multi select to unselected
      * @param {Object} filter One element from filtersConfig array
      */
     clearMultiSelect(filter) {
@@ -196,7 +224,7 @@ export default {
           case "multi":
             this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
             this.$set(this.currentFilters[filter.id], 'value', [])    // Array is needed for Vue's handling of checkboxes
-            this.selectedCheckboxes[filter.id] = []  
+            this.selectedCheckboxes[filter.id] = []
             break;
         }
       })
@@ -204,7 +232,7 @@ export default {
 
     clearAllFilters() {
       this.initFilters()
-    },   
+    },
 
     /** When a filter is active, then style it accordingly */
     getActiveClass(filterId) {
@@ -213,7 +241,7 @@ export default {
         'btn-default': filterCleared,
         'btn-primary': !filterCleared
       }
-    } 
+    }
 
   },
 
@@ -271,7 +299,7 @@ export default {
   .selectList li:hover {
     background-color: #f5f5f5;
     cursor: pointer;
-  } 
+  }
 
   .applyButton {
     margin-left: 5px;

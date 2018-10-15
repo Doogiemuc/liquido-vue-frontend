@@ -21,6 +21,7 @@
         <bpmn:flowNodeRef>Task_1ods7w1</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_1xaxjoe</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_0g4vj6v</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_1jru1ec</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SubProcess_04vhho7</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
@@ -52,7 +53,7 @@
       <bpmn:incoming>SequenceFlow_1t7kiys</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ltiy4n</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0tbkb6n" name="proxy casts his vote">
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0tbkb6n" name="Proxy casts his vote">
       <bpmn:incoming>SequenceFlow_19w06q3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_028a8wg</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
@@ -61,9 +62,36 @@
       <bpmn:outgoing>SequenceFlow_1c8n6hv</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_10fckq8</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:startEvent id="StartEvent_129fp33" name="assign Proxy P">
+    <bpmn:startEvent id="StartEvent_129fp33" name="Assign Proxy P">
       <bpmn:outgoing>SequenceFlow_1t7kiys</bpmn:outgoing>
     </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_19t3vvf" sourceRef="Task_0nyymck" targetRef="Task_1jclnlt" />
+    <bpmn:sequenceFlow id="SequenceFlow_19w06q3" sourceRef="Task_1jclnlt" targetRef="IntermediateThrowEvent_0tbkb6n" />
+    <bpmn:sequenceFlow id="SequenceFlow_1ltiy4n" sourceRef="Task_1di68kk" targetRef="Task_0ewkb03" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ckxaqk" sourceRef="Task_0ewkb03" targetRef="Task_0nyymck" />
+    <bpmn:sequenceFlow id="SequenceFlow_1t7kiys" sourceRef="StartEvent_129fp33" targetRef="Task_1di68kk" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ubts81" sourceRef="Task_1cejzdd" targetRef="EndEvent_0sbpd6w" />
+    <bpmn:sequenceFlow id="SequenceFlow_028a8wg" sourceRef="IntermediateThrowEvent_0tbkb6n" targetRef="Task_1ods7w1" />
+    <bpmn:sequenceFlow id="SequenceFlow_1c8n6hv" sourceRef="Task_1ods7w1" targetRef="SubProcess_04vhho7" />
+    <bpmn:dataStoreReference id="DataStoreReference_1g09fyt" name="valid checksums with delegatedTo and optionally a publicProxyID" />
+    <bpmn:dataStoreReference id="DataStoreReference_16f6yxd" name="delegations from voter to proxy" />
+    <bpmn:endEvent id="EndEvent_0sbpd6w" name="vote was casted by proxy and can be checked by voter">
+      <bpmn:incoming>SequenceFlow_0ubts81</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_10fckq8" sourceRef="Task_1ods7w1" targetRef="Task_0g4vj6v" />
+    <bpmn:task id="Task_1cejzdd" name="check ballot casted by proxy with own (delegated) checksum">
+      <bpmn:incoming>SequenceFlow_042y3ut</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ubts81</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_042y3ut" sourceRef="SubProcess_04vhho7" targetRef="Task_1cejzdd" />
+    <bpmn:task id="Task_0g4vj6v" name="store proxy&#39;s ballot as own vote (level=0)">
+      <bpmn:incoming>SequenceFlow_10fckq8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1b594kq</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_1b594kq" sourceRef="Task_0g4vj6v" targetRef="EndEvent_1jru1ec" />
+    <bpmn:endEvent id="EndEvent_1jru1ec" name="proxy can check his ballot with his own checksum">
+      <bpmn:incoming>SequenceFlow_1b594kq</bpmn:incoming>
+    </bpmn:endEvent>
     <bpmn:subProcess id="SubProcess_04vhho7" name="Proxy: recursively cast vote for delegated checksums">
       <bpmn:incoming>SequenceFlow_1c8n6hv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_042y3ut</bpmn:outgoing>
@@ -91,28 +119,6 @@
       </bpmn:task>
       <bpmn:sequenceFlow id="SequenceFlow_04a7v40" sourceRef="Task_1kq7ut1" targetRef="Task_1lkdu6q" />
     </bpmn:subProcess>
-    <bpmn:sequenceFlow id="SequenceFlow_19t3vvf" sourceRef="Task_0nyymck" targetRef="Task_1jclnlt" />
-    <bpmn:sequenceFlow id="SequenceFlow_19w06q3" sourceRef="Task_1jclnlt" targetRef="IntermediateThrowEvent_0tbkb6n" />
-    <bpmn:sequenceFlow id="SequenceFlow_1ltiy4n" sourceRef="Task_1di68kk" targetRef="Task_0ewkb03" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ckxaqk" sourceRef="Task_0ewkb03" targetRef="Task_0nyymck" />
-    <bpmn:sequenceFlow id="SequenceFlow_1t7kiys" sourceRef="StartEvent_129fp33" targetRef="Task_1di68kk" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ubts81" sourceRef="Task_1cejzdd" targetRef="EndEvent_0sbpd6w" />
-    <bpmn:sequenceFlow id="SequenceFlow_028a8wg" sourceRef="IntermediateThrowEvent_0tbkb6n" targetRef="Task_1ods7w1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1c8n6hv" sourceRef="Task_1ods7w1" targetRef="SubProcess_04vhho7" />
-    <bpmn:dataStoreReference id="DataStoreReference_1g09fyt" name="valid checksums with delegatedTo and optionally a publicProxyID" />
-    <bpmn:dataStoreReference id="DataStoreReference_16f6yxd" name="delegations from voter to proxy" />
-    <bpmn:endEvent id="EndEvent_0sbpd6w" name="vote was casted by proxy and can be checked by voter">
-      <bpmn:incoming>SequenceFlow_0ubts81</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_10fckq8" sourceRef="Task_1ods7w1" targetRef="Task_0g4vj6v" />
-    <bpmn:task id="Task_1cejzdd" name="check ballot casted by proxy with own (delegated) checksum">
-      <bpmn:incoming>SequenceFlow_042y3ut</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0ubts81</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_042y3ut" sourceRef="SubProcess_04vhho7" targetRef="Task_1cejzdd" />
-    <bpmn:task id="Task_0g4vj6v" name="store proxy&#39;s ballot as own vote (level=0)">
-      <bpmn:incoming>SequenceFlow_10fckq8</bpmn:incoming>
-    </bpmn:task>
     <bpmn:association id="Association_0m4j276" sourceRef="Task_0ewkb03" targetRef="TextAnnotation_107nd7b" />
     <bpmn:textAnnotation id="TextAnnotation_107nd7b">
       <bpmn:text>store checksums seperately from delegations and anonymously</bpmn:text>
@@ -182,7 +188,7 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0tbkb6n_di" bpmnElement="IntermediateThrowEvent_0tbkb6n">
         <dc:Bounds x="710" y="75" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="691" y="38" width="74" height="27" />
+          <dc:Bounds x="691" y="38" width="75" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_19w06q3_di" bpmnElement="SequenceFlow_19w06q3">
@@ -240,51 +246,51 @@
         <di:waypoint x="728" y="224" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_04vhho7_di" bpmnElement="SubProcess_04vhho7" isExpanded="true">
-        <dc:Bounds x="671" y="342" width="480" height="272" />
+        <dc:Bounds x="671" y="358" width="480" height="272" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1c8n6hv_di" bpmnElement="SequenceFlow_1c8n6hv">
         <di:waypoint x="728" y="304" />
-        <di:waypoint x="728" y="342" />
+        <di:waypoint x="728" y="358" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_06b68ub_di" bpmnElement="StartEvent_06b68ub">
-        <dc:Bounds x="692" y="449" width="36" height="36" />
+        <dc:Bounds x="692" y="465" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="678" y="492" width="65" height="53" />
+          <dc:Bounds x="678" y="508" width="65" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0206t8p_di" bpmnElement="ExclusiveGateway_0206t8p" isMarkerVisible="true">
-        <dc:Bounds x="778" y="442" width="50" height="50" />
+        <dc:Bounds x="778" y="458" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="767" y="384" width="72" height="53" />
+          <dc:Bounds x="767" y="400" width="72" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1jcvm9t_di" bpmnElement="SequenceFlow_1jcvm9t">
-        <di:waypoint x="728" y="467" />
-        <di:waypoint x="778" y="467" />
+        <di:waypoint x="728" y="483" />
+        <di:waypoint x="778" y="483" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Task_1kq7ut1_di" bpmnElement="Task_1kq7ut1">
-        <dc:Bounds x="878" y="427" width="100" height="80" />
+        <dc:Bounds x="878" y="443" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0jpzsb8_di" bpmnElement="SequenceFlow_0jpzsb8">
-        <di:waypoint x="828" y="467" />
-        <di:waypoint x="878" y="467" />
+        <di:waypoint x="828" y="483" />
+        <di:waypoint x="878" y="483" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_17vkuqd_di" bpmnElement="EndEvent_17vkuqd">
-        <dc:Bounds x="785" y="533" width="36" height="36" />
+        <dc:Bounds x="785" y="549" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="827" y="531" width="89" height="40" />
+          <dc:Bounds x="827" y="547" width="89" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_00tpy4n_di" bpmnElement="SequenceFlow_00tpy4n">
-        <di:waypoint x="803" y="492" />
-        <di:waypoint x="803" y="533" />
+        <di:waypoint x="803" y="508" />
+        <di:waypoint x="803" y="549" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Task_1lkdu6q_di" bpmnElement="Task_1lkdu6q">
-        <dc:Bounds x="1028" y="427" width="100" height="80" />
+        <dc:Bounds x="1028" y="443" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_04a7v40_di" bpmnElement="SequenceFlow_04a7v40">
-        <di:waypoint x="978" y="467" />
-        <di:waypoint x="1028" y="467" />
+        <di:waypoint x="978" y="483" />
+        <di:waypoint x="1028" y="483" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Task_0g4vj6v_di" bpmnElement="Task_0g4vj6v">
         <dc:Bounds x="825" y="224" width="100" height="80" />
@@ -294,8 +300,20 @@
         <di:waypoint x="825" y="264" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_042y3ut_di" bpmnElement="SequenceFlow_042y3ut">
-        <di:waypoint x="955" y="342" />
+        <di:waypoint x="1069" y="358" />
+        <di:waypoint x="1069" y="204" />
+        <di:waypoint x="955" y="204" />
         <di:waypoint x="955" y="133" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1jru1ec_di" bpmnElement="EndEvent_1jru1ec">
+        <dc:Bounds x="976" y="246" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="949" y="289" width="90" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1b594kq_di" bpmnElement="SequenceFlow_1b594kq">
+        <di:waypoint x="925" y="264" />
+        <di:waypoint x="976" y="264" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

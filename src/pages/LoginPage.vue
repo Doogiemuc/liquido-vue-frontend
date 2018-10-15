@@ -80,6 +80,7 @@ export default {
       apiClient.login(this.email, this.password)
         .then(user => {
           this.$root.currentUser = user
+          this.$root.currentUserURI = $root.api.getURI(user)    //TODO: move login logic to a more central place, e.g. main.js
           this.$router.push("/")
         })
         .catch(err => {
