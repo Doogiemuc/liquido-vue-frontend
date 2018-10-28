@@ -44,12 +44,11 @@ This is my playground for learning the client side Java script framework [Vue 2.
 
 ### Technical Roadmap
 
- * Deploy production build to AWS EC2 instance with https://wiki.alpinelinux.org/wiki/Lighttpd
+ * Built upon this boilerplate template: Has more recent versions, e.g. of webpack: https://github.com/jonashackt/spring-boot-vuejs/
+ * Deploy production build to AWS EC2 instance with https://wiki.alpinelinux.org/wiki/Lighttpd  [done]
  * Automate this deployment
    * via Bash script?
    * Via AWS code deploy?
- * MAYBE NOT: Deploy as docker image to ECS? Or is that overengeneering? I think so. In the end this is a simple HTML page with a lot of javascript! :-)
-
 
 
 ## Build Setup

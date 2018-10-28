@@ -223,7 +223,6 @@ export default {
 			var createdByID = currentFilters.createdByID.value
       var supported   = currentFilters.supportedByCurrentUser.value
 			//console.log("rowFilterFunc", dateRange === undefined? "undefined" : this.$refs.ideaTableFilter.isInDateRange(row.updatedAt, dateRange))
-      console.log(this.filterForSupportedByCurrentUser, row.supportedByCurrentUser)
 			return (!currentFilters.searchID.value || (
           searchRegex.test(row.title) ||
           searchRegex.test(row.description) ||

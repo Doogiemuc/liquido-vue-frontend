@@ -58,6 +58,8 @@
  * Renders the NavBar at the top.
  */
 
+var loglevel = require('loglevel')
+var log = loglevel.getLogger("RootApp");
 import apiClient from '../services/LiquidoApiClient'
 
 export default {
@@ -74,6 +76,7 @@ export default {
       console.log("development mode fake login for "+process.env.devLoginUser)
       apiClient.login(process.env.devLoginUser, process.env.devLoginPass)
         .then(user => {
+          console.log("received user" , user)
           this.$root.currentUser = user
           this.$router.push("/")
         })

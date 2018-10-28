@@ -255,6 +255,9 @@ export default {
 				this.replyText = []
 				this.suggestionText = ""
 			})
+			.catch(err => {
+				log.error("Cannot load comments for proposal.id="+this.proposal.id, err)
+			})
 		},
 
 		replyToSuggestion(comment) {

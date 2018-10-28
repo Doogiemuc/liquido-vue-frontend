@@ -12,5 +12,5 @@ module.exports = merge(prodEnv, {
 
   // This user can be logged in with one click on the original login page
   devLoginUser: '"testuser2@liquido.de"',
-  devLoginPass: '"dummyPasswordHash"',
+  devLoginPass: '"dummyPassword"',
 })
