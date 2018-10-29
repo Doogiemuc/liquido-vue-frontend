@@ -1,5 +1,10 @@
-// Tests for poll pages
+// Comple voting happy case
 
+
+// https://github.com/html-dnd/html-dnd
+var dragAndDrop = require('html-dnd').codeForSelectors;
+
+/*
 var findPollInVoting = function(browser) {
 	process.env.backendBaseURL = browser.globals.backend    				// needs to be set in env for LiquidoApiClient
 	var apiClient = require('../../../src/services/LiquidoApiClient')
@@ -10,16 +15,47 @@ var findPollInVoting = function(browser) {
 		return res[0].id
 	})
 }
+*/
 
 
 module.exports = {
-	'@tags': ['regression'],
+	'@tags': ['regression', 'single'],
 	'Show poll in voting phase': function(browser) {
-		browser
+		
+		// CSS selectors
+		var firstPollPanel = "#pollsOpenForVotingHeader + div.pollPanel > div.panel-heading > a"
+		var goToCastVoteButton = "#goToCastVoteButton"
+		var pollTable = "table.pollTable"
+		var firstProposalHeading = "#leftContainer > div:nth-child(1) > div.panel-heading"
+		var rightContainer = "#rightContainer"
+		
+		browser.url(browser.launchUrl)
 		  .login(browser.globals.user1, browser.globals.pass1)
 			.url(browser.launchUrl+"/#/userHome")
-			.waitForElementVisible("#goToCastVoteButton", 3000)
-			.click("#goToCastVoteButton")
+			.waitForElementVisible(firstPollPanel, 5000)
+			.click(firstPollPanel)
+			.waitForElementVisible(goToCastVoteButton, 3000)
+			.click(goToCastVoteButton)
+			.waitForElementVisible(firstProposalHeading, 3000)
+			.moveToElement(pollTable, 0, 0)   //BUGFIX: need to move pollTable intoView, otherwiese firstProposalHeading would be behind fixed navbar
+			.pause(1000)
+			.execute(dragAndDrop, [firstProposalHeading, '#rightContainer'])
+			
+			
+			/*
+			.moveTo(firstProposalHeading)   
+			.mouseButtonDown(0)
+			.pause(1000)
+			.moveTo(rightContainer)
+			.pause(1000)
+			.mouseButtonUp(0)
+			*/
+			
+			
+			.waitForElementVisible(rightContainer + " > div:nth-child(1) > div.panel-heading", 8000)
+			
+			
+			.pause(5000)
     	.end()
 
    /*

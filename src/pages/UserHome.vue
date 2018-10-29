@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-sm-6">
 
-        <h2>Polls currently open for voting</h2>
+        <h2 id="pollsOpenForVotingHeader">Polls currently open for voting</h2>
 
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 				

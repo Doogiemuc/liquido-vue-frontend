@@ -64,6 +64,7 @@
     "file-loader": "^0.9.0",
     "friendly-errors-webpack-plugin": "^1.7.0",
     "function-bind": "^1.1.1",
+    "html-dnd": "^1.2.0",
     "html-webpack-plugin": "^2.30.1",
     "http-proxy-middleware": "^0.17.4",
     "inject-loader": "^2.0.1",

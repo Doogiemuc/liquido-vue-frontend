@@ -72,7 +72,9 @@ module.exports = {
         "loggingPrefs": { "browser": "ALL" },    // needed to capture logs https://groups.google.com/forum/#!topic/nightwatchjs/KWdF37qE038
         "chromeOptions": {
           "args": [
-            "--window-size=1024,768",
+            "window-size=1024,768",
+						"disable-extensions",
+						//"auto-open-devtools-for-tabs"
           ],
         }
       }
