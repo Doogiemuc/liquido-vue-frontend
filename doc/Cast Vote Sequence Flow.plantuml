@@ -1,0 +1,81 @@
+@startuml
+
+actor Voter order 10
+participant Server order 30
+database DB order 40
+
+== Register for voting in an area ==
+
+Voter -> Server : ""GET /voterToken?area=<area.id>""
+
+Server -> Server : ""voterToken=hash(""\n""  user.id,""\n""  user.password,""\n""  area.id,""\n""  salt)""
+
+database DB
+Server -> DB : ""upsert checksum=hash(voterToken)""\n""into TokenChecksums""
+
+DB -> Server : ""get delegated tokens for proxy""
+
+Voter <-- Server : return all voterTokens for this area\n(first token is user's own one)
+
+|||
+
+== Anonymously cast a vote ==
+
+Voter -> Server : ""POST /castVote""\n""{pollId, voterTokens[], voterOrder}""
+
+Server -> DB : ""query for checksum=hash(voterToken, secretSeed)""\n""in TokenChecksums""
+
+loop for each voterToken
+
+  Server -> Server: ""checkBallot""
+
+  alt If ballot is ok
+    Server -> DB : ""upsert ballot""\n""(poll, ownVote, voteOrder, checksum)""\n""in Ballots""
+
+    note over Server
+      Algo for checking ownVote
+      |= passed\nownVote |= existing\nownVote |= update\nvoteOrder? | |
+      | any   | no existing | -- | new ballot |
+      | true  | true  | yes | Voter updates his own vote order. |
+      | true  | false | yes | Voter overwrites previous vote of a proxy. |
+      | false | true  | no  | Proxy must not overwrite voters own vote. |
+      | false | false | yes | Proxy updated his vote order which is distributed to delegee. |
+    end note
+
+  else If ballot is invalid
+    Voter <-- Server : ""return HTTP 401 Forbidden""
+  end
+
+end
+
+Voter <-- Server : ""return counted votes as checksums""
+
+
+||50||
+
+== Assign proxy in area ==
+
+Voter -> Server : ""assignProxy(proxy, area, voterToken)""
+
+Server -> Server : ""proxyToken = hash(""\n""  voterToken""\n""  proxy.id""\n""  salt)""
+
+Server -> DB : ""insert (fromUser, toProxy, area)""\n""into Delegations""
+
+Server -> DB : ""insert checksum=hash(proxyToken)""\n""into ValidTokens""
+
+|||
+
+== Remove proxy ==
+
+Voter -> Server : ""removeProxy(proxy, area, voterToken)""
+
+Server -> Server : ""proxyToken = hash(""\n""  voterToken""\n""  proxy.id""\n""  salt)""
+
+Server -> DB : ""delete (fromUser, toProxy, area)""\n""from Delegations""
+
+Server -> DB : ""delete checksum=hash(proxyToken)""\n""from ValidTokens""
+
+
+
+@enduml
+

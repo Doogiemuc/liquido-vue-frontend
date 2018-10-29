@@ -31,30 +31,22 @@ module.exports = {
 		
 		browser.url(browser.launchUrl)
 		  .login(browser.globals.user1, browser.globals.pass1)
-			.url(browser.launchUrl+"/#/userHome")
-			.waitForElementVisible(firstPollPanel, 5000)
-			.click(firstPollPanel)
-			.waitForElementVisible(goToCastVoteButton, 3000)
-			.click(goToCastVoteButton)
-			.waitForElementVisible(firstProposalHeading, 3000)
-			.moveToElement(pollTable, 0, 0)   //BUGFIX: need to move pollTable intoView, otherwiese firstProposalHeading would be behind fixed navbar
-			.pause(1000)
-			.execute(dragAndDrop, [firstProposalHeading, '#rightContainer'])
-			
-			
-			/*
-			.moveTo(firstProposalHeading)   
+			.url(browser.launchUrl+"/#/polls")
+			.waitForElementPresent("#pollsInVoting > div > div.panel-heading > a", 3000, "Found poll in voting")
+			.click("#pollsInVoting > div > div.panel-heading > a")
+			.waitForElementPresent("#goToCastVoteButton", 3000, "On show poll page")
+			.click("#goToCastVoteButton")
+			.waitForElementPresent("#leftContainer", 3000, "On cast vote page")
+			.moveToElement('#leftContainer > div:nth-child(1)',  10,  60)		// must move below (>50px) the fixed nav-bar at the top
 			.mouseButtonDown(0)
-			.pause(1000)
-			.moveTo(rightContainer)
-			.pause(1000)
+			.moveToElement('#rightContainer', 20, 60)
 			.mouseButtonUp(0)
-			*/
-			
-			
-			.waitForElementVisible(rightContainer + " > div:nth-child(1) > div.panel-heading", 8000)
-			
-			
+			.waitForElementPresent("#rightContainer div.lawPanel", 3000, "Dragged one proposal to the right")
+
+		browser.expect.element('#castVoteButton').to.not.have.attribute('disabled', "Cast vote button is enabled")
+
+		browser
+		  .click("#castVoteButton")
 			.pause(5000)
     	.end()
 

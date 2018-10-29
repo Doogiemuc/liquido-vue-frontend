@@ -1,49 +1,62 @@
 /**
  * API client  for the Liquido backend. This class is the central facade for all API methods.
  * Every call to the backend comes through here. LiquidoApiClient handles:
- *  - authentication
+ *  - oauth authentication
  *  - caching of requests
  *  - error handling
- * Under the hood REST requests are sent with the CuJoJs REST client and its powerfull interceptors.
+ * Under the hood REST requests are sent with AXIOS
  *
  * Error handling
  * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
  * with an error message.
  */
 
-//TODO: Also try https://github.com/marmelab/restful.js   or better even go with GraphQL
+// I know this module is too large for one file. I started to split it up several times. But in the end
+// I personally had the best coding experience when everything was in one file.
 
-var httpClient = require('./httpClient')
-var rest = require('rest')
-var mime = require('rest/interceptor/mime')
-var pathPrefix = require('rest/interceptor/pathPrefix')
+var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
+var template = require('url-template');   // parsing and expanding RFC 6570 URI Templates
 var loglevel = require('loglevel')
-
 var log = loglevel.getLogger("LiquidoApiClient");
 
-/** Sanity check */
-if (process.env.backendBaseURL === undefined) {
-  throw new Error("process.env.backendBaseURL must be defined!")
-}
 
 //==================================================================================================================
 // Module private fields and methods
 //==================================================================================================================
 
-// httpClient is configuring CuJoJS REST client
-// This client variable is used throughout this module.
-// The inner httpClient is only used for login/logout
-var client = httpClient.getClient()
-
-/**
- * Get the internal DB id of a model. IDs are numbers.
- * This is an internal method and should not be exposed.
- */
-var getId = function(model) {
-  var uri = this.getURI(model)
-  var uriRegEx = new RegExp('^https?://.*/(\d?)$')
-  var id = uri.match(uriRegEx)
+// Sanity check
+if (process.env.backendBaseURL === undefined) {
+  throw new Error("process.env.backendBaseURL must be defined!")
 }
+
+// Configure Axios HTTP Client
+const axios = require('axios')
+const anonymousClient = axios.create()      // extra client instance for anonymous unauthenticated requests
+axios.defaults.baseURL = process.env.backendBaseURL
+
+// currently logged in user. Will be set in login
+var oauthParams = {
+  grant_type: 'password',
+  client_id: 'liquidoclientid',
+  client_secret: 'liquido.slient:secret5',
+  username: undefined,
+  password: undefined,
+  scope: ''
+}
+
+// cached Oauth token. Will be set in login
+var oauthToken = undefined
+const myInterceptor = axios.interceptors.request.use(function (config) {
+  if (oauthToken !== undefined) {
+    config.headers['Authorization'] = 'Bearer '+oauthToken
+  }
+  return config
+});
+
+// local cache of globalProperties
+// They would also be cached by our cachingInterceptor, but we want a longer TTL
+var globalPropertiesCache = undefined
+
 
 //==================================================================================================================
 // Public/Exported methods
@@ -51,19 +64,55 @@ var getId = function(model) {
 
 module.exports = {
 
+  getOAuthtoken(username, password) {
+    oauthParams.username = username
+    oauthParams.password = password
+    return axios.post('/oauth/token', qs.stringify(oauthParams))
+      .then(res => {
+        oauthToken = res.data.access_token
+        log.debug("Received oauth token", oauthToken)
+        return oauthToken
+      })
+      .catch(err => {
+        log.error("Cannot get Oauth token", err)
+        return Promise.reject(err)
+      })
+  },
+
   /**
    * Login this user
    * @return full user object or Promise.reject() on error
    */
   login(username, password) {
-    log.debug("LiquidoApiClient User login: "+username)
-    httpClient.login(username,password)
-    return this.findUserByEmail(username)
+    log.info("LiquidoApiClient User login: " + username)
+    return this.getOAuthtoken(username, password)
+      .then(res => {
+        return this.findUserByEmail(username)
+      })
   },
 
   logout() {
-    httpClient.logout()
+    oauthToken = undefined
     //TODO: flush the cache
+  },
+
+  /** send a link to login via email */
+  sendMagicLink() {
+    return Promise.resolve("/loginWithToken?token=ABCDEF")
+  },
+
+  /** send a login code via SMS */
+  sendSmsLoginCode(phone) {
+    return axios.get('/login/sendSmsLoginCode?phone='+phone)
+  },
+
+  /** verify if a 4-digit login code is valid */
+  verifySmsLoginCode(code) {
+    return axios.get('/login/verifySmsLoginCode?code='+code).then(res => {
+      this.$root.currentUser = res
+      this.$root.currentUserURI = res._links.self.href
+      return res
+    })
   },
 
   /**
@@ -71,36 +120,38 @@ module.exports = {
    * @return A Promise that will reject (quickly) when the backend is not reachable.
    */
   ping() {
-    return client('/_ping').then(result => {
-      if (result.error) return Promise.reject("Connection error: "+result.error)    //BUGFIX:  No error status is set on conction error???
+    return anonymousClient.get('/_ping').then(result => {
+      if (result.error) return Promise.reject("Connection error: "+result.error)    //BUGFIX:  No error status is set on conection error???
       return Promise.resolve("Backend is alive")
     })
   },
 
+  //TODO: do i need client side caching at all? => well it is for example nice for client side filtering. => Cache in table?
+
 	/** disable the cache. Every request will go the backend */
   disableCache() {
-    log.debug("disableCache")
-    httpClient.setCacheUrlFilter('DO_NOT_CACHE')
+    //log.debug("disableCache")
+    //httpClient.setCacheUrlFilter('DO_NOT_CACHE')
   },
 
 	/** enable cache when searching for laws */
   enableCache(){
-    log.debug("enableCache")
+    //log.debug("enableCache")
 		// only cache requests when searching for ideas, proposals or laws   and for globalProperties
-		httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
-		httpClient.setCacheTTL(10)
+		//httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
+		//httpClient.setCacheTTL(10)
 	},
 
 	/** disable the cache but only for the next request */
   noCacheForNextRequest() {
-    httpClient.noCacheForNextRequest()
+    //httpClient.noCacheForNextRequest()
   },
 
   /**
    * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource,
    * e.g. <pre>http://localhost:8080/liquido/v2/areas/42</pre>
    * @param {String|Object} model If you already pass a valid URI as a string, then that URI will be returned as is.
-   *        Otherwise you can also pass a model that you loaded before. Then its _links.self_href will be returned.
+   *        Otherwise you can also pass a model that you loaded before. Then its _links.self.href will be returned.
    * @return {URI} an URI that points to a resource on our REST backend
    */
   getURI(model) {
@@ -124,40 +175,57 @@ module.exports = {
   //MAYBE: getModelById(id, modelClass),  e.g   getModelById(4711, 'laws') => process.env.backendBaseURL + '/' + modelClass + '/' + id
 
 //==================================================================================================================
+// HATEOAS
+//==================================================================================================================
+
+  //TODO: this would be a nice generic way of navigating hateoas links
+  follow(hateosJson, linkName, uriTemplateParams) {
+    var link = hateosJson._links[linkName]
+    if (link === undefined) return Promise.reject("Cannot find link with name "+linkName)
+    //replace uri template variables in href   e.g. with https://www.npmjs.com/package/url-template
+    var url = link.href.expand(uriTemplateParams)
+    // make call
+    return axios.get(url)  // might return just one entity or an array of entities
+  },
+
+
+
+//==================================================================================================================
 // Users
 //==================================================================================================================
 
   getAllUsers() {
-    return client('/users').then(
-      res => { return res.entity._embedded.users }
+    return axios.get('/users').then(
+      res => { return res.data._embedded.users }
     )
   },
 
   findUserByEmail(email) {
-    return client('/users/search/findByEmail?email='+email)
-     .then(res => { return res.entity })
-     .catch(err => { return Promise.reject({msg: "Cannot findUserByEmail", email: email, err: err}) })
+    return axios.get('/users/search/findByEmail?email='+email)
+     .then(res => {
+      return res.data
+    })
+    .catch(err => {
+      return Promise.reject({msg: "Cannot findUserByEmail", email: email, err: err})
+    })
   },
 
 //==================================================================================================================
 // Global Properties from backend DB
 //==================================================================================================================
 
-  // local cache of globalProperties
-  // They would also be cached by our cachingInterceptor, but we want a longer TTL
-  globalPropertiesCache : undefined,
 
   /**
    * Global configuration properties from the backend.
    * Values will be cached via lazy loading.
    */
   getGlobalProperties() {
-    if (this.globalPropertiesCache !== undefined) return this.globalPropertiesCache;
+    if (globalPropertiesCache !== undefined) return globalPropertiesCache;
     log.debug("Loading global properties from backend (and caching them)")
-    return client('/globalProperties').then(
+    return anonymousClient.get('/globalProperties').then(
       res => {
-        this.globalPropertiesCache = res.entity
-        return res.entity
+        globalPropertiesCache = res.data
+        return res.data
       }
     )
   },
@@ -183,17 +251,17 @@ module.exports = {
 
   /** lazy load all categories (from cache if possible) */
   getAllCategories() {
-    return client('/areas').then(
-      response => { return response.entity._embedded.areas }
+    return axios.get('/areas').then(
+      response => { return response.data._embedded.areas }
     )
   },
 
   getCategory(uri) {
     var areaRegEx = new RegExp('^https?://.*/areas/(\w?)$')           // categories are called areas on the server
     if (areaRegEx.test(uri)) {
-      return client({path: uri}).then(res => {return res.entity })
+      return axios.get(uri).then(res => {return res.data })
     } else if (!isNaN(uri)) {
-      return client('/areas/'+uri).then(res => {return res.entity })    // idea ID was passed as a number
+      return axios.get('/areas/'+uri).then(res => {return res.data })    // idea ID was passed as a number
     } else {
       throw "Cannot get Category from uri="+uri
     }
@@ -205,23 +273,24 @@ module.exports = {
 
   /** fetch all proxies of a user per area */
   getProxyMap(user) {
-    var userURI = user._links.self.href
-    return client(userURI+'/getProxyMap').then(
+    return axios.get('/my/proxyMap').then(
       response => { return response.entity }
     )
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
-  saveProxy(category, proxy) {
+  assignProxy(category, proxy) {
     if (!category) throw new Error("Missing category for saveProxy()")
     if (!proxy) throw new Error("Missing proxy for saveProxy()")
-    return client({
-      method: 'PUT',
-      path: '/saveProxy',
+    var categoryURI = this.getURI(category)
+    var proxyURI = this.getURI(proxy)
+    log.debug("assignProxy(categor="+categoryURI+", proxy="+proxyURI+")")
+    return client.put({
+      url: '/assignProxy',
       headers: { 'Content-Type' : 'application/json' },
-      entity: {
-        area:     this.getURI(category),   // the ID of any model is its URI, eg.  /area/4
-        toProxy:  this.getURI(proxy)
+      data: {
+        area:     categoryURI,
+        toProxy:  proxyURI
       }
     })
   },
@@ -229,9 +298,10 @@ module.exports = {
   /** remove the proxy of the currently logged in user in the given category */
   removeProxy(category) {
     if (!category) throw new Error("Missing category for removeProxy()")
-    return client({
-      method: 'DELETE',
-      path:   process.env.backendBaseURL+'/deleteProxy/'+getId(category),
+    var categoryURI = this.getURI(category)
+    log.debug("removeProxy(category="+categoryURI+")")
+    return axios.delete({
+      url: '/deleteProxy/'+category.id,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -244,7 +314,7 @@ module.exports = {
 //==================================================================================================================
 
   /**
-	 * reload one idea from server (without using the cache)
+	 * reload one proposal from server (without using the cache)
 	 * @param {string|object} lawIdOrURI ID or URI of an idea, proposal or law
 	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
 	 * @return {object} the reloaded idea as HATEOS JSON
@@ -255,9 +325,9 @@ module.exports = {
     else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
-    httpClient.noCacheForNextRequest()
-    return client(lawURI).then(res => {
-      return res.entity
+    //httpClient.noCacheForNextRequest()
+    return axios.get(lawURI).then(res => {
+      return res.data
     }).catch(err => {
       log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
       return Promise.reject({msg: "Cannot get law", lawURI: lawURI, httpStatusCode: err.status.code})
@@ -279,8 +349,7 @@ module.exports = {
    */
   findByStatus(status, page, size, sort) {
     log.debug("findByStatus(status="+status+")")
-    return client({
-			path: '/laws/search/findByStatus{?status,page,size,sort}',
+    return axios.get('/laws/search/findByStatus', {
 			params: {
 				status: status,
 				page: page,
@@ -288,7 +357,7 @@ module.exports = {
 				sort: sort
 			}
 		})
-    .then(res => { return res.entity._embedded.laws })
+    .then(res => { return res.data._embedded.laws })
     .catch(err => { return Promise.reject("LiquidoApiClient: Cannot findByStatus(status="+status+")", err) })
   },
 
@@ -297,14 +366,13 @@ module.exports = {
    */
   findByStatusAndCreator(status, creator) {
     log.debug("findByStatusAndCreator(status='"+status+"', creator.id="+creator.id+")")
-    return client({
-        path: '/laws/search/findByStatusAndCreator{?status,user}',
+    return axios.get('/laws/search/findByStatusAndCreator', {
         params: {
           status: status,
           user: this.getURI(creator)
         }
       })
-      .then(res => { return res.entity._embedded.laws })
+      .then(res => { return res.data._embedded.laws })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findByStatusAndCreator", status: status, creator: creator, err: err}) })
   },
 
@@ -315,9 +383,14 @@ module.exports = {
    */
   findSupportedBy(user, status) {
     var userURI = this.getURI(user)
-    log.debug("findSupportedBy(user="+userURI+")")
-    return client('/laws/search/findSupportedBy?status='+status+'&user='+encodeURIComponent(userURI))   //BUGFIX: Need to encode URI otherwise rest client gets confued.  THIS STOLE ME A WEEK ARGL!!! :-(
-    .then(res => { return res.entity._embedded.laws })
+    log.debug("findSupportedBy(user="+userURI+", status="+status+")")
+    return axios.get('/laws/search/findSupportedBy', {
+      params: {
+        status: status,
+        user: userURI
+      }
+    })
+    .then(res => { return res.data._embedded.laws })
     .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findSupportedBy()", user: user, status: status, err: err})  })
   },
 
@@ -327,13 +400,12 @@ module.exports = {
    */
   saveNewIdea(newIdea) {
     log.debug("POST newIdea: "+JSON.stringify(newIdea))
-    return client({
-      method: 'POST',
-      path:   '/laws',
+    return axios.post({
+      url: '/laws',
       headers: { 'Content-Type' : 'application/json' },
-      entity: newIdea
+      data: newIdea
     }).then(res => {
-      return res.entity
+      return res.data
     }).catch(err => {
       log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
       return Promise.reject(err)
@@ -350,13 +422,13 @@ module.exports = {
     log.debug("PATCH "+uri+" "+JSON.stringify(update))
     if (!uri.startsWith('http')) return Promise.reject("ERROR in patchIdea: URI must start with http(s)! wrong_uri="+uri)
     if (!update) return Promise.reject("patchIdea called with empty update")
-    return client({
+    return axios({
       method: 'PATCH',
-      path:   uri,
+      path: uri,
       headers: { 'Content-Type' : 'application/json' },
-      entity: update
+      data: update
     }).then(res => {
-      return res.entity
+      return res.data
     }).catch(err => {
       log.error("Cannot patch "+uri+" : "+err)
       return Promise.reject(err)
@@ -374,13 +446,13 @@ module.exports = {
     var supportersURI = idea._links.supporters.href
     var userURI       = this.getURI(user)
     log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title+"': POST "+supportersURI)
-    return client({
+    return axios({
       method: 'POST',
-      path:   supportersURI,
+      url:   supportersURI,
       headers: { 'Content-Type' : 'text/uri-list' },  //BUGFIX for "no String-argument constructor/factory method to deserialize from String value"   send text/uri-list !
-      entity: userURI
+      data: userURI
     }).then(res => {
-      return ""  // returns status 204
+      return ""  // backend returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter: "+supportersURI+": ", err)
       return Promise.reject(err)
@@ -394,8 +466,8 @@ module.exports = {
    */
   getRecentIdeas() {
     log.debug("getRecentIdeas()")
-    return client('/laws/search/recentIdeas')
-			.then(res => { return res.entity._embedded.laws })
+    return axios.get('/laws/search/recentIdeas')
+			.then(res => { return res.data._embedded.laws })
 			.catch(err => {
 				log.error("ERROR in apiClient: ", JSON.stringify(err))
 				return Promise.reject("LiquidoApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
@@ -412,8 +484,8 @@ module.exports = {
    */
   getReachedQuorumSince(since) {
     log.debug("getReachedQuorumSince("+since+")")
-    return client('/laws/search/reachedQuorumSince?since='+since)
-    .then(res => { return res.entity._embedded.laws })
+    return axios.get('/laws/search/reachedQuorumSince?since='+since)
+    .then(res => { return res.data._embedded.laws })
     .catch(err => {
       log.error("ERROR in apiClient: ", JSON.stringify(err))
       return Promise.reject("LiquidoApiClient: Cannot getReachedQuorumSince(since="+since+")")
@@ -427,14 +499,17 @@ module.exports = {
     return this.getLaw(proposalOrURI, projected)
   },
 
+
   /** fetch all comments of a proposal */
   getComments(proposal, projected) {
-    var commentsURL = proposal._links.comments.href
+    var commentsTemplate = template.parse(proposal._links.comments.href)
+    var commentsURL = commentsTemplate.expand({
+      projection: projected ? 'commentProjection' : undefined
+    })
     log.debug("getComments for Proposal: "+commentsURL)
-    if (projected) commentsURL += "?projection=commentProjection"
-    return client(commentsURL)
-      .then(res => { return res.entity._embedded.comments })
-      .catch(err => { return Promise.reject("LiquidoApiClient: Cannot getComments(id="+proposalId+"): "+err) })
+    return axios.get(commentsURL)
+      .then(res => { return res.data._embedded.comments })
+      .catch(err => { return Promise.reject("LiquidoApiClient: Cannot getComments(proposal.id="+proposal.id+"): "+err) })
   },
 
   /**
@@ -446,11 +521,11 @@ module.exports = {
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
     var userURI       = this.getURI(user)
     log.debug("upvoteComment", upvotersURI, userURI)
-    return client({
+    return axios({
       method: 'POST',
-      path: upvotersURI,
+      url: upvotersURI,
       headers: { 'Content-Type' : 'text/uri-list' },
-      entity: userURI
+      data: userURI
     })
     .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot upvoteComment", comment: comment, err: err}) })
   },
@@ -460,11 +535,11 @@ module.exports = {
     var downvotersURI = comment._links.downVoters.href   // e.g. /comments/4711/downVoters
     var userURI       = this.getURI(user)
     log.debug("downvoteComment", downvotersURI, userURI)
-    return client({
+    return axios({
       method: 'POST',
-      path: downvotersURI,
+      url: downvotersURI,
       headers: { 'Content-Type' : 'text/uri-list' },
-      entity: userURI
+      data: userURI
     })
     .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot downvoteComment", comment: comment, err: err}) })
   },
@@ -478,11 +553,11 @@ module.exports = {
     var newComment = { comment: newCommentText }
     if (parent) newComment['parent'] = parent._links.self.href
     log.debug("saveComment", newComment)
-    return client({
+    return axios({
       method: 'POST',
-      path: '/comments',
+      url: '/comments',
       headers: { 'Content-Type' : 'application/json' },
-      entity: newComment
+      data: newComment
     })
     .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot saveComment", newComment: newComment, err: err}) })
   },
@@ -498,12 +573,12 @@ module.exports = {
     log.debug("suggestImprovement for proposal", proposal)
     return this.saveComment(newImprovementText, null)
     .then(res => {
-      var createdComment = res.entity
-      return client({
+      var createdComment = res.data
+      return axios({
         method: 'POST',   // POST adds a suggestion to the list of comments (PUT would overwrite all existing comments of this proposal)
-        path: proposal._links.comments.href,
+        url: proposal._links.comments.href,
         headers: { 'Content-Type' : 'text/uri-list' },
-        entity: createdComment._links.self.href
+        data: createdComment._links.self.href
       })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot suggestImprovement", newImprovementText: newImprovementText, err: err}) })
     })
@@ -522,8 +597,8 @@ module.exports = {
    */
   findPollsByStatus(status) {
     log.debug("findPollsByStatus()")
-    return client('/polls/search/findByStatus?status='+status)
-      .then( res => { return res.entity._embedded.polls })
+    return axios.get('/polls/search/findByStatus?status='+status)
+      .then( res => { return res.data._embedded.polls })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
   },
 
@@ -537,8 +612,8 @@ module.exports = {
     var pollURI
     if (!isNaN(pollIdOrUri)) pollURI = process.env.backendBaseURL+'/polls/'+pollIdOrUri
     else pollURI = this.getURI(pollIdOrUri)
-    return client(pollURI)
-      .then( res => { return res.entity })
+    return axios.get(pollURI)
+      .then( res => { return res.data })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) })
   },
 
@@ -547,14 +622,14 @@ module.exports = {
     //TODO: make some basic checks about proposal and poll
     var proposalURI = this.getURI(proposal)
     var pollURI = this.getURI(poll)
-    return client({
-      method: 'POST',
-      path: '/joinPoll',
-      headers: { 'Content-Type' : 'application/json' },
-      entity: {
-        proposal: proposalURI,
-        poll: pollURI
-      }
+    return axios({
+        method: 'POST',
+        url: '/joinPoll',
+        headers: { 'Content-Type' : 'application/json' },
+        data: {
+          proposal: proposalURI,
+          poll: pollURI
+        }
       })
       .then( res => { return "" })  // returns HTTP status 201
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) })
@@ -566,11 +641,11 @@ module.exports = {
    * @param  areaId Numeric numerical ID of area
    * @return Array list of voter Tokens
    */
-  getVoterTokens(areaId) {
-    log.debug("getVoterTokens()", areaId)
-    return client("/voterTokens?area="+areaId)  // spring does require the numerical ID and not the URI in this case
-      .then(res => { return res.entity.voterTokens })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterTokens()", areaId: areaId, err: err}) })
+  getVoterToken(areaId) {
+    log.debug("getVoterToken(area.id="+areaId+")")
+    return axios.get("/my/voterToken?area="+areaId)  // spring does require the numerical ID and not the URI in this case
+      .then(res => { return res.data.voterToken })
+      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err}) })
   },
 
   /**
@@ -587,26 +662,24 @@ module.exports = {
    * }
    * </pre>
    */
-  castVote(poll, voterTokens, voteOrder) {
-    log.debug("castVote()", poll, voteOrder, voterTokens.length)  // do not log secret voterTokens
-
-    // Use an anonymous HTTP client
-    var anonymousClient = rest
-      .wrap(mime, { mime: 'application/json'} )                   // convert entity according to mime type
-      .wrap(pathPrefix, { prefix: process.env.backendBaseURL })   // add path prefix to request
+  castVote(poll, voteOrder, voterToken) {
+    log.debug("castVote(poll.id="+poll.id+", voteOrder=", voteOrder)  // do not log secret voterTokens
 
     return anonymousClient({
       method: 'POST',
-      path: '/castVote',
+      url: '/castVote',
       headers: { 'Content-Type' : 'application/json' },
-      entity: {
+      data: {
         poll: this.getURI(poll),
-        voterTokens: voterTokens,
+        voterToken: voterToken,
         voteOrder: voteOrder
       }
     })
-    .then(res => { return res.entity })
-    .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err}) })
+    .then(res => { return res.data })
+    .catch(err => {
+      console.log("Error in apiClient.castVote", err)
+      return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err})
+    })
   },
 
 }

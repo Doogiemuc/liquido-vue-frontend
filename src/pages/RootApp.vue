@@ -12,13 +12,13 @@
           <router-link to="/" class="navbar-brand"><i class="fa fa-university"></i> Liquido</router-link>
         </div>
         <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav nav-arrows" v-if="currentUser">
+          <ul id="navArrows" class="nav navbar-nav nav-arrows" v-if="currentUser">
             <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
             <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
             <li><router-link active-class="active" to="/polls">Polls</router-link></li>
             <li><router-link active-class="active" to="/laws">Laws</router-link></li>
           </ul>
-          <ul class="nav navbar-nav nav-arrows" v-else>
+          <ul id="navArrows" class="nav navbar-nav nav-arrows disabled" v-else>
             <li><a href="#">Ideas</a></li>
             <li><a href="#">Proposals</a></li>
             <li><a href="#">Polls</a></li>
@@ -26,7 +26,7 @@
           </ul>
 
           <ul id="userMenu" class="nav navbar-nav navbar-right" v-if="currentUser">
-            <button type="button" @click="$router.push('/addIdea')" class="btn btn-default navbar-btn">Add Idea</button>
+            <button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">Add Idea</button>
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle">
                 <img v-bind:src="currentUser.profile.picture" alt="Avatar Image">
@@ -43,6 +43,7 @@
             </li>
           </ul>
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
+          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">Dev Login '{{devLoginUser}}'</button>
           <div></div>
         </div>
       </div>
@@ -57,19 +58,52 @@
  * Renders the NavBar at the top.
  */
 
+var loglevel = require('loglevel')
+var log = loglevel.getLogger("RootApp");
 import apiClient from '../services/LiquidoApiClient'
 
 export default {
-  //TODO: make RootApp testable on its own: Problem: How to hanlde <router-view> ?
+  computed: {
+    showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
+    devLoginUser() { return process.env.devLoginUser }
+  },
 
   methods: {
     //MAYBE: these methods could be called from all components as this.$root.method()
+
+    /** Quickly login a default user for development */
+    devLogin() {
+      console.log("development mode fake login for "+process.env.devLoginUser)
+      apiClient.login(process.env.devLoginUser, process.env.devLoginPass)
+        .then(user => {
+          console.log("received user" , user)
+          this.$root.currentUser = user
+          this.$router.push("/")
+        })
+        .catch(err => {
+          log.error("Cannot login", err)
+        })
+    },
+  },
+
+  mounted() {
+    iziToast.settings({
+      layout: 2,
+      timout: 10000,
+      animateInside: false,
+      position: 'topRight',
+      transitionIn: 'fadeInLeft',
+    })
   }
 }
 
 </script>
 
 <style>
+  #devLoginButton {
+    margin-right: 15px;
+  }
+
   .navbar-nav img {
     width: 30px;
     height: 30px;
@@ -119,25 +153,34 @@ export default {
   }
 
   /* Special colors for active link */
-  ul.nav.navbar-nav.nav-arrows a.active {
+  #navArrows a.active {
     color: #FFF;
     background-color: #337ab7;
   }
-  .navbar-nav.nav-arrows a.active:after {
+  #navArrows a.active:after {
     border-color: transparent transparent transparent #337ab7;
   }
-  .navbar-nav.nav-arrows a.active:before {
+  #navArrows a.active:before {
     border-color: #337ab7  #337ab7  #337ab7 transparent ;
   }
-
-  /* non active arrows */
-  ul.nav.navbar-nav.nav-arrows a:not(.active) {
+  #navArrows a:not(.active) {
     color: #FFF;
     background-color: #ddd;
   }
-  /*
-  .nav.navbar-nav.navbar-right > li > a {
-    background-color: transparent;
+  /* also highlight on hover */
+  #navArrows:not(.disabled) a:hover {
+    background-color: #337ab7;
   }
-  */
+  #navArrows:not(.disabled) a:hover:before {
+    border-color: #337ab7  #337ab7  #337ab7 transparent ;
+  }
+  #navArrows:not(.disabled) a:hover:after {
+    border-color: transparent transparent transparent #337ab7;
+  }
+  /* disabled arrows when not yet logged in */
+  #navArrows.disabled a {
+    cursor: default;
+  }
+
+
 </style>

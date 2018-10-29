@@ -34,7 +34,10 @@ const routes = [
     component: LoginPage,
     meta: { requiresAuth: false }
   },
-  { path: '/logout',    component: LogoutPage },
+  { path: '/logout',
+    component: LogoutPage,
+    meta: { requiresAuth: false }
+  },
 
   // asyncronously require components for lazy loading, WebPack code split point
   { path: '/categories',
@@ -55,15 +58,15 @@ const routes = [
       require(['./pages/Ideas_List.vue'], resolve)
     }
   },
-  { path: '/addIdea',   // add a new idea
+  { path: '/ideas/add',
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
     },
     props: { ideaId: undefined }
   },
-  { path: '/idea/:ideaId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
+  { path: '/ideas/:proposalId',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
     component: function(resolve) {
-      require(['./pages/Idea_Edit.vue'], resolve)
+      require(['./pages/Proposal_Show.vue'], resolve)
     },
     props: true
   },
@@ -73,7 +76,7 @@ const routes = [
       require(['./pages/Proposals_List.vue'], resolve)
     }
   },
-  { path: '/proposal/:proposalId',  // show one proposal
+  { path: '/proposals/:proposalId',  // show one proposal
     component: function(resolve) {
       require(['./pages/Proposal_Show.vue'], resolve)
     },
@@ -116,7 +119,7 @@ const routes = [
     },
 		props: true  // pass URL parameter to prop in component
   },
-  { path: '/castVote/:pollId',
+  { path: '/polls/:pollId/castVote',
     component: function(resolve) {
       require(['./pages/Poll_CastVote.vue'], resolve)
     },
@@ -137,6 +140,12 @@ const routes = [
 
 const router = new VueRouter({routes})
 
+/** check if ANY of the matched routes requires authentication */
+var requiresAuth = function(to) {
+  return to.matched.some(record => {
+    return record.meta.requiresAuth !== false
+  })
+}
 
 /**
  * If route matches nothing => PageNotFound
@@ -144,57 +153,26 @@ const router = new VueRouter({routes})
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
-  console.log("checking path ",to.matched)
-  if (to.matched.length == 0) console.log("no match")
-
-
-  if (to.matched.some(record => {
-    //console.log("checking ", record)
-    return record.meta.requiresAuth !== false
-  }) &&
-      router.app.$root.currentUser === undefined)
-  {
-    console.log("needs login")
+  if (to.matched.length == 0) {
+    next({path: '/pageNotFound'})
+  } else
+  if (requiresAuth(to) && router.app.$root.currentUser === undefined) {
     next({
        path: '/login',
        query: { redirect: to.fullPath }
      })
   } else {
-    console.log("ok")
     next()        // make sure to always call next()!
   }
 })
 
-/*
-router.beforeEach((to, from, next) => {
-  console.log("checking path ",to.path)
-  if (to.path === "/" || to.path === '/login') {
-    next();
-    return
-  }
-
-  Object.keys(routes).forEach(function(key,index) {
-    if (routes[key].path.startsWith())
-  }
-
-  if (router.app.$root.currentUser === undefined && (to.path !== "/" && to.path !== '/login')) {
-    console.log("need login!!")
-    //TODO: forward to error page if to.path is not contained in routes.path ?
-    next("/login")
-  } else {
-    console.log("normal navigation")
-    next()
-  }
-})
-*/
-
 // ==============================================================================
-// Here we start the forontend app. 
+// Here we start the forontend app.
 // A lot of things are happening here
 //
 // First we make a dummy request to the backend to check whether it's there at all. If not we show an error.
 // IF we are in development mode, then we load the first user by default and log him in.
-// Then we start the vue-router RootApp.vue which will replace the content of index.html 
+// Then we start the vue-router RootApp.vue which will replace the content of index.html
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
@@ -217,14 +195,14 @@ var currentUser = undefined
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
     log.info("Running in development mode.")
-    loglevel.setLevel("trace")                              // trace == log everything		
+    loglevel.setLevel("trace")                              // trace == log everything
   }
   // automatically login a user if values are set
   if (process.env.autoLoginUser && process.env.autoLoginPass) {
     log.info("Automatic login of "+process.env.autoLoginUser)
-		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)         
-		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => { 
-			currentUser = user  
+		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)
+		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => {
+			currentUser = user
 		})
 	}
   return Promise.resolve()
@@ -253,15 +231,10 @@ var startApp = function(props) {
 
 isBackendAlive()
   .then(checkDevelopmentMode)
-  .then(apiClient.fetchGlobalProperties)
+  .then(apiClient.getGlobalProperties)
   .then(startApp)
   .catch(err => {
     console.error("Error during startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR while loading Liquido App. Please try again later.</p>')
   })
-
-
-
-
-
 

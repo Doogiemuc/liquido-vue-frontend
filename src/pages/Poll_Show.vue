@@ -1,5 +1,5 @@
-<!-- 
-	Page that shows one poll. 
+<!--
+	Page that shows one poll.
 	If a user has proposals in elaboration (that are not yet part of any poll)
 	then he can join this poll.
 -->
@@ -10,13 +10,13 @@
 			<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">in voting phase</template>
 		</h1>
-		
+
 		<div v-if="poll.status == 'VOTING'" class="panel panel-default">
 	    <div class="panel-body"">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
 	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	      <router-link :to="{ path: '/castVote/'+poll.id }" id="goToCastVoteButton" role="button" class="btn btn-primary text-center">
+	      <router-link :to="{ path: '/polls/'+poll.id+'/castVote' }" id="goToCastVoteButton" role="button" class="btn btn-primary text-center">
 					Cast your vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
 	    </div>
@@ -24,22 +24,22 @@
 
 	  <br/>
 		<h3>Alternative proposals in this poll</h3>
-		
+
     <div class="row">
 		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
-				<law-panel 
-				  :law="proposal" 
-				  :showTimeline="false" 
+				<law-panel
+				  :law="proposal"
+				  :showTimeline="false"
 				  :fixedHeight="200"
 				  v-on:like="likeToDiscuss"
-				  class="proposalPanel" 
+				  class="proposalPanel"
 				></law-panel>
 			</div>
 		</div>
 
 		<br/>
 		<div v-if="canJoinPoll" id="joinPollDiv" class="text-right collapse in">
-			<button type="button" id="joinPollButton" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top" 
+			<button type="button" id="joinPollButton" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top"
 			  data-content="If the topic of this ballot matches one of your proposals, then you can join your proposal into this poll and put it to the vote."
 			  v-on:click="toggleCollapse">
 			  Join this poll
@@ -55,20 +55,20 @@
 	      <p>If you think that one of your proposals matches this ballot's topic, then you can <em>join this poll</em> and put your proposal to the vote.</p>
 	      <div class="form-inline">
 	      	<div class="input-group">
-		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for porposal title" autocomplete="off" data-toggle="dropdown" 
-		      	 class="form-control" style="width: 300px" v-model="searchVal"> 
+		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for porposal title" autocomplete="off" data-toggle="dropdown"
+		      	 class="form-control" style="width: 300px" v-model="searchVal">
 		      	<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
 		      		<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
 		      	</ul>
 		      </div>
 		      <button type="button" class="btn btn-primary" :class="joinProposalButtonClass" v-on:click="joinPoll">
 					  Join your proposal
-					</button>	      	
+					</button>
 	      </div>
 	    </div>
-		</div>  
+		</div>
 
-	</div>	
+	</div>
 </template>
 
 <script>
@@ -82,8 +82,8 @@ export default {
 	props: {
 		'pollId': { type: String, required: true }
 	},
-	
-	data () { 
+
+	data () {
     return {
       poll: { _embedded: { proposals: [] }},
       userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
@@ -91,21 +91,20 @@ export default {
       selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 		}
 	},
-	
+
 	components: {
 		timeline: Timeline,
-		lawPanel: LawPanel, 		
+		lawPanel: LawPanel,
 //		typeahead: TypeAhead
 	},
-	
+
 	computed: {
 		pollCreated()    { return moment(this.poll.createdAt).format('L') },
 		votingStart()    { return moment(this.poll.votingStartAt).format('L') },
 		votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
 		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
 		timelineEvents() {
-			console.log("========= poll show timelineEvents ", this.poll)
-		  return [ 
+		  return [
         { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
         { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
         { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
@@ -134,12 +133,12 @@ export default {
 
 	created() {
 		this.$root.api.noCacheForNextRequest()
-		this.$root.api.getPoll(this.pollId).then(poll => { 
+		this.$root.api.getPoll(this.pollId).then(poll => {
 			this.poll = poll
 		})
 		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
 			this.userProposals = proposals
-		})		
+		})
 	},
 
 	mounted() {
@@ -152,7 +151,7 @@ export default {
       return moment(dateVal).fromNow();
     },
 
-		/** 
+		/**
 		 * When a user likes a proposal, then we update its properties
 		 * (a little bit of a small dirty hack, but better than reloading the whole poll from the backend)
 		 */
@@ -163,14 +162,14 @@ export default {
   				proposal.supportedByCurrentUser = true
   			}
   		})
-  		
+
   	},
 
 		toggleCollapse() {
 			$('#joinPollDiv').collapse('toggle')
 			$('#joinPollPanel').collapse('toggle')
 		},
-		
+
 		selectUserProposal(proposal) {
 			this.searchVal = proposal.title
 			this.$nextTick(function() {

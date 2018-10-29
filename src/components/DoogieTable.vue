@@ -1,8 +1,9 @@
 /**
   # Localizable boostrap table with sorting, filtering and paging.
-  
+
   ### Features
-    - Cells can be edited in-place with x-editable.
+    - Simple: Cells can be edited in-place with x-editable.
+    - Advanced: Cells can be edited with their own vue component. For example a date picker or currency input field
     - Each row is represented by one object. Any attribute of this object can be the primary key for each row.
     - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
     - The table is sortable by each column. The sorting is local aware and correct for number with leading zeros.
@@ -29,7 +30,7 @@
   ### Properties of DoogieTable vue component
   * rowData: array of row objects
   * columns: configuration of columns, see below
-  * primary-key-for-row: name of (or path to) attribute that is the primary key for each row. Values must be unique! 
+  * primary-key-for-row: name of (or path to) attribute that is the primary key for each row. Values must be unique!
   * rows-per-page: How many rows shall be shown on each page. If there is more data, then a pager will allow the user to navigate to other pages.
   * adjacent-pages: How many page numbers shall be shown in the middle of the pager. Default is 2.
   * show-add-button: (Optional) should an add button be shown at the bottom right of the table.
@@ -43,9 +44,8 @@
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
 
   ### Roadmap
- 
+
    * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
-   * TODO: LARGE: Make cells editable with their own custom "editor" component, such as a date picker. Found possible solution with Vue's dynamic components!
 
  */
 
@@ -74,12 +74,12 @@
         <tr v-else-if="getFilteredRowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
         </tr>
-        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row)" :key="getPath(row, primaryKeyForRow)">
+        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
             {{page*rowsPerPage + index + 1}}
           </th>
-          <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}">
-            <editable-cell 
+          <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}"  @click="cellClicked(row, col, $event)">
+            <editable-cell
               v-if="col.editable"
               :pk="getPath(row, primaryKeyForRow)"
               :column="col"
@@ -172,7 +172,7 @@ export default {
 
 		// A message that is shown in the first row, e.g "loading" or can be used for error messages
 		message: { type: String, required: false, default: "" },
-		
+
     // pager width: number of li elements to left and right of the current page index (plus first/last page)
     adjacentPages:  { type: Number, required: false, default:  2 },
 
@@ -182,9 +182,6 @@ export default {
     // button for adding a new row. Will fire the 'addButtonClicked' event
     showAddButton: { type: Boolean, required: false, default: false },
 
-    // shall rows be selecteable via click
-    selectableRows: { type: Boolean, required: false, default: false },
-		
 		// client side filtering of tableData. When rowFilterFunc(row) returns false, that row will not be shown.
 		rowFilterFunc: { type: Function, required: false },
 
@@ -194,7 +191,7 @@ export default {
     return {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,										 // initial sort order is ascending
-      page: 0,                         // currently shown page. 0 is first page!      
+      page: 0,                         // currently shown page. 0 is first page!
       selectedRow: null								 // currently selected row
     }
   },
@@ -205,7 +202,7 @@ export default {
 
   //These computed properties are cached. See https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
-    /** 
+    /**
 		 * Array of current page indexes that are shown in the middle of the pagination component
      * (A field with first and last page is always shown at the very left and right of my pager.)
 		 * @return {array} Array of page indexes
@@ -220,8 +217,8 @@ export default {
       }
       return result
     },
-    
-    /** 
+
+    /**
      Get rows that match a given filter 'this.rowFilterFunc'
      adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
      and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
@@ -234,7 +231,7 @@ export default {
       return this.rowData.filter(row => this.rowFilterFunc(row))
     },
 
-    /** 
+    /**
      Get filtered and sorted row data for current page only.
      Here this.sortOrder is used when sorting.
 		 @return the subarray of this.rowData with the elements for the current page only.
@@ -254,10 +251,10 @@ export default {
     }
 
   },
-	
+
 	watch: {
 		/**
-		 * When the filtered number of rows changes, because the filter settings changed, then 
+		 * When the filtered number of rows changes, because the filter settings changed, then
 		 * it might be that we have to jump to a smaller last page index.
 		 */
 		getFilteredRowData: function(newValue) {
@@ -267,7 +264,7 @@ export default {
 	},
 
   methods: {
-    /** 
+    /**
 		 * Visually sort the rows in the table by this column.  (this.rowData will not be changed by this action.)
 		 * @param {object} col one element from columns array
 		 */
@@ -281,7 +278,7 @@ export default {
       this.sortOrder = this.sortOrder * -1
     },
 
-    /** 
+    /**
      * Compare two rows for sorting. Needs some massaging in javascript when localized.)
      * Even _.sortBy does not correctly sort localized strings, but sorting is a religion anyway.
      * E.g. how would you sort "03", "025" and "000"  ?
@@ -315,7 +312,7 @@ export default {
       return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
     },
 
-    /** 
+    /**
 		 * Get the value (or HTML) that shall be shown in a cell. Will Apply vue's colFilter for transformation.
 		 * Do not confuce Vue's "filter" (which should be called converters) with the filtering of row data!
 		 * @param {Object} row one element from rowData array
@@ -327,7 +324,7 @@ export default {
       return this.applyVueFilter(cellValue, row, col.vueFilter)
     },
 
-    /** 
+    /**
 		 * applies a Vue filter/conversion given by 'filterName' to 'val' from this component or any of its parents
 		 * @param {String} val cell's raw value from rowData
 		 * @param {Object} the full row object. An element from rowData. (Can be used when the cell's display value depends on other values in this row.)
@@ -361,10 +358,10 @@ export default {
       return row == this.selectedRow
     },
 
-		/** 
+		/**
 		 * Get the <b>unfiltered</b> index of row in this.rowData array.  Compares on object equality. Not just primaryKey!
 		 * @param {object} row one element from this.rowData
-		 * @return {integer} index so that this.rowData[index] === row  
+		 * @return {integer} index so that this.rowData[index] === row
 		 */
 		getIndexOf(row) {
 			for (var i = 0; i < this.rowData.length; i++) {
@@ -372,7 +369,7 @@ export default {
 			}
 			return -1
 		},
-		
+
     /**
      * Get a row from rowData by its primary key
      * @param pk the primaryKey (ID) of a row in rowData. The attribute configured in "this.primaryKeyForRow"
@@ -402,12 +399,14 @@ export default {
       this.$emit('saveNewValue', pk, col, value)   // let event from editable cell bubble up to parent component
     },
 
-    /** emit "rowSelected" event when this.selectableRows == true and a row was clicked */
-    rowClicked(row) {
-      if (this.selectableRows) {
-        this.selectedRow = row
-      }
+    /** emit "rowSelected" event when table row was clicked */
+    rowClicked(row, event) {
+      this.selectedRow = row
       this.$emit('rowSelected', row)
+    },
+
+    cellClicked(row, col, event) {
+      this.$emit('cellClicked', row, col)
     },
 
     /** emit an event so that the parent component can for example show a popup where the new entry can be created. */
@@ -488,9 +487,10 @@ nav ul.pagination {
 .pagination > li > a:hover {
   cursor: pointer;
 }
-
+/*
 .selectedRow {
   color: white;
   background: #337ab7;
 }
+*/
 </style>

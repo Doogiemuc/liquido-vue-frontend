@@ -38,14 +38,22 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue'
       },
-	  {
-		test: /\.js$/,
-		exclude: /(node_modules|bower_components)/,
-		loader: 'babel-loader',
-		query: {
-		  presets: ['es2015']
-		}
-	  },
+      //BUGFIX: axios-oauth-client uses the new JS spread operator. Need to load it with a babel plugin
+      {
+        test: /node_modules\\axios-oauth-client\\src\\.*\.js/,
+        loader: 'babel-loader',
+        query: {
+          plugins: ['transform-object-rest-spread']
+        }
+      },
+  	  {
+    		test: /\.js$/,
+    		exclude: /(node_modules|bower_components)/,
+    		loader: 'babel-loader',
+    		query: {
+    		  presets: ['es2015'],
+    		}
+      },
       {
         test: /\.json$/,
         loader: 'json'

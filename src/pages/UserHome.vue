@@ -6,7 +6,7 @@
         <h2 id="pollsOpenForVotingHeader">Polls currently open for voting</h2>
 
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
-				
+
 				<h2>Alternative to pollPanel</h2>
         <p>This also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
@@ -19,7 +19,7 @@
             <h4><i class="fas fa-balance-scale"></i> Poll
               <template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
               <template v-if="poll.status === 'VOTING'">in voting phase</template>
-            </h4>           
+            </h4>
             <div style="padding: 10px">
               <timeline :height="60" :fillTo="new Date()" :events="getTimelineEvents(poll)"></timeline>
             </div>
@@ -46,13 +46,13 @@
             </tbody>
           </table>
         </div>
-        
-        
+
+
         <h2 v-if="recentIdeas">Recently created ideas</h2>
-        <law-panel v-for="idea in recentIdeas" 
-          :law="idea" 
-          :showTimeline="false">  
-        </law-panel> 
+        <law-panel v-for="idea in recentIdeas"
+          :law="idea"
+          :showTimeline="false">
+        </law-panel>
 
         <!-- idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel -->
 
@@ -69,11 +69,11 @@
           <ul class="list-group">
             <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
               <i class="far fa-lightbulb "></i>
-              Your idea 
-              <router-link :to="{ path: '/proposal/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum. 
+              Your idea
+              <router-link :to="{ path: '/proposals/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum.
               <!--
-              You can now 
-              <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or       
+              You can now
+              <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or
               <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
               //-->
             </li>
@@ -94,8 +94,8 @@
             </li>
           </ul>
         </div>
-		
-       
+
+
         <div class="panel panel-default">
           <div class="panel-heading">
              <h4>Some other messages - v2</h4>
@@ -114,7 +114,7 @@
                 </p>
               </div>
             </div>
-        
+
             <div class="media">
               <div class="media-left">
                 <i class="far fa-lightbulb fa-2x"></i>
@@ -128,7 +128,7 @@
                 </p>
               </div>
             </div>
-     
+
             <div class="media">
               <div class="media-left">
                 <i class="far fa-lightbulb fa-2x"></i>
@@ -146,29 +146,29 @@
         </div>
 
 
-    
+
 
         <br/><br/>
-    				
+
 
     		<h2>Trending proposals</h2>
         <p>(Demo for LawPanel)</p>
-    		
-    		<law-panel v-for="proposal in trendingProposals" 
-    		  :law="proposal" 
-    		  :showTimeline="true">  
-    		</law-panel> 
-    		
-    				
-    		
+
+    		<law-panel v-for="proposal in trendingProposals"
+    		  :law="proposal"
+    		  :showTimeline="true">
+    		</law-panel>
+
+
+
         <h2>Ideas and proposals supported by you</h2>
     		<p>Demo for LawList</p>
-    		
-    		<law-list 
+
+    		<law-list
     		  :laws="supportedIdeasAndProps"
     		  title="LawList Title">
     		</law-list>
-		
+
 	   </div>
     </div>
   </div>
@@ -197,11 +197,11 @@ export default {
       recentIdeas: [],            // recently created ideas sorted by date desc
       reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
-	    trendingProposals: [],      // 
+	    trendingProposals: [],      //
 	    supportedIdeasAndProps: []  // ideas and proposals that this user liked
     }
   },
-  
+
   created () {
     this.$root.api.noCacheForNextRequest()
     this.loadRecentIdeas()
@@ -210,15 +210,15 @@ export default {
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.reachedQuorum = proposals.slice(0,10)
     })
-    
+
     this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      console.log("findSupportedBy returned", proposals)
       this.supportedIdeasAndProps = proposals.slice(0,10)
     })
 
     this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
+      //TODO: what are "trending proposals"?
       this.trendingProposals = proposals.slice(0,10)
     })
 
@@ -232,13 +232,13 @@ export default {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
-    
+
     loadRecentIdeas: function() {
-      this.$root.api.getRecentIdeas().then(recentIdeas => {   
+      this.$root.api.getRecentIdeas().then(recentIdeas => {
         this.recentIdeas = recentIdeas.slice(0,10)
       })
     },
-    
+
     /*
     getTimelinePercentFilled(poll) {
       var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
@@ -267,8 +267,8 @@ export default {
       //var votingStartLoc        = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
       //var votingEndLoc          = moment(poll.createdAt).add(durationInDays, 'days').format('L')
       //var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
-      
-      return [ 
+
+      return [
         { date: new Date(poll.createdAt),     above: pollCreatedLoc,  below: "Poll<br/>created" },
         { date: new Date(poll.votingStartAt), above: votingStartLoc, below: "Voting<br/>starts" },
         { date: new Date(poll.votingEndAt),   above: votingEndLoc,   below: "Voting<br/>ends" }
@@ -276,7 +276,7 @@ export default {
     }
   }
 }
- 
+
 
 </script>
 
@@ -332,7 +332,7 @@ export default {
     background-color: rgb(245,245,245);
   }
   .greyDataRight ul.fa-ul {
-    margin-left: 1.5em; 
+    margin-left: 1.5em;
   }
   .greyDataRight .userPicture {
     margin-bottom: 8px;
@@ -341,17 +341,17 @@ export default {
     position: relative;
   }
   .maxHeightPreview {
-    height:55px; 
-    overflow:hidden;  
+    height:55px;
+    overflow:hidden;
   }
   .maxHeightPreview:before {
     content:'';
     width:100%;
-    height:100%;    
+    height:100%;
     position:absolute;
     left:0;
     top:0;
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */  
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */
     background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
     background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
     background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
@@ -367,6 +367,6 @@ export default {
   .item-condensed p {
     margin-bottom: 0;
   }
-  
-   
+
+
 </style>

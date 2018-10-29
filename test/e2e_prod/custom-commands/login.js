@@ -19,7 +19,7 @@ Login.prototype.command = function(user, pass, callback) {
   }
   this.client.api
     .url(this.client.api.launchUrl+"/#/login")
-    .waitForElementVisible('#emailInput', 2000)
+    .waitForElementPresent('#emailInput', 2000, "On login page")
     .setValue('#emailInput', user)
     .setValue('#passwordInput', pass)  // this.api.Keys.ENTER
 		.click('#loginButton')

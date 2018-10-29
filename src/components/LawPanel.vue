@@ -1,7 +1,6 @@
 <template>
-	<div class="panel panel-default lawPanel" :data-proposaluri="getURI">
+	<div v-if="law" class="panel panel-default lawPanel" :data-proposaluri="getURI">
     <div class="panel-heading">
-      
       <router-link v-if="!readOnly" :to="getLinkToLaw()" role="button" class="btn btn-default btn-xs pull-right">
         <i class="fas fa-angle-double-right"></i>
       </router-link>
@@ -11,7 +10,7 @@
       </h4>
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
-      {{law.description}}
+      <div v-html="law.description"></div>
       <timeline v-if="showTimeline" :height="60" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
@@ -30,11 +29,11 @@
               <span v-if="law.poll !== null && readOnly">Poll</span>
 						</td>
 						<td class="likeButtonCell">
-							<support-button :row="law" v-on:like="likeToDiscuss" :readOnly="readOnly"></support-button>
+							<support-button :law="law" v-on:like="likeToDiscuss" :readOnly="readOnly || createdByCurrentUser"></support-button>
 						</td>
 					</tr>
 				</tbody>
-			</table>		
+			</table>
 		</div>
   </div>
 </template>
@@ -45,12 +44,12 @@
   It shows three rows: title, description with timeline and some attributes in the footer.
  */
 import moment from 'moment'
-import timeline from './Timeline' 
+import timeline from './Timeline'
 import SupportButton from '../components/SupportButton'
 
 export default {
-  props: { 
-    'law' : { type: Object, required: true },     // the idea, proposal or law we show in a bootstrap panel
+  props: {
+    'law' : { type: Object, required: true },                 // the idea, proposal or law we show in a bootstrap panel
     'showTimeline' : { type: Boolean, required: false, default: function() { return true } }, // whether to show a timeline
     'fixedHeight' : { type: Number, required: false, default: function() { return undefined } },  // fixed height of lawDescription, can be used  to make several LawPanels all the same height.
     'readOnly' : { type: Boolean, required: false, default: function() { return false } },   // if true, then no links and inactive supportButton
@@ -63,10 +62,11 @@ export default {
 
   computed: {
     getURI() {
+      if (!this.law || !this.law.self) return ""
       return this.$root.api.getURI(this.law)
     },
 
-    // dynamically set icon depending on law.status  
+    // dynamically set icon depending on law.status
     // BUGFIX: Must be a computed prop. Not a method!
     getIconForLaw: function() {
       switch(this.law.status) {
@@ -76,13 +76,17 @@ export default {
       }
     },
 
+    createdByCurrentUser: function() {
+      return this.$root.currentUser.id == this.law.createdBy.id
+    },
+
     /*
     timelinePercentFilled() {
       var start = new Date(this.law.createdAt)
       var today = new Date()
       var end
       switch (this.law.status) {
-        case "IDEA": 
+        case "IDEA":
           return 10
         case "PROPOSAL":
           end = new Date(this.law.reachedQuorumAt)
@@ -100,7 +104,7 @@ export default {
     */
 
     timelineEvents() {
-      if (this.law.status === "IDEA") return [ 
+      if (this.law.status === "IDEA") return [
         { percent: "5", above: moment(this.law.createdAt).format('L'), below: "created" },
       ]
       if (this.law.status === "PROPOSAL") return [
@@ -111,7 +115,7 @@ export default {
         { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
         { percent: "33", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
         { percent: "66", above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
-        { percent: "95", above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}    
+        { percent: "95", above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
       ]
       //MAYBE: if (this.law.status === "LAW")
       if (this.law.status === "RETENTION") {
@@ -124,13 +128,16 @@ export default {
     getFromNow: function(dateVal) {
       return moment(dateVal).fromNow();
     },
-    
+
+    /** event from SupportButton */
     likeToDiscuss() {
       this.$root.api.addSupporterToIdea(this.law, this.$root.currentUser).then(res => {
-        console.log(res)
+        iziToast.success({
+          title: 'Liked!',
+          message: 'Thank you for supporting this.',
+        });
         //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
         this.$emit("like", this.law)  // notify parent to reload this law
-        //console.log("User "+this.$root.currentUser.email+", likes to discuss '"+this.law.title+"' => event emmited")
       })
     },
 
@@ -138,9 +145,9 @@ export default {
     getLinkToLaw() {
       //TODO: Should I manage these frontend URL in a central place? MAYBE in confg/dev.env.js
       switch(this.law.status) {
-        case 'IDEA':     return '/idea/'+this.law.id
-        case 'LAW':      return '/law/'+this.law.id
-        default:         return '/proposal/'+this.law.id   // PROPOSAL, ELABORATION
+        case 'IDEA':     return '/ideas/'+this.law.id
+        case 'LAW':      return '/laws/'+this.law.id
+        default:         return '/proposals/'+this.law.id   // PROPOSAL, ELABORATION
       }
     },
 
@@ -168,7 +175,7 @@ export default {
   .lawPanel .panel-footer {
     padding-top: 3px;
     padding-bottom: 3px;
-  } 
+  }
   .lawFooterTable {
 		margin: 0;
 		padding: 0;
@@ -182,5 +189,5 @@ export default {
     text-align: right;
 		vertical-align: middle;
   }
- 
+
 </style>

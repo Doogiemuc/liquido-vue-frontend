@@ -2,7 +2,7 @@
   <div class="container">
 
     <h1><i class="fas fa-balance-scale"></i> Cast your vote</h1>
-    
+
     <div class="panel panel-default">
       <div class="panel-body"">
         <p>You have {{untilVotingEnd}} left to cast your vote for this poll. Drag the proposals you want to vote for from the left into your ballot on the right.
@@ -10,6 +10,8 @@
         <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
       </div>
     </div>
+
+    <button type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
 
     <table class="table pollTable">
       <tbody>
@@ -26,14 +28,14 @@
         </tr>
         <tr>
           <td width="49%" id="leftContainer">
-          
-            <law-panel v-for="proposal in poll._embedded.proposals" 
-              :law="proposal" 
+
+            <law-panel v-for="proposal in poll._embedded.proposals"
+              :law="proposal"
               :showTimeline="false"
               :fixedHeight="100"
               :readOnly="true">
             </law-panel>
-        
+
           </td>
           <td width="2%" class="middleColumn">
             <i class="fa fa-angle-double-right fa-4x" aria-hidden="true"></i>
@@ -50,7 +52,7 @@
     </table>
 
     <button type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
-    
+
     <!-- Cast vote - modal popup - wizard with steps -->
     <div id="castVoteModal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
       <div class="modal-dialog" role="document">
@@ -66,11 +68,10 @@
                   <span v-show="step1_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
                   <span v-show="step1_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
                   <span v-show="step1_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-                  <p class="stepTitle">Fetch your voterTokens</p>
-                  <textarea class="form-control monspaceFont" readonly="true">{{voterTokensStr}}</textarea>
-                  <small>These tokens are your digital right to vote. The first token is your own one. You may receive further tokens,
-                    if others delegated their vote to you as their proxy. You do not need to remember these tokens. They can
-                    be fetched again everytime you vote. These tokens are confidential! Do not share them!
+                  <p class="stepTitle">Fetch your voterToken</p>
+                  <div class="well well-sm monspaceFont">{{voterToken}}</div>
+                  <small>This voterToken is the digital representation of your right to vote. With this token your ballot will be casted <b>anonymously</b>
+                    You do not need to remember this token. It can be fetched again whenever needed. This token is <b>confidential!</b> Do not share it!
                   </small>
                 </li>
                 <li>
@@ -78,10 +79,9 @@
                   <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
                   <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
                   <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-                  <p class="stepTitle">Anonymously cast your vote</p>
-                  <textarea class="form-control" readonly="true">{{checksumsStr}}</textarea>
-                  <small>You can validate that your vote was counted correctly with this anonymous checksum. There will be one
-                    checksum for each token. Your checksum(s) should appear on the poll's public list of ballots. These values are confidential. Do not share them!
+                  <p class="stepTitle">Anonymously cast your ballot</p>
+                  <div class="well well-sm monspaceFont">{{checksum}}</div>
+                  <small>You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. The checksum is also confidential. Do not share it!
                   </small>
                 </li>
                 <li>
@@ -94,20 +94,20 @@
               </ol>
             </div>
 
-            <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger"> 
-              <div class="panel-heading"> 
+            <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger">
+              <div class="panel-heading">
                 <h4 class="panel-title">
                   <i class='fas fa-exclamation-circle red'></i> {{errorMessage}}
                   <div class="expandButton" v-on:click="toggleCollapse">
                     <i class="fas fa-caret-down"></i>
                   </div>
                 </h4>
-              </div> 
+              </div>
               <div class="panel-body errorMessageDetails collapse" id="errorMessageDetails">
-                {{errorMessageDetails}} 
-              </div> 
+                {{errorMessageDetails}}
+              </div>
             </div>
-            
+
           </div>
           <div class="modal-footer">
             <button v-if="loading" type="button" class="btn btn-default pull-left" @click="clickModalCancel">Cancel</button>
@@ -131,7 +131,7 @@ import loglevel from 'loglevel'
  var log = loglevel.getLogger("Poll_CastVote");
 
 export default {
-  components: { LawPanel, timeline }, 
+  components: { LawPanel, timeline },
 
   props: {
     'pollId': { type: String, required: true }
@@ -141,8 +141,8 @@ export default {
     return {
       poll: { _embedded: { proposals: [] }},
       ballotIsEmpty: true,
-      voterTokens: [],
-      checksums: [],
+      voterToken: "",
+      checksum: "",
       loading: true,
       step1_status: 'loading',
       step2_status: 'dimmed',
@@ -160,21 +160,18 @@ export default {
     votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
     untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
     timelineEvents() {
-      return [ 
+      return [
         { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
         { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
         { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
       ]
     },
-
-    voterTokensStr()   { return Array.isArray(this.voterTokens) ? this.voterTokens.join(",\n") : "" },
-    checksumsStr()     { return Array.isArray(this.checksums) ? this.checksums.join(",\n") : "" },
     hideErrorMessage() { return this.errorMessage == "" },
   },
-  
+
   created () {
     this.$root.api.noCacheForNextRequest()
-    this.$root.api.getPoll(this.pollId).then(poll => { 
+    this.$root.api.getPoll(this.pollId).then(poll => {
       this.poll = poll
     })
     //TODO: load aready saved ballot, if any, and then show to user that he already voted
@@ -187,7 +184,7 @@ export default {
       drake.on('drop', this.ballotDropped)
     })
   },
-                  
+
   methods: {
     getFromNow(dateVal) {
       return moment(dateVal).fromNow();
@@ -206,18 +203,23 @@ export default {
      */
     clickCastVoteButton() {
       this.loading = true
+      log.info("Starting to cast the vote.")
       $('#castVoteModal').modal('show')
       this.DelayPromise(1000)()
-        .then(this.getVoterTokens)
+        .then(this.getVoterToken)
         .then(this.castVote)
         .then(res => {
+          //MAYBE: larger ok animation, e.g. zooming fading green checkmark
           this.loading = false
           this.mainButton = "Ok"
         })
         .catch(err => {
+          log.error("Error while casting the vote", err)
           this.loading = false
           this.mainButton = "Close"
-          if (!this.errorMessage) this.errorMessage = "Could not cast your vote. Please try again later."
+          console.log("clickCastVoteButton.errorMessageDetails", this.errorMessageDetails)
+
+          if (!this.errorMessage) this.errorMessage = "Could not cast your vote. Please try again later. clickCastVoteButton"
           if (!this.errorMessageDetails) this.errorMessageDetails = JSON.stringify(err)
         })
     },
@@ -237,52 +239,54 @@ export default {
       this.resetModal()
     },
 
-    getVoterTokens() {
+    getVoterToken() {
       this.step1_status = " loading"
-      return this.$root.api.getVoterTokens(this.poll.area.id)
-        .then(voterTokens => {
-          this.voterTokens = voterTokens 
+      return this.$root.api.getVoterToken(this.poll.area.id)
+        .then(voterToken => {
+          this.voterToken = voterToken
           this.step1_status = "success"
-          return voterTokens
+          return voterToken
         })
         .catch(err => {
-          log.error("Could not getVoterTokens", err)
+          log.error("Could not getVoterToken", err)
           //old version $('#spinner1').removeClass('fa-spin').removeClass('grey').addClass('red').removeClass('fa-spinner').addClass('fa-times')
-          this.step1_status = 'error', 
-          this.errorMessage = "Could not fetch your voterTokens!"
+          this.step1_status = 'error',
+          this.errorMessage = "Could not fetch your voterToken!"
           this.errorMessageDetails = JSON.stringify(err)
           this.mainButton = "Close"
           return Promise.reject(this.errorMessage)
         })
     },
 
-    castVote(voterTokens) {
+    castVote(voterToken) {
       this.step2_status = "loading"
       var voteOrder = []        // get vote Order from #rightContainer as sorted by user
-      $('#rightContainer div.panel').each((idx, panel) => {
-        voteOrder.push(panel.dataset.proposaluri) 
+      $('#rightContainer div.lawPanel').each((idx, panel) => {
+        voteOrder.push(panel.dataset.proposaluri)
       })
-      return this.$root.api.castVote(this.poll, this.voterTokens, voteOrder)
+      return this.$root.api.castVote(this.poll, voteOrder, voterToken)
         .then(res => {
-          this.checksums = res.checksums
+          this.checksum = res.checksum
           this.step2_status = "success"
           this.step3_status = "success"
           this.mainButton = "Ok"
-          return this.checksums
+          return this.checksum
         })
         .catch(err => {
           log.error("Could not castVote", err)
-          this.step2_status = 'error', 
-          this.errorMessage = "Could not cast your vote. Please try again later."
+          this.step2_status = 'error',
+          this.errorMessage = "Could not cast your vote. Please try again later XXX castVote."
           this.errorMessageDetails = JSON.stringify(err)
           this.mainButton = "Close"
+          console.log("castVote.errorMessageDetails", this.errorMessageDetails)
+
           return Promise.reject(this.errorMessage)
         })
     },
 
     resetModal() {
-      this.voterTokens = []
-      this.checksums = []
+      this.voterToken = ""
+      this.checksum = ""
       this.loading = true
       this.step1_status = 'loading'
       this.step2_status = 'dimmed'
@@ -295,12 +299,12 @@ export default {
 
     /**
      * Wait for some millisconds in a promise chain
-     * @see    https://blog.raananweber.com/2015/12/01/writing-a-promise-delayer/ 
+     * @see    https://blog.raananweber.com/2015/12/01/writing-a-promise-delayer/
      * @param  delay in milliseconds
      * @return A function that accepts one "data" variable.
      *         This function in turn returns a promise that will resolve with that data after delay milliseconds
      */
-    DelayPromise(delay) {  
+    DelayPromise(delay) {
       //return a function that accepts a single variable
       return function(data) {
         //this function returns a promise.
@@ -327,9 +331,9 @@ export default {
         .toggleClass('fa-caret-down');
     }
 
-    
+
   }
-  
+
 }
 </script>
 
@@ -415,6 +419,10 @@ export default {
     color: #a94442;
   }
 
+  #steps div.well {
+    margin-bottom: 0;
+  }
+
   .monspaceFont {
     font-family: monospace;
   }
@@ -436,7 +444,7 @@ export default {
     font-family: monospace;
     overflow: scroll;
   }
- 
+
   .dimmed {
     color: #EEE;
   }
