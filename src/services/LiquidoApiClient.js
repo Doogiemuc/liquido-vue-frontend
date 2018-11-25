@@ -14,6 +14,8 @@
 // I know this module is too large for one file. I started to split it up several times. But in the end
 // I personally had the best coding experience when everything was in one file.
 
+// in former verrsions i used many different node REST client libraries. But axios was the best and most simple to use.
+
 var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
 var template = require('url-template');   // parsing and expanding RFC 6570 URI Templates
 var loglevel = require('loglevel')
@@ -25,7 +27,7 @@ var log = loglevel.getLogger("LiquidoApiClient");
 //==================================================================================================================
 
 // Sanity check
-if (process.env.backendBaseURL === undefined) {
+if (!process.env.backendBaseURL) {
   throw new Error("process.env.backendBaseURL must be defined!")
 }
 
@@ -34,6 +36,32 @@ const axios = require('axios')
 const anonymousClient = axios.create()      // extra client instance for anonymous unauthenticated requests
 axios.defaults.baseURL = process.env.backendBaseURL
 
+//***** global axios error handler *****
+axios.interceptors.response.use(function (response) {
+  // Do something with response data
+  return response;
+}, function (error) {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    log.error("Http response error: ", error.response)
+    try{
+      log.error("ErrorMessage", error.response.data.message)
+    } catch (errIgnore){}
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+    // http.ClientRequest in node.js
+    log.error("Error in request", error.request);
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    log.error('Other error', error.message);
+  }
+  //console.log("Error.config", error.config);
+  return Promise.reject(error);
+});
+
+/*DEPRECATED
 // currently logged in user. Will be set in login
 var oauthParams = {
   grant_type: 'password',
@@ -53,6 +81,8 @@ const myInterceptor = axios.interceptors.request.use(function (config) {
   return config
 });
 
+*/
+
 // local cache of globalProperties
 // They would also be cached by our cachingInterceptor, but we want a longer TTL
 var globalPropertiesCache = undefined
@@ -64,6 +94,7 @@ var globalPropertiesCache = undefined
 
 module.exports = {
 
+  /*  DEPRECATED
   getOAuthtoken(username, password) {
     oauthParams.username = username
     oauthParams.password = password
@@ -77,6 +108,28 @@ module.exports = {
         log.error("Cannot get Oauth token", err)
         return Promise.reject(err)
       })
+  },
+
+  /**
+   * register as a new user
+   */
+  register(newUser) {
+    log.info("Register new user "+JSON.stringify(newUser))
+    return axios({
+      method: 'POST',
+      url: "/auth/register",
+      headers: { 'Content-Type' : 'application/json' },
+      data: newUser
+    })
+    .then(res => {
+      return res.data
+    })
+    /*
+    .catch(err => {
+      log.error("Cannot register newUser:"+JSON.stringify(newUser)+" :", err.response)
+      return Promise.reject(err)
+    })
+    */
   },
 
   /**
@@ -103,7 +156,7 @@ module.exports = {
 
   /** send a login code via SMS */
   sendSmsLoginCode(phone) {
-    return axios.get('/login/sendSmsLoginCode?phone='+phone)
+    return axios.get('/auth/requestSmsCode?phone='+phone)
   },
 
   /** verify if a 4-digit login code is valid */
@@ -400,7 +453,8 @@ module.exports = {
    */
   saveNewIdea(newIdea) {
     log.debug("POST newIdea: "+JSON.stringify(newIdea))
-    return axios.post({
+    return axios({
+      method: 'POST',
       url: '/laws',
       headers: { 'Content-Type' : 'application/json' },
       data: newIdea

@@ -8,10 +8,9 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
+import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 import LogoutPage from './pages/LogoutPage'
-
-
 import PageNotFound from './pages/PageNotFound'
 
 import apiClient from './services/LiquidoApiClient'
@@ -28,6 +27,10 @@ Vue.use(VueRouter)
 const routes = [
   { path: '/',
     component: LiquidoHome,
+    meta: { requiresAuth: false }
+  },
+  { path: '/register',
+    component: RegisterPage,
     meta: { requiresAuth: false }
   },
   { path: '/login',

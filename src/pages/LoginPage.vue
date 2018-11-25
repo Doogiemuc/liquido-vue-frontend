@@ -18,7 +18,6 @@
               </fieldset>
             </form>
 
-
             <div class="alert alert-success" v-if="emailSuccess">
               <p>Magic link has been sent. You may now close this window. Click on the link in the email to login.</p>
             </div>
@@ -72,7 +71,7 @@
         </div>
       </div>
       <div class="col-md-6 text-right">
-        <router-link class="text-center" to="/signup">Signup as new user</router-link>
+        <router-link to="/register" role="button" class="btn btn-default">Register &raquo;</router-link>
       </div>
     </div>
   </div>

@@ -33,7 +33,7 @@
 				</ul>
 
 				<p>&nbsp;</p>
-				<p class="text-center"><router-link to="/signup" role="button" class="btn btn-default">Signup &raquo;</router-link></p>
+				<p class="text-center"><router-link to="/register" role="button" class="btn btn-default">Register &raquo;</router-link></p>
 
 
 			</div>
