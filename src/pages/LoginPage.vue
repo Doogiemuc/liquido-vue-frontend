@@ -40,19 +40,23 @@
             <form accept-charset="UTF-8" role="form" class="phoneForm">
               <fieldset>
                 <div class="form-group">
-                  <input class="form-control" id="phoneInput" placeholder="phone number" name="phone" type="text" v-model="phone">
+                  <input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
                 </div>
                 <p>A login code will be sent your mobile phone via SMS.</p>
-                <button type="submit" id="loginCodeButton" @click.prevent="sendSmsLoginCode()" class="btn btn-primary" :disabled="phone.length < 5">Send login code</button>
+                <button type="submit" id="loginCodeButton" @click.prevent="sendSmsLoginCode()" class="btn btn-primary" :disabled="disableSendSmsCodeButton">Send login code</button>
               </fieldset>
             </form>
-            <form class="form-inline" v-if="smsSuccess">
+            <form class="form-inline" v-if="smsCodeSent">
               <div class="form-group">
-                <p>Enter the 4-digit code that you have received via SMS:</p>
-                <input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)"><b>-</b>
-                <input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)"><b>-</b>
-                <input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)"><b>-</b>
-                <input type="text" class="form-control digit" id="digit3" tabindex="4" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
+                <p>Enter the 6-digit code that you have received via SMS:</p>
+                <div class="digit-group">
+                  <input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
+                </div>
               </div>
             </form>
             <div class="alert alert-danger" v-if="smsErrorMsg">
@@ -93,13 +97,13 @@ export default {
     return {
       emailSuccess: false,
       emailErrorMsg: '',
-      smsSuccess: false,
+      smsCodeSent: false,
       smsErrorMsg: '',
       email: '',
-      phone: '',
+      mobilephone: '',
       rememberMe: false,
-      digits: []
-
+      smsCodeSent: false,
+      digits: []            // 6 digit sms code entered by user
     }
   },
 
@@ -109,6 +113,13 @@ export default {
     smsCode() { return this.digits[0]+this.digits[1]+this.digits[2]+this.digits[3] },
     isEmailValid() {
       return validEMailRe.test(this.email)
+    },
+    disableSendSmsCodeButton() {
+      return this.mobilephone.length < 5 || this.smsCodeSent
+    },
+    cleanMobilePhone() {
+      if (this.mobilephone == undefined) return ""
+      return this.mobilephone.replace(/[^0-9\+]/g, '')
     }
   },
 
@@ -119,6 +130,9 @@ export default {
         this.$set(this.digits, digitNo, evt.key)  // must use Vue's reactive $set, because this.digits is an array
         if ($(evt.target).nextAll("input").length > 0) {
           $(evt.target).nextAll("input")[0].focus()  // focus next input
+        }
+        if (digitNo == 5) {     // when the sixth digit is entered, then immidiately validate the entered sms code.
+          this.loginWithSmsCode()
         }
       }
     },
@@ -134,35 +148,34 @@ export default {
 
     /** send login code via SMS */
     sendSmsLoginCode() {
-      apiClient.sendSmsLoginCode(this.email).then(res => {
-        this.smsSuccess = true
+      this.smsCodeSent = true
+      apiClient.sendSmsLoginCode(this.cleanMobilePhone).then(res => {
+        this.smsCodeSent = true
+        this.$nextTick(function () {
+          $('#digit0').focus()
+        })
       }).catch(err => {
         this.smsErrorMsg = "Could not send SMS."
       })
     },
 
-    /*
-    doLogin() {
-      this.errorMsg = ""
-      apiClient.login(this.email, this.password)
-        .then(user => {
-          this.$root.currentUser = user
-          this.$root.currentUserURI = $root.api.getURI(user)    //TODO: move login logic to a more central place, e.g. main.js
-          this.$router.push("/")
-        })
-        .catch(err => {
-          log.error("Cannot login", err)
-          this.errorMsg = "Login error!"  // show sticky error message instead of just an iziToast popup
-          this.password = ""
+    loginWithSmsCode() {
+      var smsCode = this.digits.join("")
+      apiClient.loginWithSmsCode(this.cleanMobilePhone, smsCode)
+        .then(jwt => {
+          this.smsErrorMsg = ""
+          this.$root.login(jwt)
+        }).catch(err => {
+          this.smsErrorMsg = "SMS code not valid."
+          log.error(err)
         })
     },
-    */
 
     devLogin() {
-      console.log("development mode fake login for "+process.env.devLoginUser)
-      this.email = process.env.devLoginUser
-      this.password = process.env.devLoginPass
-      this.doLogin()
+      log.info("development mode fake login for "+process.env.devLoginUser)
+      this.mobilephone = process.env.devLoginMobilePhone
+      this.digits = process.env.devLoginSmsCode.split("")  // We are just splitting digits here.  But otherwise: I just love things like this:  https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402
+      this.loginWithSmsCode()
     }
 
   },
@@ -184,13 +197,16 @@ export default {
 .magicLinkForm {
   margin-bottom: 1em;
 }
-
+.digit-group {
+  white-space: nowrap;
+}
 .digit {
   width: 2.5ch;
-  height: 36pt;
-  font-size: 32pt;
+  height: 24pt;
+  font-size: 24pt;
   margin-left: 5px;
   margin-right: 5px;
   text-align: center;
+  display: inline-block; /* prevent wrapping also on narrow mobile view */
 }
 </style>

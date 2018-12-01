@@ -10,8 +10,8 @@
       <i class="fas fa-caret-down"></i>
     </div>
     <div style="text-align: right">
-      <button type="button" class="btn btn-default" @click="copyDetailsToClipboard">Copy details to clipboard</button>
-      <button type="button" class="btn btn-primary" @click="closeAlert">Close</button>
+      <button type="button" class="btn btn-default btn-sm" @click="copyDetailsToClipboard">Copy error details to clipboard</button>
+      <button type="button" class="btn btn-primary btn-sm" @click="closeAlert">Close</button>
     </div>
   </div>
 </template>
@@ -43,8 +43,8 @@ export default {
     	$("div.alert").addClass('in')
     },
 
-    closeAlert(evt) {
-      console.log("closing alert")
+    closeAlert() {
+      //console.log("closing alert")
       $("div.alert").removeClass('in')
     },
 

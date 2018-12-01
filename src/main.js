@@ -152,6 +152,8 @@ var requiresAuth = function(to) {
 
 /**
  * If route matches nothing => PageNotFound
+
+
  * If matched page requiresAuth and not logged in => /login
  * Otherwise next()
  */
@@ -170,7 +172,7 @@ router.beforeEach((to, from, next) => {
 })
 
 // ==============================================================================
-// Here we start the forontend app.
+// Here we start the frontend app.
 // A lot of things are happening here
 //
 // First we make a dummy request to the backend to check whether it's there at all. If not we show an error.
@@ -197,23 +199,13 @@ var currentUser = undefined
 
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
-    log.info("Running in development mode.")
-    loglevel.setLevel("trace")                              // trace == log everything
+    log.info("Running LIQUDIO in development mode.")
+    loglevel.setLevel("trace")   // trace == log everything
   }
-  // automatically login a user if values are set
-  if (process.env.autoLoginUser && process.env.autoLoginPass) {
-    log.info("Automatic login of "+process.env.autoLoginUser)
-		apiClient.login(process.env.autoLoginUser, process.env.autoLoginPass)
-		return apiClient.findUserByEmail(process.env.autoLoginUser).then(user => {
-			currentUser = user
-		})
-	}
   return Promise.resolve()
 }
 
 var startApp = function(props) {
-  log.info("Starting Vue app (with currentUser.email="+ (currentUser ? currentUser.email : "<null>") +" and props=", props)
-
   const rootVue = new Vue({
     el: '#app',
     router,
@@ -221,23 +213,20 @@ var startApp = function(props) {
       api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
       props: props,                         // application wide properties (read from backend DB)
       currentUser: currentUser,             // currently logged in user information, available to all VueJS child components as this.$root.currentUser
-      currentUserURI: currentUser ? currentUser._links.self.href : undefined   // URI of the currently logged in user, e.g. http://localhost:8080/liquido/v2/users/1
     },
     ...RootApp
   }).$mount()
 
-  log.info("===== Liquido web app has started.")
-  //TODO: router.app.cacheWarmup()
+  log.info("===== LIQUIDO web app has started.")
 }
 
-//JS Promises at its best :-)
-
+//Here comes JS Promises at its best :-)
 isBackendAlive()
   .then(checkDevelopmentMode)
   .then(apiClient.getGlobalProperties)
   .then(startApp)
   .catch(err => {
-    console.error("Error during startup", err)
+    console.error("Fatal rrror during LIQUIDO startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR while loading Liquido App. Please try again later.</p>')
   })
 

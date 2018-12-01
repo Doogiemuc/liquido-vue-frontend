@@ -1,7 +1,7 @@
 /**
  * API client  for the Liquido backend. This class is the central facade for all API methods.
  * Every call to the backend comes through here. LiquidoApiClient handles:
- *  - oauth authentication
+ *  - login and JWT
  *  - caching of requests
  *  - error handling
  * Under the hood REST requests are sent with AXIOS
@@ -34,20 +34,22 @@ if (!process.env.backendBaseURL) {
 // Configure Axios HTTP Client
 const axios = require('axios')
 const anonymousClient = axios.create()      // extra client instance for anonymous unauthenticated requests
+var jsonWebToken = undefined
 axios.defaults.baseURL = process.env.backendBaseURL
 
-//***** global axios error handler *****
+
+/***** global axios error handler ******/
 axios.interceptors.response.use(function (response) {
-  // Do something with response data
   return response;
 }, function (error) {
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    log.error("Http response error: ", error.response)
-    try{
-      log.error("ErrorMessage", error.response.data.message)
-    } catch (errIgnore){}
+    if (error.response.data && error.response.data.message) {
+      log.error("Error response: "+error.response.data.message, error.response)
+    } else {
+      log.error("Error response", error.response)
+    }
   } else if (error.request) {
     // The request was made but no response was received
     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
@@ -59,29 +61,18 @@ axios.interceptors.response.use(function (response) {
   }
   //console.log("Error.config", error.config);
   return Promise.reject(error);
-});
+})
 
-/*DEPRECATED
-// currently logged in user. Will be set in login
-var oauthParams = {
-  grant_type: 'password',
-  client_id: 'liquidoclientid',
-  client_secret: 'liquido.slient:secret5',
-  username: undefined,
-  password: undefined,
-  scope: ''
-}
-
-// cached Oauth token. Will be set in login
-var oauthToken = undefined
-const myInterceptor = axios.interceptors.request.use(function (config) {
-  if (oauthToken !== undefined) {
-    config.headers['Authorization'] = 'Bearer '+oauthToken
+/****** Axios interceptor that adds the JWT token into the header (if known) *****/
+axios.interceptors.request.use(function (config) {
+  if (jsonWebToken) {
+    config.headers['Authorization'] = "Bearer "+jsonWebToken
   }
-  return config
+  return config;
+}, function (error) {
+  log.error("Error in axios request", error)
+  return Promise.reject(error);
 });
-
-*/
 
 // local cache of globalProperties
 // They would also be cached by our cachingInterceptor, but we want a longer TTL
@@ -124,18 +115,12 @@ module.exports = {
     .then(res => {
       return res.data
     })
-    /*
-    .catch(err => {
-      log.error("Cannot register newUser:"+JSON.stringify(newUser)+" :", err.response)
-      return Promise.reject(err)
-    })
-    */
   },
 
   /**
    * Login this user
    * @return full user object or Promise.reject() on error
-   */
+
   login(username, password) {
     log.info("LiquidoApiClient User login: " + username)
     return this.getOAuthtoken(username, password)
@@ -143,29 +128,37 @@ module.exports = {
         return this.findUserByEmail(username)
       })
   },
-
-  logout() {
-    oauthToken = undefined
-    //TODO: flush the cache
-  },
+  */
 
   /** send a link to login via email */
-  sendMagicLink() {
+  sendMagicEmailLink() {
     return Promise.resolve("/loginWithToken?token=ABCDEF")
   },
 
   /** send a login code via SMS */
-  sendSmsLoginCode(phone) {
-    return axios.get('/auth/requestSmsCode?phone='+phone)
+  sendSmsLoginCode(mobile) {
+    console.log("sendSmsLoginCode", mobile)
+    return axios.get('/auth/requestSmsCode', { params: { mobile: mobile} } )
   },
 
-  /** verify if a 4-digit login code is valid */
-  verifySmsLoginCode(code) {
-    return axios.get('/login/verifySmsLoginCode?code='+code).then(res => {
-      this.$root.currentUser = res
-      this.$root.currentUserURI = res._links.self.href
-      return res
-    })
+  /** login with code that user received via SMS */
+  loginWithSmsCode(mobile, code) {
+    return axios.get('/auth/loginWithSmsCode', { params: { mobile: mobile, code: code} } )
+      .then(res => {
+        jsonWebToken = res.data
+        log.info("Received JWT: "+jsonWebToken)
+        return jsonWebToken
+      })
+  },
+
+  setJsonWebToken(jwt) {
+    jsonWebToken = jwt
+  },
+
+  /** logout the current user */
+  logout() {
+    jsonWebToken = undefined
+    //TODO: flush the cache
   },
 
   /**
@@ -179,26 +172,13 @@ module.exports = {
     })
   },
 
+
+
+
+
   //TODO: do i need client side caching at all? => well it is for example nice for client side filtering. => Cache in table?
+  // I had a nice caching interceptor. But do I globally need that?
 
-	/** disable the cache. Every request will go the backend */
-  disableCache() {
-    //log.debug("disableCache")
-    //httpClient.setCacheUrlFilter('DO_NOT_CACHE')
-  },
-
-	/** enable cache when searching for laws */
-  enableCache(){
-    //log.debug("enableCache")
-		// only cache requests when searching for ideas, proposals or laws   and for globalProperties
-		//httpClient.setCacheUrlFilter(process.env.backendBaseURL+'(/laws/search/|/globalProperties)');
-		//httpClient.setCacheTTL(10)
-	},
-
-	/** disable the cache but only for the next request */
-  noCacheForNextRequest() {
-    //httpClient.noCacheForNextRequest()
-  },
 
   /**
    * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource,
@@ -299,10 +279,10 @@ module.exports = {
   },
 
 //==================================================================================================================
-// Categories (called Ares in the backend)
+// Categories (called Areas in the backend)
 //==================================================================================================================
 
-  /** lazy load all categories (from cache if possible) */
+  /** lazy load all categories */
   getAllCategories() {
     return axios.get('/areas').then(
       response => { return response.data._embedded.areas }
@@ -321,14 +301,16 @@ module.exports = {
   },
 
 //==================================================================================================================
-// Proxies
+// User data and Proxies
 //==================================================================================================================
+
+  getMyUser() {
+    return axios.get('/my/user').then(res => res.data)
+  },
 
   /** fetch all proxies of a user per area */
   getProxyMap(user) {
-    return axios.get('/my/proxyMap').then(
-      response => { return response.entity }
-    )
+    return axios.get('/my/proxyMap').then(res => res.data)
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
@@ -367,7 +349,7 @@ module.exports = {
 //==================================================================================================================
 
   /**
-	 * reload one proposal from server (without using the cache)
+	 * reload one proposal from server
 	 * @param {string|object} lawIdOrURI ID or URI of an idea, proposal or law
 	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
 	 * @return {object} the reloaded idea as HATEOS JSON
@@ -378,7 +360,6 @@ module.exports = {
     else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
-    //httpClient.noCacheForNextRequest()
     return axios.get(lawURI).then(res => {
       return res.data
     }).catch(err => {
@@ -738,5 +719,6 @@ module.exports = {
 
 }
 
-/** By default the cache (for some preconfigured URLs) is enabled */
-module.exports.enableCache()
+/** DEPRECATED: By default the cache (for some preconfigured URLs) is enabled */
+//module.exports.enableCache()
+// But was a nice way to call exported methods :-)

@@ -6,11 +6,7 @@ module.exports = merge(prodEnv, {
   NODE_ENV: '"development"',
   backendBaseURL: '"http://localhost:8080/liquido/v2"',     // URL of HATEOAS rest endpoint in backend (without trailing slash)
 
-  // This user will automatically be logged in
-  autoLoginUser: '""',
-  autoLoginPass: '""',
-
-  // This user can be logged in with one click on the original login page
-  devLoginUser: '"testuser2@liquido.de"',
-  devLoginPass: '"dummyPassword"',
+  // This user can be logged in with one click
+  devLoginMobilePhone: '"+49 12345"',
+  devLoginSmsCode: '"998877"',
 })

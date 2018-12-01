@@ -232,13 +232,13 @@ export default {
     },
 
 		upvoteComment(comment) {
-			this.$root.api.upvoteComment(comment, this.$root.currentUserURI).then(res => {
+			this.$root.api.upvoteComment(comment, this.$root.currentUser).then(res => {
 				this.reloadComments()
 			})
 		},
 
 		downvoteComment(comment) {
-			this.$root.api.downvoteComment(comment, this.$root.currentUserURI).then(res => {
+			this.$root.api.downvoteComment(comment, this.$root.currentUser).then(res => {
 				this.reloadComments()
 			})
 		},
@@ -264,7 +264,7 @@ export default {
 			if (!this.replyText[comment.id]) return;
 			//console.log("replyToSuggestion: "+this.replyText)
 			//Would also work:  var newReplyText = $('#replyTo'+comment.id).val()
-			this.$root.api.saveComment(this.replyText[comment.id], comment, this.$root.currentUserURI).then(res => {
+			this.$root.api.saveComment(this.replyText[comment.id], comment).then(res => {
 				this.reloadComments()
 				this.replyText = []
 			})

@@ -69,7 +69,33 @@ export default {
   },
 
   methods: {
-    //MAYBE: these methods could be called from all components as this.$root.method()
+    //These methods can be called from all child components as this.$root.method()
+
+    /** When user logged in and we got a JWT, then store it globally and fetch user details */
+    login(jwt) {
+      log.info("User login")
+      apiClient.setJsonWebToken(jwt)
+      apiClient.getMyUser()
+        .then(user => {
+          log.info(user)
+          this.$root.currentUser = user
+          this.$router.push('/userHome')
+          //TODO: show iziToast on success (on users home page!)
+        })
+        .catch(err => {
+          log.error("Cannot find user details with JWT. Invalid JWT?")
+          throw new Error("Cannot find user details with JWT. Invalid JWT?")
+        })
+    },
+
+    /** Logout the current user */
+    logout() {
+      console.log("LOGOUT ", this.$root.currentUser)
+      apiClient.logout()
+      this.$root.currentUser = undefined
+      //TODO: Show flash message: "You have been successfully logged out."
+      this.$router.push("/")
+    },
 
     /** Quickly login a default user for development */
     devLogin() {
@@ -87,6 +113,7 @@ export default {
   },
 
   mounted() {
+    // Global configuration of our dismissable alert lib
     iziToast.settings({
       layout: 2,
       timout: 10000,
