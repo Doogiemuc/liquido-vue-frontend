@@ -50,18 +50,19 @@
               <div class="form-group">
                 <p>Enter the 6-digit code that you have received via SMS:</p>
                 <div class="digit-group">
-                  <input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)"><b>-</b>
-                  <input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)"><b>-</b>
-                  <input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)"><b>-</b>
-                  <input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)"><b>-</b>
-                  <input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)"><b>-</b>
+                  <input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
+                  <input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
+                  <input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
+                  <input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
+                  <input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
                   <input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
                 </div>
               </div>
             </form>
+            <p></p>
             <div class="alert alert-danger" v-if="smsErrorMsg">
               <button type="button" class="close" aria-label="Close" @click="smsErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
-              {{smsErrorMsg}}
+              <span v-html="smsErrorMsg"></span>
             </div>
           </div>
         </div>
@@ -69,12 +70,7 @@
     </div>
 
     <div class="row lastRow">
-      <div class="col-md-6">
-        <div v-if="isDevEnv">
-           <button type="submit" id="loginButton" @click="devLogin()" class="btn btn-default">Dev Login '{{devLoginUser}}'</button>
-        </div>
-      </div>
-      <div class="col-md-6 text-right">
+      <div class="col-md-12 text-right">
         <router-link to="/register" role="button" class="btn btn-default">Register &raquo;</router-link>
       </div>
     </div>
@@ -155,7 +151,13 @@ export default {
           $('#digit0').focus()
         })
       }).catch(err => {
-        this.smsErrorMsg = "Could not send SMS."
+        if (err.response.data.liquidoErrorName === "MOBILE_NOT_FOUND") {
+          this.smsErrorMsg = "Mobile number not found.<br/>You must register first."
+        } else {
+          this.smsErrorMsg = "Could not send SMS."
+        }
+        this.smsCodeSent = false
+        log.error(err)
       })
     },
 
@@ -167,16 +169,10 @@ export default {
           this.$root.login(jwt)
         }).catch(err => {
           this.smsErrorMsg = "SMS code not valid."
-          log.error(err)
+          this.smsCodeSent = false
+          //log.error(err)
         })
     },
-
-    devLogin() {
-      log.info("development mode fake login for "+process.env.devLoginUser)
-      this.mobilephone = process.env.devLoginMobilePhone
-      this.digits = process.env.devLoginSmsCode.split("")  // We are just splitting digits here.  But otherwise: I just love things like this:  https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402
-      this.loginWithSmsCode()
-    }
 
   },
 
@@ -204,8 +200,6 @@ export default {
   width: 2.5ch;
   height: 24pt;
   font-size: 24pt;
-  margin-left: 5px;
-  margin-right: 5px;
   text-align: center;
   display: inline-block; /* prevent wrapping also on narrow mobile view */
 }

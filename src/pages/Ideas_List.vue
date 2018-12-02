@@ -198,7 +198,7 @@ export default {
         //})
 
         iziToast.success({
-            title: 'OK',
+            title: 'Liked',
             message: 'Thank you for supporting this idea.',
         });
       })
@@ -239,7 +239,6 @@ export default {
      * (re)load all tabledata from the server. Cache will temporarily be disabled for this.
      */
 		reloadFromServer() {
-			this.$root.api.disableCache()
 			Promise.all([
 				this.$root.api.getAllCategories(),
 				this.$root.api.getAllUsers(),
@@ -256,7 +255,6 @@ export default {
 				})
 				this.ideas = results[2]
 				this.ideasTableMessage = undefined
-				this.$root.api.enableCache()
 			})
 			.catch(err => { console.log("ERROR loading data for ideasPage: ", err) })
 

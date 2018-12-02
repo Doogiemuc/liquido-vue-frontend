@@ -132,7 +132,6 @@ export default {
 	},
 
 	created() {
-		this.$root.api.noCacheForNextRequest()
 		this.$root.api.getPoll(this.pollId).then(poll => {
 			this.poll = poll
 		})

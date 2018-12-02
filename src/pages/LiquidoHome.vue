@@ -33,8 +33,10 @@
 				</ul>
 
 				<p>&nbsp;</p>
-				<p class="text-center"><router-link to="/register" role="button" class="btn btn-default">Register &raquo;</router-link></p>
-
+				<p v-if="$root.currentUser === undefined" class="text-center">
+					<router-link to="/login"    role="button" class="btn btn-default loginButton">Login</router-link>
+					<router-link to="/register" role="button" class="btn btn-default">Register</router-link>
+				</p>
 
 			</div>
 		</div>
@@ -51,5 +53,8 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.loginButton {
+	margin-right: 3em;
+}
 </style>

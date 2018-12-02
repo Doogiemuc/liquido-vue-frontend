@@ -23,7 +23,7 @@ var log = loglevel.getLogger("LiquidoApiClient");
 
 
 //==================================================================================================================
-// Module private fields and methods
+// AXIOS http client
 //==================================================================================================================
 
 // Sanity check
@@ -38,7 +38,19 @@ var jsonWebToken = undefined
 axios.defaults.baseURL = process.env.backendBaseURL
 
 
-/***** global axios error handler ******/
+
+/****** Axios REQUEST interceptor that adds the JWT token into the header (if known) *****/
+axios.interceptors.request.use(function (config) {
+  if (jsonWebToken) {
+    config.headers['Authorization'] = "Bearer "+jsonWebToken
+  }
+  return config;
+}, function (error) {
+  log.error("Error in axios request", error)
+  return Promise.reject(error);
+});
+
+/***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
   return response;
 }, function (error) {
@@ -63,16 +75,11 @@ axios.interceptors.response.use(function (response) {
   return Promise.reject(error);
 })
 
-/****** Axios interceptor that adds the JWT token into the header (if known) *****/
-axios.interceptors.request.use(function (config) {
-  if (jsonWebToken) {
-    config.headers['Authorization'] = "Bearer "+jsonWebToken
-  }
-  return config;
-}, function (error) {
-  log.error("Error in axios request", error)
-  return Promise.reject(error);
-});
+
+//==================================================================================================================
+// Module private fields and methods
+//==================================================================================================================
+
 
 // local cache of globalProperties
 // They would also be cached by our cachingInterceptor, but we want a longer TTL
@@ -84,22 +91,6 @@ var globalPropertiesCache = undefined
 //==================================================================================================================
 
 module.exports = {
-
-  /*  DEPRECATED
-  getOAuthtoken(username, password) {
-    oauthParams.username = username
-    oauthParams.password = password
-    return axios.post('/oauth/token', qs.stringify(oauthParams))
-      .then(res => {
-        oauthToken = res.data.access_token
-        log.debug("Received oauth token", oauthToken)
-        return oauthToken
-      })
-      .catch(err => {
-        log.error("Cannot get Oauth token", err)
-        return Promise.reject(err)
-      })
-  },
 
   /**
    * register as a new user
@@ -116,19 +107,6 @@ module.exports = {
       return res.data
     })
   },
-
-  /**
-   * Login this user
-   * @return full user object or Promise.reject() on error
-
-  login(username, password) {
-    log.info("LiquidoApiClient User login: " + username)
-    return this.getOAuthtoken(username, password)
-      .then(res => {
-        return this.findUserByEmail(username)
-      })
-  },
-  */
 
   /** send a link to login via email */
   sendMagicEmailLink() {
@@ -181,7 +159,7 @@ module.exports = {
 
 
   /**
-   * The ID of a domain object in our REST HATEOS context is the full REST URI of this REST resource,
+   * The ID of a domain object in our REST HATEOAS context is the full REST URI of this REST resource,
    * e.g. <pre>http://localhost:8080/liquido/v2/areas/42</pre>
    * @param {String|Object} model If you already pass a valid URI as a string, then that URI will be returned as is.
    *        Otherwise you can also pass a model that you loaded before. Then its _links.self.href will be returned.
@@ -211,13 +189,32 @@ module.exports = {
 // HATEOAS
 //==================================================================================================================
 
-  //TODO: this would be a nice generic way of navigating hateoas links
-  follow(hateosJson, linkName, uriTemplateParams) {
-    var link = hateosJson._links[linkName]
-    if (link === undefined) return Promise.reject("Cannot find link with name "+linkName)
-    //replace uri template variables in href   e.g. with https://www.npmjs.com/package/url-template
-    var url = link.href.expand(uriTemplateParams)
-    // make call
+  /**
+   * In HATEOAS every JSON entity has some _links that you can follow.
+   * There is always a self link that points to the REST resource itself:  _links.self.href
+   * @param HATEOAS {JSON} JSON as returned by the spring-data-rest server
+   * @param linkName {String} the name of the link that we want to follow, e.g. "self" or "childObject"
+   * @param urlTemplateParams {Object} RFC6570 URI template parameters that we can extend
+   * @return the links's parsed URL
+   */
+  getHateoasLink(hateoasJson, linkName, urlTemplateParams) {
+    if (hateoasJson === undefined || hateoasJson._links === undefined)
+      throw new Error("Need HATEOAS JSON with _links")
+    if (linkName === undefined)
+      throw new Error("Need HATEOAS name of link")
+    urlTemplateParams = urlTemplateParams || {}
+    var link = hateoasJson._links[linkName]
+    if (link === undefined) return Promise.reject("Cannot find HATEOAS link with name "+linkName)
+    var urlTemplate = template.parse(link.href)
+    var url = urlTemplate.expand(urlTemplateParams)
+    return url
+  },
+
+  /**
+   * Follow an HATEOAS link and return the linked entity
+   */
+  follow(hateoasJson, linkName, uriTemplateParams) {
+    var url = this.getHateoasLink(hateoasJson, linkName, uriTemplateParams)
     return axios.get(url)  // might return just one entity or an array of entities
   },
 
@@ -304,8 +301,9 @@ module.exports = {
 // User data and Proxies
 //==================================================================================================================
 
+  /** fetch HATEOAS details of currently logged in user */
   getMyUser() {
-    return axios.get('/my/user').then(res => res.data)
+    return axios.get('/my/user', {headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
   },
 
   /** fetch all proxies of a user per area */
@@ -352,7 +350,7 @@ module.exports = {
 	 * reload one proposal from server
 	 * @param {string|object} lawIdOrURI ID or URI of an idea, proposal or law
 	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
-	 * @return {object} the reloaded idea as HATEOS JSON
+	 * @return {object} the reloaded idea as HATEOAS JSON
 	 */
 	getLaw(lawIdOrURI, projected) {
     var lawURI
@@ -478,7 +476,7 @@ module.exports = {
    */
   addSupporterToIdea(idea, user) {
     if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
-    var supportersURI = idea._links.supporters.href
+    var supportersURI = this.getHateoasLink(idea, "supporters")
     var userURI       = this.getURI(user)
     log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title+"': POST "+supportersURI)
     return axios({
@@ -609,9 +607,10 @@ module.exports = {
     return this.saveComment(newImprovementText, null)
     .then(res => {
       var createdComment = res.data
+      var proposalCommentsUrl = this.getHateoasLink(proposal, "comments")  // Need url without {?projection}
       return axios({
         method: 'POST',   // POST adds a suggestion to the list of comments (PUT would overwrite all existing comments of this proposal)
-        url: proposal._links.comments.href,
+        url: proposalCommentsUrl,
         headers: { 'Content-Type' : 'text/uri-list' },
         data: createdComment._links.self.href
       })

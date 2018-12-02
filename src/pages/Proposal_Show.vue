@@ -75,17 +75,21 @@
         <img :src="comment.createdBy.profile.picture" />
       </div>
       <div class="media-body">
+
         <div class="comment">
 	        <span class="pull-right">
+	        	<span v-if="comment.replies.length === 0">
+	          	<span v-on:click="showReplyInput(comment)"><i class="fas fa-reply replyHoverIcon" ></i>&nbsp;</span>&nbsp;&nbsp;
+	          </span>
 	          <span v-if="comment.upvotedByCurrentUser">
 	          	<i class="fas fa-thumbs-up alreayUpvoted"></i> {{comment.upVotes}}&nbsp;
 	          	<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{comment.downVotes}}
 	          </span>
-	          <span v-else-if="comment.downvotedByCurrentUser">
+	          <span v-if="comment.downvotedByCurrentUser">
 	            <i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{comment.upVotes}}&nbsp;
 	            <i class="fas fa-thumbs-down alreayDownvoted"></i> {{comment.downVotes}}
 	          </span>
-	          <span v-else class="commentIcon">
+	          <span v-if="!comment.upvotedByCurrentUser && !comment.downvotedByCurrentUser" class="commentIcon">
 	            <span v-on:click="upvoteComment(comment)"><i class="fas fa-thumbs-up"></i> {{comment.upVotes}}</span>&nbsp;
 	            <span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
 	          </span>
@@ -93,6 +97,7 @@
 	        <small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
 	        <p>{{comment.comment}}</p>
         </div>
+
 				<div v-for="reply in comment.replies" class="media reply">
 		      <div class="media-left">
 		        <img class="replyUserImg" :src="reply.createdBy.profile.picture" />
@@ -116,20 +121,22 @@
 		        <p>{{reply.comment}}</p>
 		      </div>
 	      </div>
-	      <div v-if="discussionIsOpen" class="media reply">
+
+	      <div v-if="discussionIsOpen && (comment.replies.length > 0 || comment.showReplyInput)" class="media reply">
 		      <div class="media-left">
 		        <img class="replyUserImg" :src="currentUser.profile.picture" />
 		      </div>
 		      <div class="media-body">
 			      <div class="input-group col-xs-12 col-md-6">
 						  <input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
-						   v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Reply to this suggestion" >
+						   v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Your reply" >
 						  <span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
 						</div>
 		      </div>
 	      </div>
+
       </div>
-      <hr/>
+      <hr class="commentSeparator" />
     </div>
 
 		<div v-if="showComments && discussionIsOpen" class="media">
@@ -243,13 +250,21 @@ export default {
 			})
 		},
 
-    /** compare two comments by their number of upvotes */
+    /**
+     * Compare two comments
+     * 1. their number of upvotes (more upvotes at the top)
+     * 2. if votes equal (especially no up or downvotes) then compare by date created (newest suggestion at the bottom)
+     */
 		commentComparator(c1, c2) {
-			return c2.upVotes - c1.upVotes
+			var comp = c2.upVotes - c1.upVotes
+			if (comp == 0) {
+				comp = c1.id - c2.id
+			}
+			return comp;
 		},
 
+		/** reload comments and their replies */
 		reloadComments() {
-			this.$root.api.noCacheForNextRequest()
 			this.$root.api.getComments(this.proposal, true).then(comments => {
 				this.comments = comments.slice(0,10).sort(this.commentComparator)		//sort comments by votes and limit to 10 comments and 20 replies max
 				this.replyText = []
@@ -260,6 +275,21 @@ export default {
 			})
 		},
 
+		/** add a new suggestion */
+		addNewSuggestion() {
+			if (!this.suggestionText) return;
+			this.$root.api.suggestImprovement(this.suggestionText, this.proposal).then(res => {
+				this.reloadComments()
+				this.suggestionText = ""
+			})
+		},
+
+    /** When user clicks on the reply button next to a suggestion, that does not yet have any replies, then show input for reply text */
+		showReplyInput(comment) {
+			this.$set(comment, 'showReplyInput', true)   // must use Vue's reactive setter, because we want to add a new (reactive) attribute to comment
+		},
+
+		/** save user's reply to a suggestion */
 		replyToSuggestion(comment) {
 			if (!this.replyText[comment.id]) return;
 			//console.log("replyToSuggestion: "+this.replyText)
@@ -270,13 +300,7 @@ export default {
 			})
 		},
 
-		addNewSuggestion() {
-			if (!this.suggestionText) return;
-			this.$root.api.suggestImprovement(this.suggestionText, this.proposal).then(res => {
-				this.reloadComments()
-				this.suggestionText = ""
-			})
-		}
+
 
   },
 
@@ -315,8 +339,23 @@ export default {
 .comment:hover {
   background: #F3F3F3;
 }
+
+.replyHoverIcon {
+	visibility: hidden;
+}
+.replyHoverIcon:hover {
+	cursor: pointer;
+}
+.comment:hover .replyHoverIcon {
+	visibility: visible;
+}
+
+
 .reply:hover {
 	background: #F3F3F3;
+}
+.commentSeparator {
+	border-top: 1px solid #aaa;
 }
 .commentIcon {
  	color: #666;

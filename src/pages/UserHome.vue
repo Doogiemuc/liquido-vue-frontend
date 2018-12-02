@@ -8,7 +8,7 @@
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
 				<h2>Alternative to pollPanel</h2>
-        <p>This also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
+        <p>This manually created HTML also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
             <div class="pull-right">
@@ -49,12 +49,11 @@
 
 
         <h2 v-if="recentIdeas">Recently created ideas</h2>
+        <p>Demo for law-panel</p>
         <law-panel v-for="idea in recentIdeas"
           :law="idea"
           :showTimeline="false">
         </law-panel>
-
-        <!-- idea-panel v-for="idea in recentIdeas" :idea="idea" v-on:reloadIdea="loadRecentIdeas"></idea-panel -->
 
       </div>
 
@@ -151,15 +150,6 @@
         <br/><br/>
 
 
-    		<h2>Trending proposals</h2>
-        <p>(Demo for LawPanel)</p>
-
-    		<law-panel v-for="proposal in trendingProposals"
-    		  :law="proposal"
-    		  :showTimeline="true">
-    		</law-panel>
-
-
 
         <h2>Ideas and proposals supported by you</h2>
     		<p>Demo for LawList</p>
@@ -197,32 +187,21 @@ export default {
       recentIdeas: [],            // recently created ideas sorted by date desc
       reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
-	    trendingProposals: [],      //
 	    supportedIdeasAndProps: []  // ideas and proposals that this user liked
     }
   },
 
   created () {
-    this.$root.api.noCacheForNextRequest()
     this.loadRecentIdeas()
 
-    this.$root.api.noCacheForNextRequest()
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.reachedQuorum = proposals.slice(0,10)
     })
 
-    this.$root.api.noCacheForNextRequest()
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      this.supportedIdeasAndProps = proposals.slice(0,10)
+      this.supportedIdeasAndProps = proposals.slice(0,20)
     })
 
-    this.$root.api.noCacheForNextRequest()
-    this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      //TODO: what are "trending proposals"?
-      this.trendingProposals = proposals.slice(0,10)
-    })
-
-    this.$root.api.noCacheForNextRequest()
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.openForVotingPolls = votingPolls
     })

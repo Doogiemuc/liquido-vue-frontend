@@ -43,8 +43,7 @@
             </li>
           </ul>
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
-          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">Dev Login '{{devLoginUser}}'</button>
-          <div></div>
+          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">Dev Login {{devLoginUser}}</button>
         </div>
       </div>
     </div>
@@ -65,7 +64,7 @@ import apiClient from '../services/LiquidoApiClient'
 export default {
   computed: {
     showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
-    devLoginUser() { return process.env.devLoginUser }
+    devLoginUser() { return process.env.devLoginMobilePhone }
   },
 
   methods: {
@@ -99,17 +98,17 @@ export default {
 
     /** Quickly login a default user for development */
     devLogin() {
-      console.log("development mode fake login for "+process.env.devLoginUser)
-      apiClient.login(process.env.devLoginUser, process.env.devLoginPass)
-        .then(user => {
-          console.log("received user" , user)
-          this.$root.currentUser = user
-          this.$router.push("/")
-        })
-        .catch(err => {
-          log.error("Cannot login", err)
-        })
+      var cleanMobilePhone = this.cleanMobilePhone(process.env.devLoginMobilePhone)
+      console.log("development mode fake login for "+cleanMobilePhone)
+      apiClient.loginWithSmsCode(cleanMobilePhone, process.env.devLoginSmsCode)
+        .then(jwt =>  { this.login(jwt) })
+        .catch(err => { log.error("Cannot login dev user", err) })
     },
+
+    cleanMobilePhone(mobilephone) {
+      if (mobilephone == undefined) return ""
+      return mobilephone.replace(/[^0-9\+]/g, '')
+    }
   },
 
   mounted() {
