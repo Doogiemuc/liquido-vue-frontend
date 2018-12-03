@@ -1,5 +1,5 @@
 /**
- * login.js Nightwatch custom command to login a liquido user
+ * login.js Nightwatch custom command to (fake) login of a liquido user via SMS code
  */
 
 var util = require('util');
@@ -11,18 +11,24 @@ function Login() {
 
 util.inherits(Login, events.EventEmitter);
 
-Login.prototype.command = function(user, pass, callback) {
+Login.prototype.command = function(mobile, callback) {
   var self = this;
-	if (!user || !pass) {
-    console.log("ERROR: need user and pass to login")
-    throw new Error("Need user and pass to login")
+	if (!mobile ) {
+    console.log("ERROR: need moblie phonenumber to login via SMS")
+    throw new Error("Need mobile phone number to login via SMS")
   }
   this.client.api
     .url(this.client.api.launchUrl+"/#/login")
-    .waitForElementPresent('#emailInput', 2000, "On login page")
-    .setValue('#emailInput', user)
-    .setValue('#passwordInput', pass)  // this.api.Keys.ENTER
-		.click('#loginButton')
+    .waitForElementPresent("#phoneInput", 2000, "On login page")
+    .setValue("#phoneInput", mobile)
+		.click("#requestSmsCodeButton")
+		.waitForElementVisible("#smsCodeInputs", 4000)
+		.
+		devSmsLoginSpan
+		.setValue("#smsCodeInputs > #digit0", "1")
+		.setValue("#smsCodeInputs > #digit1", "2")
+		.setValue("#smsCodeInputs > #digit2", "3")
+		//.setValue("#smsCodeInputs > #digit3", "4")
 		.waitForElementVisible("#userMenu", 4000)
     .perform(function() {
       console.log("\x1b[32m √\x1b[0m", user, "logged in")

@@ -5,7 +5,7 @@
         <i class="fas fa-angle-double-right"></i>
       </router-link>
 			<h4 class="lawTitle">
-          <i class="far" :class="getIconForLaw" aria-hidden="true"></i>
+          <i class="fa" :class="getIconForLaw" aria-hidden="true"></i>
           {{law.title}}
       </h4>
     </div>

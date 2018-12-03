@@ -70,11 +70,13 @@ module.exports = {
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "loggingPrefs": { "browser": "ALL" },    // needed to capture logs https://groups.google.com/forum/#!topic/nightwatchjs/KWdF37qE038
+				"useAutomationExtension": false,				 // prevent error "loading of unpacked extensions is disabled by the administrator"
         "chromeOptions": {
-          "args": [
-            "window-size=1024,768",
-						"disable-extensions",
+					"args": [
+            "--window-size=1024,768",
+						"--disable-extensions",
 						//"auto-open-devtools-for-tabs"
+						
           ],
         }
       }
