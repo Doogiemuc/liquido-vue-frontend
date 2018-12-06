@@ -6,9 +6,10 @@
 
 <template>
   <div class="container">
-		<h1><i class="fas fa-balance-scale"></i> Poll
-			<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
-			<template v-if="poll.status === 'VOTING'">in voting phase</template>
+		<h1><i class="fas fa-balance-scale"></i> 
+			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
+			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
+			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
 		</h1>
 
 		<div v-if="poll.status == 'VOTING'" class="panel panel-default">
@@ -21,20 +22,61 @@
 				</router-link>
 	    </div>
 	  </div>
+		
+		<div v-if="poll.status == 'FINISHED'" class="panel panel-default">
+	    <div class="panel-body"">
+	      <p>This poll is finished. The winning proposal is now a law.</p>
+				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+	    </div>
+	  </div>
 
 	  <br/>
-		<h3>Alternative proposals in this poll</h3>
 
-    <div class="row">
+		<div class="row" v-if="poll.status !== 'FINISHED'">
+			<h3>Alternative proposals in this poll</h3>
 		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
 				<law-panel
 				  :law="proposal"
 				  :showTimeline="false"
 				  :fixedHeight="200"
-				  v-on:like="likeToDiscuss"
-				  class="proposalPanel"
-				></law-panel>
+				  v-on:like="likeToDiscuss">
+				</law-panel>
 			</div>
+		</div>
+		
+		
+		<div v-if="poll.status === 'FINISHED'">
+			<h3>Winning proposal</h3>
+			<law-panel
+				:law="poll._embedded.winner"
+				:showTimeline="false"
+				:fixedHeight="200"
+				:readOnly="true">
+			</law-panel>
+			
+			<h3>Poll results</h3>
+			<h4>Duel Matrix</h4>
+			<p>This matrix shows the comparison between each pair of proposals in this poll. The numbers in each cell show how many voters
+			sorted the proposal of that <em>row</em> higher than the proposal in that <em>col</em> in their ballot.</p>
+			
+			<table class="table table-bordered">
+			  <thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th>Prop1</th>
+						<th>Prop2</th>
+						<th>Prop3</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>Prop1</th>
+						<td>23</td>
+						<td>17</td>
+						<td>12</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 
 		<br/>
