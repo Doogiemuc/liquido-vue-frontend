@@ -1,5 +1,5 @@
 <template>
-	<div v-if="law" class="panel panel-default lawPanel" :data-proposaluri="getURI">
+	<div v-if="law" class="panel panel-default lawPanel" :data-proposaluri="getProposalURI">
     <div class="panel-heading">
       <router-link v-if="!readOnly" :to="getLinkToLaw()" role="button" class="btn btn-default btn-xs pull-right">
         <i class="fas fa-angle-double-right"></i>
@@ -61,8 +61,7 @@ export default {
 	},
 
   computed: {
-    getURI() {
-      if (!this.law || !this.law.self) return ""
+    getProposalURI() {
       return this.$root.api.getURI(this.law)
     },
 

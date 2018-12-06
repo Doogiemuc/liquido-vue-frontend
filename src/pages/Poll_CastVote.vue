@@ -4,120 +4,74 @@
     <h1><i class="fas fa-balance-scale"></i> Cast your vote</h1>
 
     <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4>Your ballot</h4>
+      </div>
       <div class="panel-body"">
-        <p>You have {{untilVotingEnd}} left to cast your vote for this poll. Drag the proposals you want to vote for from the left into your ballot on the right.
-        In Liquid Democracy you do not just vote for or against a proposal, you can sort proposals into your preferred order in your ballot.</p>
-        <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+        <ol>
+          <li v-for="proposal in voteOrderProposals">"{{proposal.title}}" by {{proposal.createdBy.email}}</li>
+        </ol>
       </div>
     </div>
 
-    <button type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
 
-    <table class="table pollTable">
-      <tbody>
-        <tr>
-          <td width="49%" class="text-center">
-            <h3>Proposals</h3>
-            <p>These are the competing alternative proposals in this poll.</p>
-          </td>
-          <td width="2%"></td>
-          <td width="49%" class="text-center">
-            <h3>Your ballot</h3>
-            <p>Sort your favorite proposal to the top.</p>
-          </td>
-        </tr>
-        <tr>
-          <td width="49%" id="leftContainer">
+    <!-- Cast vote - wizard with steps -->
+    <div id="castVotePanel" class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Step 1 - Fetch your voter token</h3>
+      </div>
+      <div class="panel-body">
+        <div id="steps">
+          <ol class="fa-ul">
+            <li>
+              <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+              <span v-show="step1_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
+              <span v-show="step1_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
+              <span v-show="step1_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+              <p class="stepTitle">Fetch your voterToken</p>
+              <div class="well well-sm monspaceFont">{{voterToken}}</div>
+              <small>This voterToken is the digital representation of your right to vote. With this token your ballot will be casted <b>anonymously</b>
+                You do not need to remember this token. It can be fetched again whenever needed. This token is <b>confidential!</b> Do not share it!
+              </small>
+            </li>
 
-            <law-panel v-for="proposal in poll._embedded.proposals"
-              :law="proposal"
-              :showTimeline="false"
-              :fixedHeight="100"
-              :readOnly="true">
-            </law-panel>
+            <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken">Fetch voter token</button>
 
-          </td>
-          <td width="2%" class="middleColumn">
-            <i class="fa fa-angle-double-right fa-4x" aria-hidden="true"></i>
-          </td>
-          <td width="49%" id="rightContainer">
-            <div class="rightWrapper">
-              <div v-if="ballotIsEmpty" class="rightDropHere">
-                Drop proposals here!
+            <li>
+              <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+              <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
+              <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
+              <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+              <p class="stepTitle">Anonymously cast your ballot</p>
+              <div class="well well-sm monspaceFont">{{checksum}}</div>
+              <small>You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. The checksum is also confidential. Do not share it!
+              </small>
+            </li>
+            <li>
+              <span v-show="step3_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+              <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
+              <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
+              <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+              <p class="stepTitle">Your vote was counted successfully</p>
+            </li>
+          </ol>
+        </div>
+
+        <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger">
+          <div class="panel-heading">
+            <h4 class="panel-title">
+              <i class='fas fa-exclamation-circle red'></i> {{errorMessage}}
+              <div class="expandButton" v-on:click="toggleCollapse">
+                <i class="fas fa-caret-down"></i>
               </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <button type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
-
-    <!-- Cast vote - modal popup - wizard with steps -->
-    <div id="castVoteModal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Cast your vote</h4>
+            </h4>
           </div>
-          <div class="modal-body">
-
-            <div id="steps">
-              <ol class="fa-ul">
-                <li>
-                  <span v-show="step1_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-                  <span v-show="step1_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-                  <span v-show="step1_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-                  <p class="stepTitle">Fetch your voterToken</p>
-                  <div class="well well-sm monspaceFont">{{voterToken}}</div>
-                  <small>This voterToken is the digital representation of your right to vote. With this token your ballot will be casted <b>anonymously</b>
-                    You do not need to remember this token. It can be fetched again whenever needed. This token is <b>confidential!</b> Do not share it!
-                  </small>
-                </li>
-                <li>
-                  <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
-                  <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-                  <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-                  <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-                  <p class="stepTitle">Anonymously cast your ballot</p>
-                  <div class="well well-sm monspaceFont">{{checksum}}</div>
-                  <small>You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. The checksum is also confidential. Do not share it!
-                  </small>
-                </li>
-                <li>
-                  <span v-show="step3_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
-                  <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-                  <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-                  <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-                  <p class="stepTitle">Your vote was counted successfully</p>
-                </li>
-              </ol>
-            </div>
-
-            <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger">
-              <div class="panel-heading">
-                <h4 class="panel-title">
-                  <i class='fas fa-exclamation-circle red'></i> {{errorMessage}}
-                  <div class="expandButton" v-on:click="toggleCollapse">
-                    <i class="fas fa-caret-down"></i>
-                  </div>
-                </h4>
-              </div>
-              <div class="panel-body errorMessageDetails collapse" id="errorMessageDetails">
-                {{errorMessageDetails}}
-              </div>
-            </div>
-
+          <div class="panel-body errorMessageDetails collapse" id="errorMessageDetails">
+            {{errorMessageDetails}}
           </div>
-          <div class="modal-footer">
-            <button v-if="loading" type="button" class="btn btn-default pull-left" @click="clickModalCancel">Cancel</button>
-            <button type="button" class="btn btn-primary" :class="{disabled: loading}" @click="clickModalMain">{{mainButton}}</button>
-          </div>
-
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-
+        </div>
+      </div>
+    </div><!-- /.panel -->
 
   </div>
 </template>
@@ -134,17 +88,18 @@ export default {
   components: { LawPanel, timeline },
 
   props: {
-    'pollId': { type: String, required: true }
+    'pollId':    { type: Number, required: true },  // Nummbe is passed via named route params
+    'voteOrder': { type: Array,  required: true }
   },
 
   data () {
     return {
       poll: { _embedded: { proposals: [] }},
-      ballotIsEmpty: true,
+      voteOrderProposals: [],
       voterToken: "",
       checksum: "",
       loading: true,
-      step1_status: 'loading',
+      step1_status: 'dimmed',
       step2_status: 'dimmed',
       step3_status: 'dimmed',
       mainButton: "Processing ...",
@@ -172,7 +127,28 @@ export default {
   created () {
     this.$root.api.getPoll(this.pollId).then(poll => {
       this.poll = poll
+
+      // Get proposals from URIs in pased voteOrder[]
+      var proposalsByURI = {}
+      poll._embedded.proposals.forEach(proposal => {
+        var uri = this.$root.api.getURI(proposal)
+        proposalsByURI[uri] = proposal
+      })
+      for(var i = 0; i < this.voteOrder.length; i++) {
+        this.$set(this.voteOrderProposals, i, proposalsByURI[this.voteOrder[i]])
+      }
+      log.debug("voteOrderProposals", this.voteOrderProposals)
     })
+    .then(() => {
+       this.$root.api.getPublicChecksum(this.poll.area, this.$root.currentUser).then(publicChecksum => {
+        log.debug("publicProxyChecksum", publicChecksum)
+      })
+    })
+
+
+    //TODO: check for pending delegations
+
+
     //TODO: load aready saved ballot, if any, and then show to user that he already voted
   },
 
@@ -205,7 +181,7 @@ export default {
       log.info("Starting to cast the vote.")
       $('#castVoteModal').modal('show')
       this.DelayPromise(1000)()
-        .then(this.getVoterToken)
+        .then(this.fetchVoterToken)
         .then(this.castVote)
         .then(res => {
           //MAYBE: larger ok animation, e.g. zooming fading green checkmark
@@ -238,7 +214,7 @@ export default {
       this.resetModal()
     },
 
-    getVoterToken() {
+    fetchVoterToken() {
       this.step1_status = " loading"
       return this.$root.api.getVoterToken(this.poll.area.id)
         .then(voterToken => {
@@ -337,68 +313,9 @@ export default {
 </script>
 
 <style scoped>
-  .pollTable td, .pollTable th {
-    border: none;
-  }
-  .tableTitle {
-    text-align: center;
-    font-size: 20px;
-  }
-  .middleColumn {
-    text-align: center;
-    padding-top: 100px;
-  }
   .panel-heading h4 {
     margin-top: 0;
     margin-bottom: 0;
-  }
-  .userPictureLeft {
-    float: left;
-    margin-right: 8px;
-  }
-
-  #leftContainer {
-    min-height: 200px;
-    background: #DDD;
-  }
-
-  #leftContainer div.panel,
-  #rightContainer div.panel {
-    cursor: move;
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-    transition: opacity 0.4s ease-in-out;
-  }
-
-  .gu-mirror {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-  }
-
-  #rightContainer {
-    border: 1px solid #DDD;
-    background-color: rgba(255,255,232, 0.5);
-  }
-
-  .rightWrapper {
-    position: relative;
-    /*border: 1px solid green; */
-  }
-
-  .rightDropHere {
-    z-index: -1;      /* in the background */
-    width: 100%;
-    position: absolute;
-    text-align: center;
-    color: #DDD;
-    font-size: 2em;
-    margin-top: 70px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border: 4px dashed #DDD;
-    border-radius: 8px;
   }
 
   .stepTitle {

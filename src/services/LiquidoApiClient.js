@@ -52,7 +52,7 @@ axios.interceptors.request.use(function (config) {
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
-  return response;
+  return response
 }, function (error) {
   if (error.response) {
     // The request was made and the server responded with a status code
@@ -204,7 +204,7 @@ module.exports = {
       throw new Error("Need HATEOAS name of link")
     urlTemplateParams = urlTemplateParams || {}
     var link = hateoasJson._links[linkName]
-    if (link === undefined) return Promise.reject("Cannot find HATEOAS link with name "+linkName)
+    if (link === undefined) throw new Error("Cannot find HATEOAS link with name "+linkName)
     var urlTemplate = template.parse(link.href)
     var url = urlTemplate.expand(urlTemplateParams)
     return url
@@ -293,7 +293,7 @@ module.exports = {
     } else if (!isNaN(uri)) {
       return axios.get('/areas/'+uri).then(res => {return res.data })    // idea ID was passed as a number
     } else {
-      throw "Cannot get Category from uri="+uri
+      return Promise.reject("Cannot get Category from uri="+uri)
     }
   },
 
@@ -306,6 +306,25 @@ module.exports = {
     return axios.get('/my/user', {headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
   },
 
+  /** get the checksum of a public proxy */
+  getPublicChecksum(area, proxy) {
+    console.log("getPublicChecksum", area, proxy)
+    if (!area) return Promise.reject("Need area to getPublicChecksum()")
+    if (!proxy) return Promise.reject("Need proxy to getPublicChecksum()")
+    return axios.get('/users/'+proxy.id+'/publicChecksum', { params: {
+      area: area.id,
+    }})
+    .then(res => res.data )
+    .catch(err => {
+      if (err.response.status == 422) {
+        log.debug("User has no public checksum.")
+        return Promise.resolve(undefined)
+      } else {
+        return Promise.reject(err)
+      }
+    })
+  },
+
   /** fetch all proxies of a user per area */
   getProxyMap(user) {
     return axios.get('/my/proxyMap').then(res => res.data)
@@ -313,8 +332,8 @@ module.exports = {
 
   /** add or update a delegation from the currently logged in user to a proxy */
   assignProxy(category, proxy) {
-    if (!category) throw new Error("Missing category for saveProxy()")
-    if (!proxy) throw new Error("Missing proxy for saveProxy()")
+    if (!category) return Promise.reject("Missing category for saveProxy()")
+    if (!proxy) return Promise.reject("Missing proxy for saveProxy()")
     var categoryURI = this.getURI(category)
     var proxyURI = this.getURI(proxy)
     log.debug("assignProxy(categor="+categoryURI+", proxy="+proxyURI+")")
@@ -330,7 +349,7 @@ module.exports = {
 
   /** remove the proxy of the currently logged in user in the given category */
   removeProxy(category) {
-    if (!category) throw new Error("Missing category for removeProxy()")
+    if (!category) return Promise.reject("Missing category for removeProxy()")
     var categoryURI = this.getURI(category)
     log.debug("removeProxy(category="+categoryURI+")")
     return axios.delete({
@@ -475,7 +494,7 @@ module.exports = {
    * @return Just HTTP status 204
    */
   addSupporterToIdea(idea, user) {
-    if (!idea || !user) throw new Error("Cannot add Supporter. Need idea and user!")
+    if (!idea || !user) return Promise.reject("Cannot add Supporter. Need idea and user!")
     var supportersURI = this.getHateoasLink(idea, "supporters")
     var userURI       = this.getURI(user)
     log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title+"': POST "+supportersURI)

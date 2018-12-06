@@ -43,7 +43,7 @@
             </li>
           </ul>
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
-          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">Dev Login {{devLoginUser}}</button>
+          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">DevLogin</button>
         </div>
       </div>
     </div>
@@ -67,23 +67,37 @@ export default {
     devLoginUser() { return process.env.devLoginMobilePhone }
   },
 
+  //The methods of RootApp.vue can be called from all child components as this.$root.method()
   methods: {
-    //These methods can be called from all child components as this.$root.method()
+
+    /** Quickly login a default user for development */
+    loginViaSms(mobilephone, smsCode) {
+      var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
+      log.info("Login via SMS for "+cleanMobilePhone)
+      return apiClient.loginWithSmsCode(cleanMobilePhone, smsCode)
+        .then(jwt =>  { this.loginWithJWT(jwt) })
+        .catch(err => { log.error("Cannot login dev user", err) })
+    },
 
     /** When user logged in and we got a JWT, then store it globally and fetch user details */
-    login(jwt) {
+    loginWithJWT(jwt, forwardTo) {
       log.info("User login")
       apiClient.setJsonWebToken(jwt)
-      apiClient.getMyUser()
+      return apiClient.getMyUser()
         .then(user => {
           log.info(user)
           this.$root.currentUser = user
-          this.$router.push('/userHome')
+          this.$router.push(forwardTo ? forwardTo : '/userHome')
+          iziToast.success({
+            title: 'Login',
+            message: 'You are now logged in.',
+            position: 'bottomRight',
+          });
           //TODO: show iziToast on success (on users home page!)
         })
         .catch(err => {
           log.error("Cannot find user details with JWT. Invalid JWT?")
-          throw new Error("Cannot find user details with JWT. Invalid JWT?")
+          return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
         })
     },
 
@@ -96,14 +110,11 @@ export default {
       this.$router.push("/")
     },
 
-    /** Quickly login a default user for development */
+    /** Quick login for development */
     devLogin() {
-      var cleanMobilePhone = this.cleanMobilePhone(process.env.devLoginMobilePhone)
-      console.log("development mode fake login for "+cleanMobilePhone)
-      apiClient.loginWithSmsCode(cleanMobilePhone, process.env.devLoginSmsCode)
-        .then(jwt =>  { this.login(jwt) })
-        .catch(err => { log.error("Cannot login dev user", err) })
+      this.loginViaSms(process.env.devLoginMobilePhone, process.env.devLoginSmsCode)
     },
+
 
     cleanMobilePhone(mobilephone) {
       if (mobilephone == undefined) return ""
@@ -111,7 +122,7 @@ export default {
     }
   },
 
-  mounted() {
+  created() {
     // Global configuration of our dismissable alert lib
     iziToast.settings({
       layout: 2,
@@ -120,6 +131,10 @@ export default {
       position: 'topRight',
       transitionIn: 'fadeInLeft',
     })
+    if (process.env.autoLoginMobilePhone) {
+      log.info("Automatic DEV login for "+process.env.autoLoginMobilePhone)
+      this.loginViaSms(process.env.autoLoginMobilePhone, process.env.autoLoginSmsCode)
+    }
   }
 }
 

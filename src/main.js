@@ -122,7 +122,15 @@ const routes = [
     },
 		props: true  // pass URL parameter to prop in component
   },
-  { path: '/polls/:pollId/castVote',
+  { path: '/polls/:pollId/sortBallot',
+    component: function(resolve) {
+      require(['./pages/Poll_SortBallot.vue'], resolve)
+    },
+    props: true
+  },
+  { // this named route also uses the param  "voteOrder": []
+    path: '/polls/:pollId/castVote',
+    name: 'castVote',
     component: function(resolve) {
       require(['./pages/Poll_CastVote.vue'], resolve)
     },

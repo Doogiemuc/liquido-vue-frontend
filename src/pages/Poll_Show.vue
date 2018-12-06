@@ -16,7 +16,7 @@
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
 	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	      <router-link :to="{ path: '/polls/'+poll.id+'/castVote' }" id="goToCastVoteButton" role="button" class="btn btn-primary text-center">
+	      <router-link :to="{ path: '/polls/'+poll.id+'/sortBallot' }" id="goToCastVoteButton" role="button" class="btn btn-primary text-center">
 					Cast your vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
 	    </div>
