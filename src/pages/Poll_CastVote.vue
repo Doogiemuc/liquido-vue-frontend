@@ -14,66 +14,106 @@
       </div>
     </div>
 
-
-    <!-- Cast vote - wizard with steps -->
-    <div id="castVotePanel" class="panel panel-default">
+    <!-- Cast vote - Step 1 - Fetch voter token -->
+    <div id="getVoterTokenPanel" class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Step 1 - Fetch your voter token</h3>
+        <h3 class="panel-title">Fetch your voter token</h3>
+      </div>
+      <div class="panel-body">
+        <ul class="fa-ul">
+          <li>
+            <span v-show="step1_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+            <span v-show="step1_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
+            <span v-show="step1_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
+            <span v-show="step1_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+
+            <p>A voter token is the digital representation of your right to vote. With this token your ballot can be casted <b>anonymously.</b>
+              This token is <b>confidential!</b> Do not share it!</p>
+
+            <!--input type="text" class="form-control" name="tokenSecret" id="tokenSecretInput" v-model="tokenSecret" placeholder="tokenSecret"></input -->
+
+            <div class="well well-sm monspaceFont">{{voterToken || '&nbsp;'}}</div>
+
+            <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken" :disabled="step1_status === 'loading'">
+              Fetch voter token
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div v-if="numDelReq > 0 || delegationRequestsAccepted > 0" class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Delegation requests</h3>
+      </div>
+      <div class="panel-body">
+        <ul class="fa-ul">
+          <li>
+            <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+            <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
+            <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
+            <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+            <p v-if="numDelReq == 1">
+              A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
+              Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
+            </p>
+            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their votes to you.
+              Do you want to accept these requests? These voters will be able to see how you voted. But only them because you are their proxy.
+              Your vote would then count {{areaData.numVotes + numDelReq}} times. (Including your own vote.)
+            </p>
+            <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
+              Accept delegation requests
+            </button>
+            <p v-if="delegationRequestsAccepted > 0">Accepted {{delegationRequestsAccepted}} delegation requests. You are now a proxy for {{delegationRequestsAccepted}} more voters. Your vote as a proxy will now count {{numVotes}} times in total.</p>
+          </li>
+        </ul>
+      </div>
+    </div><!-- /.panel -->
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Anonymously cast your vote</h3>
       </div>
       <div class="panel-body">
         <div id="steps">
-          <ol class="fa-ul">
-            <li>
-              <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
-              <span v-show="step1_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-              <span v-show="step1_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-              <span v-show="step1_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p class="stepTitle">Fetch your voterToken</p>
-              <div class="well well-sm monspaceFont">{{voterToken}}</div>
-              <small>This voterToken is the digital representation of your right to vote. With this token your ballot will be casted <b>anonymously</b>
-                You do not need to remember this token. It can be fetched again whenever needed. This token is <b>confidential!</b> Do not share it!
-              </small>
-            </li>
-
-            <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken">Fetch voter token</button>
-
-            <li>
-              <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
-              <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-              <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-              <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p class="stepTitle">Anonymously cast your ballot</p>
-              <div class="well well-sm monspaceFont">{{checksum}}</div>
-              <small>You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. The checksum is also confidential. Do not share it!
-              </small>
-            </li>
+          <ul class="fa-ul">
             <li>
               <span v-show="step3_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
               <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
               <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p class="stepTitle">Your vote was counted successfully</p>
+              <p>Here we cast you vote completely anonymously. <span v-if="numVotes > 1">Your vote will count {{numVotes}} times (including your own vote)</span> When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. This checksum is also confidential. Do not share it!</p>
+              <div class="well well-sm monspaceFont">{{checksum || '&nbsp;'}}</div>
+              <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
+                Cast vote anonymously
+              </button>
             </li>
-          </ol>
-        </div>
-
-        <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger">
-          <div class="panel-heading">
-            <h4 class="panel-title">
-              <i class='fas fa-exclamation-circle red'></i> {{errorMessage}}
-              <div class="expandButton" v-on:click="toggleCollapse">
-                <i class="fas fa-caret-down"></i>
-              </div>
-            </h4>
-          </div>
-          <div class="panel-body errorMessageDetails collapse" id="errorMessageDetails">
-            {{errorMessageDetails}}
-          </div>
+          </ul>
         </div>
       </div>
     </div><!-- /.panel -->
 
+
+
+    <button v-if="step3_status === 'success'" type="button" id="gotoPollButton" class="btn btn-primary" @click="goToPoll">
+      Go to poll <i class="fas fa-angle-double-right"></i>
+    </button>
+
+    <div id="errorMessage" :class="{ invisible: hideErrorMessage }" class="panel panel-danger">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <i class='fas fa-exclamation-circle red'></i> {{errorMessage}}
+          <div class="expandButton" v-on:click="toggleCollapse">
+            <i class="fas fa-caret-down"></i>
+          </div>
+        </h4>
+      </div>
+      <div class="panel-body errorMessageDetails collapse" id="errorMessageDetails">
+        {{errorMessageDetails}}
+      </div>
+    </div>
   </div>
+
 </template>
 
 <script>
@@ -88,8 +128,8 @@ export default {
   components: { LawPanel, timeline },
 
   props: {
-    'pollId':    { type: Number, required: true },  // Nummbe is passed via named route params
-    'voteOrder': { type: Array,  required: true }
+    'pollId':        { type: Number, required: true },  // Nummbe is passed via named route params
+    'voteOrderUris': { type: Array,  required: true }
   },
 
   data () {
@@ -98,14 +138,17 @@ export default {
       voteOrderProposals: [],
       voterToken: "",
       checksum: "",
-      loading: true,
       step1_status: 'dimmed',
       step2_status: 'dimmed',
       step3_status: 'dimmed',
-      mainButton: "Processing ...",
       successMessage: "",
       errorMessage: "",
       errorMessageDetails: "",
+      isPublicProxy: false,
+      becomePublicProxy: false,
+      numVotes: 1,
+      delegationRequests: [],
+      delegationRequestsAccepted: 0,
     }
   },
 
@@ -122,42 +165,40 @@ export default {
       ]
     },
     hideErrorMessage() { return this.errorMessage == "" },
+    disableCastVoteButton() {
+      return this.step1_status !== 'success' ||
+             this.step1_status === 'loading' ||
+             this.step2_status === 'loading' ||
+             this.step3_status === 'loading' ||
+             this.step3_status === 'success'
+    },
+    numDelReq() { return this.delegationRequests.length },
   },
 
   created () {
     this.$root.api.getPoll(this.pollId).then(poll => {
       this.poll = poll
 
-      // Get proposals from URIs in pased voteOrder[]
+      // Get proposals(as JSON) from pased voteOrderUris[]
       var proposalsByURI = {}
       poll._embedded.proposals.forEach(proposal => {
         var uri = this.$root.api.getURI(proposal)
         proposalsByURI[uri] = proposal
       })
-      for(var i = 0; i < this.voteOrder.length; i++) {
-        this.$set(this.voteOrderProposals, i, proposalsByURI[this.voteOrder[i]])
+      for(var i = 0; i < this.voteOrderUris.length; i++) {
+        this.$set(this.voteOrderProposals, i, proposalsByURI[this.voteOrderUris[i]])
       }
-      log.debug("voteOrderProposals", this.voteOrderProposals)
+      //log.debug("voteOrderProposals", this.voteOrderProposals)
     })
     .then(() => {
-       this.$root.api.getPublicChecksum(this.poll.area, this.$root.currentUser).then(publicChecksum => {
-        log.debug("publicProxyChecksum", publicChecksum)
+      // check if user already is a public proxy
+      this.$root.api.getPublicChecksum(this.poll.area, this.$root.currentUser).then(publicChecksum => {
+        if (publicChecksum) this.isPublicProxy = true
       })
+      // Cannot fetch numVotes yet. Need voterToken
     })
 
 
-    //TODO: check for pending delegations
-
-
-    //TODO: load aready saved ballot, if any, and then show to user that he already voted
-  },
-
-  mounted() {
-    this.$nextTick(() => {
-      var drake = dragula([document.getElementById('leftContainer'), document.getElementById('rightContainer')]);
-      //console.log(drake, document.getElementById('test'))
-      drake.on('drop', this.ballotDropped)
-    })
   },
 
   methods: {
@@ -165,111 +206,69 @@ export default {
       return moment(dateVal).fromNow();
     },
 
-    ballotDropped(el, target, source, sibbling) {
-      //console.log("dropped onto target=", target, $('#rightContainer div.panel').length)
-      this.ballotIsEmpty = $('#rightContainer div.panel').length == 0
-    },
-
     /**
-     * Cast a vote
-     * See docs/CastVote.png for a UML sequence diagram of this flow.
-     * 1) Get a voterToken for this area.  Need to ask user for his password
-     * 2) Then anonoumusly(!) cast the vote with this token.
+     * Fetch the voter token for  voter in this area. Voter may set a flag to become a public proxy.
+     * If an error appears then we show an error message with expandable error details.
      */
-    clickCastVoteButton() {
-      this.loading = true
-      log.info("Starting to cast the vote.")
-      $('#castVoteModal').modal('show')
-      this.DelayPromise(1000)()
-        .then(this.fetchVoterToken)
-        .then(this.castVote)
-        .then(res => {
-          //MAYBE: larger ok animation, e.g. zooming fading green checkmark
-          this.loading = false
-          this.mainButton = "Ok"
-        })
-        .catch(err => {
-          log.error("Error while casting the vote", err)
-          this.loading = false
-          this.mainButton = "Close"
-          console.log("clickCastVoteButton.errorMessageDetails", this.errorMessageDetails)
-
-          if (!this.errorMessage) this.errorMessage = "Could not cast your vote. Please try again later. clickCastVoteButton"
-          if (!this.errorMessageDetails) this.errorMessageDetails = JSON.stringify(err)
-        })
-    },
-
-    clickModalMain() {
-      if (this.loading) return
-      $('#castVoteModal').modal('hide')
-      if (this.step3_status === "success") {
-        this.$root.$router.push('/polls/'+this.poll.id)
-      }
-      this.resetModal()
-    },
-
-    clickModalCancel() {
-      $('#castVoteModal').modal('hide')
-      //TODO: cancel voting process.
-      this.resetModal()
-    },
-
     fetchVoterToken() {
-      this.step1_status = " loading"
-      return this.$root.api.getVoterToken(this.poll.area.id)
-        .then(voterToken => {
-          this.voterToken = voterToken
+      log.info("Starting to cast the vote.")
+      this.step1_status = "loading"
+      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, this.becomePublicProxy)
+        .then(res => {
+          this.voterToken = res.voterToken
+          this.numVotes   = res.numVotes
+          this.isPublicProxy = res.isPublicProxy
+          this.delegationRequests = res.delegationRequests
           this.step1_status = "success"
-          return voterToken
+          return this.voterToken
         })
         .catch(err => {
           log.error("Could not getVoterToken", err)
-          //old version $('#spinner1').removeClass('fa-spin').removeClass('grey').addClass('red').removeClass('fa-spinner').addClass('fa-times')
           this.step1_status = 'error',
           this.errorMessage = "Could not fetch your voterToken!"
           this.errorMessageDetails = JSON.stringify(err)
-          this.mainButton = "Close"
           return Promise.reject(this.errorMessage)
         })
     },
 
-    castVote(voterToken) {
+    acceptDelegationRequests() {
       this.step2_status = "loading"
-      var voteOrder = []        // get vote Order from #rightContainer as sorted by user
-      $('#rightContainer div.lawPanel').each((idx, panel) => {
-        voteOrder.push(panel.dataset.proposaluri)
+      return this.$root.api.acceptDelegationRequests(this.poll.area, this.voterToken).then(res => {
+        this.delegationRequestsAccepted = this.delegationRequests.length
+        this.numVotes = res.numVotes
+        this.delegationRequests = []
+        this.step2_status = "success"
+        log.info("Proxy accepted "+this.delegationRequestsAccepted+" delegation requests and now has "+this.numVotes+" votes");
       })
-      return this.$root.api.castVote(this.poll, voteOrder, voterToken)
+      .catch(err => {
+        log.error("Could not accept delegation requests", err)
+        this.step2_status = 'error',
+        this.errorMessage = "Could not accept delegation requests."
+        this.errorMessageDetails = JSON.stringify(err)
+        return Promise.reject(this.errorMessage)
+      })
+    },
+
+    castVote() {
+      this.step3_status = "loading"
+      return this.$root.api.castVote(this.poll, this.voteOrderUris, this.voterToken)
         .then(res => {
           this.checksum = res.checksum
-          this.step2_status = "success"
           this.step3_status = "success"
-          this.mainButton = "Ok"
+          log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
           return this.checksum
         })
         .catch(err => {
           log.error("Could not castVote", err)
-          this.step2_status = 'error',
-          this.errorMessage = "Could not cast your vote. Please try again later XXX castVote."
+          this.step3_status = 'error',
+          this.errorMessage = "Could not cast your vote. Please try again later."
           this.errorMessageDetails = JSON.stringify(err)
-          this.mainButton = "Close"
-          console.log("castVote.errorMessageDetails", this.errorMessageDetails)
-
           return Promise.reject(this.errorMessage)
         })
     },
 
-    resetModal() {
-      this.voterToken = ""
-      this.checksum = ""
-      this.loading = true
-      this.step1_status = 'loading'
-      this.step2_status = 'dimmed'
-      this.step3_status = 'dimmed'
-      this.mainButton = "Processing ..."
-      this.successMessage = ""
-      this.errorMessage = ""
-      this.errorMessageDetails = ""
+    goToPoll() {
+      this.$router.push('/polls/'+this.poll.id)
     },
 
     /**
@@ -318,25 +317,13 @@ export default {
     margin-bottom: 0;
   }
 
-  .stepTitle {
-    padding-top: 3px;
-  }
-
   .fa-li {
     left: -2.5em;
-  }
-
-  .fa-ul>li {
-    margin-bottom: 2em;
   }
 
   .expandButton {
     float: right;
     color: #a94442;
-  }
-
-  #steps div.well {
-    margin-bottom: 0;
   }
 
   .monspaceFont {

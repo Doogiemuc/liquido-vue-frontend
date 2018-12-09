@@ -145,6 +145,8 @@ export default {
     /** send login code via SMS */
     sendSmsLoginCode() {
       this.smsCodeSent = true
+      this.smsErrorMsg = ''
+      this.digits = []
       apiClient.sendSmsLoginCode(this.cleanMobilePhone).then(res => {
         this.smsCodeSent = true
         this.$nextTick(function () {
@@ -166,11 +168,11 @@ export default {
       apiClient.loginWithSmsCode(this.cleanMobilePhone, smsCode)
         .then(jwt => {
           this.smsErrorMsg = ""
-          this.$root.login(jwt)
+          this.$root.loginWithJWT(jwt)
         }).catch(err => {
           this.smsErrorMsg = "SMS code not valid."
           this.smsCodeSent = false
-          //log.error(err)
+          log.error("Error in loginWithSmsCode", err)
         })
     },
 

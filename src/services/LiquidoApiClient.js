@@ -316,8 +316,8 @@ module.exports = {
     }})
     .then(res => res.data )
     .catch(err => {
-      if (err.response.status == 422) {
-        log.debug("User has no public checksum.")
+      if (err.response.status == 404) {
+        log.debug("Voter is not a public proxy, ie. has no public checksum.")
         return Promise.resolve(undefined)
       } else {
         return Promise.reject(err)
@@ -326,8 +326,8 @@ module.exports = {
   },
 
   /** fetch all proxies of a user per area */
-  getProxyMap(user) {
-    return axios.get('/my/proxyMap').then(res => res.data)
+  getProxyMap(voterToken) {
+    return axios.get('/my/proxyMap', { params: { voterToken : voterToken }}).then(res => res.data)
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
@@ -359,6 +359,15 @@ module.exports = {
         'Accept': 'application/json'
       }
     })
+  },
+
+  /** get all pending delegation requests for this proxy */
+  getDelegationRequests(area) {
+    return axios.get("/my/delegationRequests"+area.id).then(res => res.data)
+  },
+
+  acceptDelegationRequests(area, voterToken) {
+    return axios.put("/my/delegationRequests/"+area.id+"?voterToken="+voterToken).then(res => res.data)
   },
 
 //==================================================================================================================
@@ -691,14 +700,21 @@ module.exports = {
 
   /**
    * Get user's voter token for the given area
-   * @param  areaId Numeric numerical ID of area
-   * @return Array list of voter Tokens
+   * @param areaId {Number} Numeric numerical ID of area
+   * @param {String} tokenSecret users private tokenSecret from which his token will be created.
+   * @return users voterToken and also pending delegationRequests, if any
    */
-  getVoterToken(areaId) {
+  getVoterToken(areaId, tokenSecret, becomePublicProxy) {
     log.debug("getVoterToken(area.id="+areaId+")")
-    return axios.get("/my/voterToken?area="+areaId)  // spring does require the numerical ID and not the URI in this case
-      .then(res => { return res.data.voterToken })
+    return axios.get("/my/voterToken", { params: {
+        area: areaId,             // spring does require the numerical ID and not the URI in this case
+        tokenSecret: tokenSecret,
+        //becomePublicProxy: becomePublicProxy
+      } })
+      .then(res => res.data )
+      /*
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err}) })
+      */
   },
 
   /**
@@ -717,7 +733,6 @@ module.exports = {
    */
   castVote(poll, voteOrder, voterToken) {
     log.debug("castVote(poll.id="+poll.id+", voteOrder=", voteOrder)  // do not log secret voterTokens
-
     return anonymousClient({
       method: 'POST',
       url: '/castVote',
@@ -729,10 +744,12 @@ module.exports = {
       }
     })
     .then(res => { return res.data })
+    /*
     .catch(err => {
       console.log("Error in apiClient.castVote", err)
       return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err})
     })
+    */
   },
 
 }

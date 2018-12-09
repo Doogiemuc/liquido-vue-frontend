@@ -5,21 +5,18 @@
 
     <div class="panel panel-default">
       <div class="panel-body"">
-        <p>You have {{untilVotingEnd}} left to cast your vote for this poll. Simply drag some proposals from the left into your ballot on the right. In LIQUIDO you do not just vote for or against one proposal. You sort proposals into your personally preferred order in your ballot. You
-        do not have to drag all the proposals into your ballot. Just pick the ones you want to cast a vote for. And then sort them into your preferred order
-        with the proposal that you like best at the top.</p>
-        <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-      </div>
-    </div>
+        <p>In LIQUIDO you do not just vote for or against one proposal. You sort proposals into your personally preferred order in your ballot. Simply drag some proposals from the left into your ballot on the right. You do not have to drag all the proposals into your ballot. Just pick the ones you want to cast a vote for. And then sort them into your preferred order with the proposal that you like best at the top.</p>
 
-    <div id="castVoteButtonWrapper" class="pull-right"
-      data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
-      data-content="Drag at least one proposal from the left into your ballot on the right.">
-      <button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
-        v-bind:disabled="this.ballotIsEmpty"
-        @click="clickCastVoteButton">
-          Cast vote
-      </button>
+        <div id="castVoteButtonWrapper" class="pull-right"
+          data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
+          data-content="Drag at least one proposal from the left into your ballot on the right.">
+          <button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
+            v-bind:disabled="this.ballotIsEmpty"
+            @click="clickCastVoteButton">
+              Cast vote <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <table class="table pollTable">
@@ -60,7 +57,9 @@
       </tbody>
     </table>
 
-    <button type="button" id="castVoteButtonBottom" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">Cast vote</button>
+    <button type="button" id="castVoteButtonBottom" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">
+      Cast vote <i class="fas fa-angle-double-right"></i>
+    </button>
 
   </div>
 </template>
@@ -148,12 +147,12 @@ export default {
      * Cast vote for this VoteOrder
      */
     clickCastVoteButton() {
-      var voteOrder = []        // get vote Order from #rightContainer as sorted by user
+      var voteOrderUris = []        // get vote Order from #rightContainer as sorted by user
       $('#rightContainer div.lawPanel').each((idx, panel) => {
-        voteOrder.push(panel.dataset.proposaluri)
+        voteOrderUris.push(panel.dataset.proposaluri)
       })
-      log.info("clickCastVoteButton", this.poll.id, voteOrder)
-      this.$router.push({ name: 'castVote', params: { pollId: this.poll.id, voteOrder: voteOrder }})
+      log.info("clickCastVoteButton", this.poll.id, voteOrderUris)
+      this.$router.push({ name: 'castVote', params: { pollId: this.poll.id, voteOrderUris: voteOrderUris }})
     }
 
   }

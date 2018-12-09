@@ -43,7 +43,18 @@
             </li>
           </ul>
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
-          <button v-if="showDevLogin" id="devLoginButton" @click="devLogin()" class="btn btn-default navbar-btn navbar-right">DevLogin</button>
+
+          <div v-if="showDevLogin" id="devLoginButton" class="btn-group navbar-btn navbar-right">
+            <!-- Development login -->
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              DevLogin <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" @click="devLogin(0)">User 1</a></li>
+              <li><a href="#" @click="devLogin(1)">User 2</a></li>
+              <li><a href="#" @click="devLogin(2)">User 3</a></li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -90,7 +101,7 @@ export default {
           this.$router.push(forwardTo ? forwardTo : '/userHome')
           iziToast.success({
             title: 'Login',
-            message: 'You are now logged in.',
+            message: 'You are now logged in as '+user.email,
             position: 'bottomRight',
           });
           //TODO: show iziToast on success (on users home page!)
@@ -111,8 +122,8 @@ export default {
     },
 
     /** Quick login for development */
-    devLogin() {
-      this.loginViaSms(process.env.devLoginMobilePhone, process.env.devLoginSmsCode)
+    devLogin(userNo) {
+      this.loginViaSms(process.env.devLoginMobilePhone[userNo], process.env.devLoginSmsCode[userNo])
     },
 
 
@@ -123,6 +134,8 @@ export default {
   },
 
   created() {
+    console.log(process.env)
+
     // Global configuration of our dismissable alert lib
     iziToast.settings({
       layout: 2,
@@ -131,10 +144,13 @@ export default {
       position: 'topRight',
       transitionIn: 'fadeInLeft',
     })
+
+    /*
     if (process.env.autoLoginMobilePhone) {
       log.info("Automatic DEV login for "+process.env.autoLoginMobilePhone)
       this.loginViaSms(process.env.autoLoginMobilePhone, process.env.autoLoginSmsCode)
     }
+    */
   }
 }
 

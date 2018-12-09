@@ -1,8 +1,9 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-sm-6">
 
+      <!-- left column: public and general things -->
+      <div class="col-sm-6">
         <h2 id="pollsOpenForVotingHeader">Polls currently open for voting</h2>
 
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
@@ -57,8 +58,53 @@
 
       </div>
 
-      <!-- right column -->
+      <!-- right column: voters personal stuff -->
       <div class="col-sm-6">
+        <h2>Liquido Proxies</h2>
+        <div v-if="areaDataMap[0] === undefined" class="panel panel-default">
+          <div class="panel-body">
+            <button type="button" class="btn btn-default btn-sm pull-right" @click="getVoterToken(areas[0])">
+              Load Area1
+            </button>
+          </div>
+        </div>
+
+        <div v-if="areaDataMap[0] !== undefined" class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Liquido Proxies</h3>
+          </div>
+          <div class="panel-body">
+            <div v-for="(areaData, area) in areaDataMap">
+              <h3>{{area.title}}</h3>
+              <p v-if="areaData.directProxy !== undefined">Direct Proxy: {{areaData.directProxy.profile.name}}</p>
+              <p v-if="areaData.topProxy !== undefined">Top Proxy: {{areaData.topProxy.profile.name}}</p>
+
+              <p v-if="areaData.numVotes > 0">Your are already the proxy for {{numVotes == 1 ? 'one voter' : numVotes+' voters'}}.</p>
+              <p v-if="areaData.isPublicProxy">You already are a public proxy. Other voters can delegate their vote to you.</p>
+              <p v-if="!isPublicProxy">You are not yet a public proxy. Do you want to become one, so that others can immideately delegate their vote to you?</p>
+              <button v-if="!areaData.isPublicProxy" type="button" id="becomePublicProxyButton" class="btn btn-default btn-sm pull-right" @click="becomePublicProxy(area)">
+                Become Public Proxy
+              </button>
+
+              <div v-if="numDelReq(area.id) > 0">
+                <p v-if="numDelReq(area.id) == 1">
+                  One more voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
+                  Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
+                </p>
+                <p v-if="numDelReq(area.id) > 1">{{numDelReq(area.id)}} voters would like to delegate their votes to you.
+                  Do you want to accept these requests? These voters will be able to see how you voted. But only them because you are their proxy.
+                  Your vote would then count {{areaData.numVotes + numDelReq(area.id)}} times. (Including your own vote.)
+                </p>
+                <button type="button" id="acceptDelegationRequestButton" class="btn btn-default btn-sm" @click="acceptDelegationRequest(area)">
+                  Accept delegation requests
+                </button>
+              </div>
+              <hr/>
+            </div>
+          </div>
+        </div>
+
+
         <h2>Your ideas and proposals</h2>
 
         <div class="panel panel-default">
@@ -187,47 +233,69 @@ export default {
       recentIdeas: [],            // recently created ideas sorted by date desc
       reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
-	    supportedIdeasAndProps: []  // ideas and proposals that this user liked
+	    supportedIdeasAndProps: [], // ideas and proposals that this user liked
+      areas: [],
+      areaDataMap: {},
+    }
+  },
+
+  computed: {
+    numDelReq(areaId) {
+      if (areaData[areaId] !== undefined &&
+          areaData[areaId].delegationRequests !== undefined) {
+            return areaData[areaId].delegationRequests.length
+          } else {
+            return 0
+          }
     }
   },
 
   created () {
     this.loadRecentIdeas()
-
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.reachedQuorum = proposals.slice(0,10)
     })
-
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.supportedIdeasAndProps = proposals.slice(0,20)
     })
-
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.openForVotingPolls = votingPolls
     })
+    this.$root.api.getAllCategories().then(areas => this.areas = areas)
   },
 
   methods: {
-    getFromNow: function(dateVal) {
+    getFromNow(dateVal) {
       return moment(dateVal).fromNow();
     },
 
-    loadRecentIdeas: function() {
+    loadRecentIdeas() {
       this.$root.api.getRecentIdeas().then(recentIdeas => {
         this.recentIdeas = recentIdeas.slice(0,10)
       })
     },
 
-    /*
-    getTimelinePercentFilled(poll) {
-      var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
-      var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
-      var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
-      var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
-      var percentFilled         = (msSincePollCreated / (durationInDays*24*3600*1000) )*100
-      return percentFilled
+    getVoterToken(area) {
+      this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(res => {
+        this.areaDataMap[area].voterToken = res.voterToken
+        this.areaDataMap[area].numVotes = res.numVotes
+        this.areaDataMap[area].isPublicProxy = res.isPublicProxy
+        this.areaDataMap[area].delegationRequests = res.delegationRequests
+      })
     },
-    */
+
+    becomePublicProxy(area) {
+      this.$root.api.becomePublicProxy(area).then(res => {
+         this.loadProxyMap(voterToken)
+      })
+    },
+
+    acceptDelegationRequest(area) {
+      this.$root.api.acceptDelegationRequests(area).then(res => {
+         this.loadProxyMap(voterToken)
+      })
+    },
+
 
     /** a lot of data calculations for our pretty timeline
 	    SEE ALSO   LawPanel!  Same function ?!?!??!

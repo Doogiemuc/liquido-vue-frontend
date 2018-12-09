@@ -6,7 +6,7 @@
 
 <template>
   <div class="container">
-		<h1><i class="fas fa-balance-scale"></i> 
+		<h1><i class="fas fa-balance-scale"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
 			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
@@ -14,15 +14,14 @@
 
 		<div v-if="poll.status == 'VOTING'" class="panel panel-default">
 	    <div class="panel-body"">
-	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.
-	      You can now cast your vote and sort this poll's proposals into your personal preferred order.</p>
+	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	      <router-link :to="{ path: '/polls/'+poll.id+'/sortBallot' }" id="goToCastVoteButton" role="button" class="btn btn-primary text-center">
-					Cast your vote <i class="fas fa-angle-double-right"></i>
+	      <router-link :to="{ path: '/polls/'+poll.id+'/sortBallot' }" id="goToCastVoteButton" role="button" class="btn btn-primary btn-lg pull-right">
+					Cast vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
 	    </div>
 	  </div>
-		
+
 		<div v-if="poll.status == 'FINISHED'" class="panel panel-default">
 	    <div class="panel-body"">
 	      <p>This poll is finished. The winning proposal is now a law.</p>
@@ -30,10 +29,10 @@
 	    </div>
 	  </div>
 
-	  <br/>
-
 		<div class="row" v-if="poll.status !== 'FINISHED'">
-			<h3>Alternative proposals in this poll</h3>
+			<div class="col-sm-12">
+				<h3>Alternative proposals in this poll</h3>
+			</div>
 		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
 				<law-panel
 				  :law="proposal"
@@ -43,8 +42,8 @@
 				</law-panel>
 			</div>
 		</div>
-		
-		
+
+
 		<div v-if="poll.status === 'FINISHED'">
 			<h3>Winning proposal</h3>
 			<law-panel
@@ -53,12 +52,12 @@
 				:fixedHeight="200"
 				:readOnly="true">
 			</law-panel>
-			
+
 			<h3>Poll results</h3>
 			<h4>Duel Matrix</h4>
 			<p>This matrix shows the comparison between each pair of proposals in this poll. The numbers in each cell show how many voters
 			sorted the proposal of that <em>row</em> higher than the proposal in that <em>col</em> in their ballot.</p>
-			
+
 			<table class="table table-bordered">
 			  <thead>
 					<tr>
@@ -180,6 +179,8 @@ export default {
 		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
 			this.userProposals = proposals
 		})
+
+		//TODO: load own ballot and ballot of direct, effective and top proxy
 	},
 
 	mounted() {
