@@ -19,6 +19,7 @@
 	      <router-link :to="{ path: '/polls/'+poll.id+'/sortBallot' }" id="goToCastVoteButton" role="button" class="btn btn-primary btn-lg pull-right">
 					Cast vote <i class="fas fa-angle-double-right"></i>
 				</router-link>
+				<p>If you already voted in this poll, then you can <a href="#" @click="getOwnBallot">check your ballot.</a></p>
 	    </div>
 	  </div>
 
@@ -26,6 +27,24 @@
 	    <div class="panel-body"">
 	      <p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+	    </div>
+	  </div>
+
+	  <div v-if="poll.status == 'VOTING'" class="panel panel-default">
+	  	<div class="panel-heading">
+	  		<h4>Your info for this area</h4>
+	  	</div>
+	  	<div class="panel-body"">
+	  		<ul>
+	  			<li v-if="isPublicProxy">You already are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
+	  			<li v-else="isPublicProxy">You are not yet a public proxy in this area. Voters can not yet delegate their vote to you. Do you want to
+	  				<a href="#" @click="becomePublicProxy">become a public proxy</a>?
+	  			</li>
+	  			<li v-if="delegationRequests.length > 0">{{delegationRequests.length}} voters would like to delegate their vote to you. Do you want
+	  				to <a href="#" @click="acceptDelegations">accept these requests</a>?
+	  			</li>
+	  			<li v-if="directProxy">Your direct proxy in this area is {{directProxy.profile.name}} &lt;{{directProxy.email}}&gt;</li>
+	  		</ul>
 	    </div>
 	  </div>
 
@@ -127,6 +146,12 @@ export default {
 	data () {
     return {
       poll: { _embedded: { proposals: [] }},
+
+      isPublicProxy: false,
+      delegationRequests: [],
+      directProxy: undefined,
+      topProxy: undefined,
+
       userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
       searchVal: "",
       selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
@@ -173,14 +198,16 @@ export default {
 	},
 
 	created() {
-		this.$root.api.getPoll(this.pollId).then(poll => {
-			this.poll = poll
-		})
+		this.$root.api.getPoll(this.pollId)
+			.then(poll => { this.poll = poll })
+			.then(this.getAreaInfo)
+		//.then(this.getOwnBallot)
+
 		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
 			this.userProposals = proposals
 		})
 
-		//TODO: load own ballot and ballot of direct, effective and top proxy
+
 	},
 
 	mounted() {
@@ -204,7 +231,30 @@ export default {
   				proposal.supportedByCurrentUser = true
   			}
   		})
+  	},
 
+  	getAreaInfo() {
+      console.log("getAreaInfo")
+      return this.$root.api.getAreaInfo(this.poll.area.id)
+        .then(res => {
+          this.isPublicProxy = res.isPublicProxy
+          this.delegationRequests = res.delegationRequests
+          this.directProxy = directProxy
+          this.topProxy = topProxy
+        })
+    },
+
+  	getOwnBallot() {
+  		var that = this
+  		return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false).then(voterToken => {
+  			this.$root.api.getOwnBallot(that.poll.id, voterToken).then(ballot => {
+  				console.log(ballot)
+	  		})
+  		})
+  	},
+
+  	becomePublicProxy() {
+  		return this.$root.api.becomePublicProxy(this.poll.area.id)
   	},
 
 		toggleCollapse() {
@@ -228,8 +278,8 @@ export default {
 }
 </script>
 
-<style>
-	.panelTitle{
+<style scoped>
+	.panel-heading h4 {
 		margin-top: 0;
 		margin-bottom: 0;
 	}

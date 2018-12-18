@@ -198,12 +198,9 @@
 
 
         <h2>Ideas and proposals supported by you</h2>
-    		<p>Demo for LawList</p>
+    		<p>Demo for condensed LawList</p>
 
-    		<law-list
-    		  :laws="supportedIdeasAndProps"
-    		  title="LawList Title">
-    		</law-list>
+    		<law-list :laws="supportedIdeasAndProps"></law-list>
 
 	   </div>
     </div>

@@ -26,11 +26,13 @@
           </ul>
 
           <ul id="userMenu" class="nav navbar-nav navbar-right" v-if="currentUser">
-            <button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">Add Idea</button>
+            <!-- button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">
+              <i class="fas fa-plus"></i>
+            </button -->
             <li class="dropdown">
-              <a href="#" data-toggle="dropdown" class="dropdown-toggle">
-                <img v-bind:src="currentUser.profile.picture" alt="Avatar Image">
-                {{currentUser.profile.name}}<i class="caret"></i>
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle userDropdown">
+                {{userNameShort}}<i class="caret"></i>
+                <img v-bind:src="currentUser.profile.picture" class="avatarImg" alt="Avatar Image">
               </a>
               <ul class="dropdown-menu">
 							  <li><router-link to="/userHome">User Home</router-link></li>
@@ -40,8 +42,10 @@
                 <li class="divider"></li>
                 <li><router-link to="/logout">Logout via URL</router-link></li>
               </ul>
+
             </li>
           </ul>
+
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
 
           <div v-if="showDevLogin" id="devLoginButton" class="btn-group navbar-btn navbar-right">
@@ -75,7 +79,12 @@ import apiClient from '../services/LiquidoApiClient'
 export default {
   computed: {
     showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
-    devLoginUser() { return process.env.devLoginMobilePhone }
+    devLoginUser() { return process.env.devLoginMobilePhone },
+    userNameShort() {
+      if (!this.currentUser) return ""
+      if (this.currentUser.profile.name.length <= 15) return this.currentUser.profile.name;
+      return this.currentUser.profile.name.substr(0,15)+"&hellip;"
+    }
   },
 
   //The methods of RootApp.vue can be called from all child components as this.$root.method()
@@ -156,18 +165,27 @@ export default {
 
 </script>
 
-<style>
-  #devLoginButton {
-    margin-right: 15px;
-  }
-
-  .navbar-nav img {
-    width: 30px;
-    height: 30px;
-    margin: -15px 15px -15px;
-  }
+<style scoped>
   .navbar-brand {
     font-size: 25px;
+  }
+
+  .userDropdown {
+    padding-top: 10px;
+    padding-bottom: 0px;
+  }
+
+  .avatarImg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .userNameEllipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
   }
 
   /* Arrows for nav links */

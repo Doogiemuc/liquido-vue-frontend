@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <h1>Edit Proxy in '{{category.title}}'</h1>
-    <p>Here you can delegate your vote to a proxy. You can delegate to different proxies per category. You can revoke this delegation at any time!</p>
     <p>&nbsp;</p>
 
     <div class="row">

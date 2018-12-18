@@ -136,7 +136,11 @@ export default {
     return {
       poll: { _embedded: { proposals: [] }},
       voteOrderProposals: [],
+      isPublicProxy: false,
+      directProxy: undefined,
+      topProxy: undefined,
       voterToken: "",
+      numVotes: 1,
       checksum: "",
       step1_status: 'dimmed',
       step2_status: 'dimmed',
@@ -144,9 +148,6 @@ export default {
       successMessage: "",
       errorMessage: "",
       errorMessageDetails: "",
-      isPublicProxy: false,
-      becomePublicProxy: false,
-      numVotes: 1,
       delegationRequests: [],
       delegationRequestsAccepted: 0,
     }
@@ -177,9 +178,8 @@ export default {
 
   created () {
     this.$root.api.getPoll(this.pollId).then(poll => {
-      this.poll = poll
-
       // Get proposals(as JSON) from pased voteOrderUris[]
+      this.poll = poll
       var proposalsByURI = {}
       poll._embedded.proposals.forEach(proposal => {
         var uri = this.$root.api.getURI(proposal)
@@ -190,14 +190,7 @@ export default {
       }
       //log.debug("voteOrderProposals", this.voteOrderProposals)
     })
-    .then(() => {
-      // check if user already is a public proxy
-      this.$root.api.getPublicChecksum(this.poll.area, this.$root.currentUser).then(publicChecksum => {
-        if (publicChecksum) this.isPublicProxy = true
-      })
-      // Cannot fetch numVotes yet. Need voterToken
-    })
-
+    // Cannot fetch numVotes yet. Need voterToken
 
   },
 
@@ -213,12 +206,10 @@ export default {
     fetchVoterToken() {
       log.info("Starting to cast the vote.")
       this.step1_status = "loading"
-      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, this.becomePublicProxy)
+      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false)  // do not automatically become a proxy here
         .then(res => {
           this.voterToken = res.voterToken
           this.numVotes   = res.numVotes
-          this.isPublicProxy = res.isPublicProxy
-          this.delegationRequests = res.delegationRequests
           this.step1_status = "success"
           return this.voterToken
         })

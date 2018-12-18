@@ -16,6 +16,7 @@
 
 // in former verrsions i used many different node REST client libraries. But axios was the best and most simple to use.
 
+var _ = require('lodash')
 var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
 var template = require('url-template');   // parsing and expanding RFC 6570 URI Templates
 var loglevel = require('loglevel')
@@ -325,9 +326,9 @@ module.exports = {
     })
   },
 
-  /** fetch all proxies of a user per area */
-  getProxyMap(voterToken) {
-    return axios.get('/my/proxyMap', { params: { voterToken : voterToken }}).then(res => res.data)
+  /** fetch information about proxies in that area */
+  getMyProxyInfo(areaId, voterToken) {
+    return axios.get('/my/proxy/'+areaId, { params: { voterToken : voterToken }}).then(res => res.data)
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
@@ -702,7 +703,7 @@ module.exports = {
    * Get user's voter token for the given area
    * @param areaId {Number} Numeric numerical ID of area
    * @param {String} tokenSecret users private tokenSecret from which his token will be created.
-   * @return users voterToken and also pending delegationRequests, if any
+   * @return users voterToken
    */
   getVoterToken(areaId, tokenSecret, becomePublicProxy) {
     log.debug("getVoterToken(area.id="+areaId+")")
@@ -710,7 +711,7 @@ module.exports = {
         area: areaId,             // spring does require the numerical ID and not the URI in this case
         tokenSecret: tokenSecret,
         //becomePublicProxy: becomePublicProxy
-      } })
+      } })          //TODO: accepet text
       .then(res => res.data )
       /*
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err}) })
@@ -752,8 +753,14 @@ module.exports = {
     */
   },
 
-}
+    /** get voter's own ballot in that poll, if he has already voted */
+  getOwnBallot(pollId, voterToken) {
+    log.debug("getOwnBallot(pollId="+pollId+" with voterToken)")
+    if (!_.isNumber(pollId)) return Promise.reject("pollId MUST be a number")
+    return axios.get('/polls/${pollId}/ballot/my', { params : {
+      voterToken: voterToken
+    }})
+    .then(res => { return res.data })
+  }
 
-/** DEPRECATED: By default the cache (for some preconfigured URLs) is enabled */
-//module.exports.enableCache()
-// But was a nice way to call exported methods :-)
+}

@@ -1,11 +1,13 @@
 <template>
   <div class="container">
-    <h1>Your Proxies</h1>
-    <hr>
-    <p>Here you can delegate your vote to someone you trust, for example an expert in an area you know.
-       This proxy will then vote on your behalf in that area. You may revoke this delegation
-       at any time and vote for yourself. Click the blue edit button on the right to add or remove the
-       proxy in that area.</p>
+    <h1>Liquid Democracy Proxy Voting</h1>
+    <p>In Liquid Democracy voters can delegate their vote to a proxy. Maybe you now someone who is an expert in an area and trust him
+      to vote better for you. Other voters might want to delegate their right to vote to you, so that you may vote for them as a proxy.
+      When you accept these delegations, then your ballot will not count just once, but also for each of your delegees.</p>
+    <p>It is always possible to vote for yourself, no matter if you have a proxy or not. Even when your proxy has already voted for you in a poll,
+    you can still override his ballot and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
+
+    <h3>Your proxies</h3>
     <table id="proxyTable" class="table table-bordered">
       <thead><tr><th>Category</th><th>Your direct Proxy</th>
         <th>Top Proxy <span class="grey" data-toggle="popover" data-placement="top" data-trigger="hover"
@@ -58,6 +60,17 @@ export default {
   },
 
   methods: {
+    getAllCategories() {
+      return this.$root.api.getAllCategories()
+    },
+
+    getVoterTokens(areas) {
+      var requests = areas.map(area => {
+        return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false)
+      })
+      return Promise.all(requests)
+    },
+
     getDirectProxyInCategory: function(category) {
       //var categoryId = this.$root.api.getId(category)
       var proxy = this.proxyMap[category.title].directProxy
@@ -75,9 +88,22 @@ export default {
 
   },
 
-  mounted () {
-    this.$root.api.getAllCategories().then(categories => { this.categories = categories })
-    this.$root.api.getProxyMap(this.$root.currentUser).then(proxyMap => { this.proxyMap = proxyMap })
+  created () {
+    this.getAllCategories()
+      .then(this.getVoterTokens)
+      .then(result => {
+        console.log(result)
+      })
+
+
+      /*
+      categories.forEach(category => {
+        getVoterTokenInArea(category).then(voterToken => {
+          this.$root.api.getMyProxyInfo(category.id, voterToken).then(proxyInfo => { this.proxyMap[category.id] = proxyInfo })
+        })
+      })
+    })
+    */
     $('[data-toggle="popover"]').popover()
   }
 
