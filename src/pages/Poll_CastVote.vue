@@ -57,14 +57,14 @@
               A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
               Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
             </p>
-            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their votes to you.
-              Do you want to accept these requests? These voters will be able to see how you voted. But only them because you are their proxy.
-              Your vote would then count {{areaData.numVotes + numDelReq}} times. (Including your own vote.)
+            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
+              Do you want to accept these requests? These voters would then be able to see how you voted. But only them because you are their proxy.
+              Your vote would then count {{areaData.delegationCount + numDelReq + 1}} times (including your own vote).
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
               Accept delegation requests
             </button>
-            <p v-if="delegationRequestsAccepted > 0">Accepted {{delegationRequestsAccepted}} delegation requests. You are now a proxy for {{delegationRequestsAccepted}} more voters. Your vote as a proxy will now count {{numVotes}} times in total.</p>
+            <p v-if="delegationRequestsAccepted > 0">Accepted {{delegationRequestsAccepted}} delegation requests. You are now a proxy for {{delegationCount}} voters.</p>
           </li>
         </ul>
       </div>
@@ -82,7 +82,7 @@
               <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
               <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p>Here we cast you vote completely anonymously. <span v-if="numVotes > 1">Your vote will count {{numVotes}} times (including your own vote)</span> When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. This checksum is also confidential. Do not share it!</p>
+              <p>Here we cast you vote completely anonymously. <span v-if="delegationCount > 0">Your vote will count {{delegationCount + 1}} times (including your own vote)</span> When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. This checksum is also confidential. Do not share it!</p>
               <div class="well well-sm monspaceFont">{{checksum || '&nbsp;'}}</div>
               <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
                 Cast vote anonymously
@@ -140,7 +140,7 @@ export default {
       directProxy: undefined,
       topProxy: undefined,
       voterToken: "",
-      numVotes: 1,
+      delegationCount: 1,
       checksum: "",
       step1_status: 'dimmed',
       step2_status: 'dimmed',
@@ -190,7 +190,7 @@ export default {
       }
       //log.debug("voteOrderProposals", this.voteOrderProposals)
     })
-    // Cannot fetch numVotes yet. Need voterToken
+    // Cannot fetch delegations yet. Need voterToken
 
   },
 
@@ -208,9 +208,9 @@ export default {
       this.step1_status = "loading"
       return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false)  // do not automatically become a proxy here
         .then(res => {
-          this.voterToken = res.voterToken
-          this.numVotes   = res.numVotes
-          this.step1_status = "success"
+          this.voterToken      = res.voterToken
+          this.delegationCount = res.delegationCount
+          this.step1_status    = "success"
           return this.voterToken
         })
         .catch(err => {
@@ -226,10 +226,10 @@ export default {
       this.step2_status = "loading"
       return this.$root.api.acceptDelegationRequests(this.poll.area, this.voterToken).then(res => {
         this.delegationRequestsAccepted = this.delegationRequests.length
-        this.numVotes = res.numVotes
+        this.delegationCount = res.delegationCount
         this.delegationRequests = []
         this.step2_status = "success"
-        log.info("Proxy accepted "+this.delegationRequestsAccepted+" delegation requests and now has "+this.numVotes+" votes");
+        log.info("Proxy accepted "+this.delegationRequestsAccepted+" delegation requests and now has "+this.delegationCount+" delegations");
       })
       .catch(err => {
         log.error("Could not accept delegation requests", err)

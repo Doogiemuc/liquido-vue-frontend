@@ -7,38 +7,58 @@
     <p>It is always possible to vote for yourself, no matter if you have a proxy or not. Even when your proxy has already voted for you in a poll,
     you can still override his ballot and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
 
-    <h3>Your proxies</h3>
-    <table id="proxyTable" class="table table-bordered">
-      <thead><tr><th>Category</th><th>Your direct Proxy</th>
-        <th>Top Proxy <span class="grey" data-toggle="popover" data-placement="top" data-trigger="hover"
-          data-content="This is the top most proxy at the end of your delegation chain. This person will actually vote for you.">
-            <i class="fas fa-info-circle"></i>
-          </span>
-        </th>
-      </tr></thead>
-      <tbody>
-        <tr v-for="category in categories">
-          <td>{{category.title}} - {{category.description}}</h3></td>
-          <td v-if="proxyMap[category.title]">
-            <span v-html="getDirectProxyInCategory(category)"></span>
-            <router-link :to="{ path: 'editProxy', query: { categoryId: category.id }}">
-              <span class="glyphicon glyphicon-edit text-primary pull-right" aria-hidden="true"></span>
-            </router-link>
-          </td>
-          <td v-else>
-            <router-link :to="{ path: 'editProxy', query: { categoryId: category.id }}">
-              <span class="glyphicon glyphicon-edit text-primary pull-right" aria-hidden="true"></span>
-            </router-link>
-          </td>
-          <td v-if="proxyMap[category.title]">
-            <span v-html="getTopProxyInCategory(category)"></span>
-          </td>
-          <td v-else>
-            &nbsp;
-          </td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div class="row">
+      <div class="col-sm-6" v-for="proxyInfo in proxyInfoMap">
+        <div class="panel panel-default proxyPanel">
+          <div class="panel-heading">
+            <h4>{{proxyInfo.area.title}} - {{proxyInfo.area.description}}</h4>
+          </div>
+          <div class="panel-body proxyPanelBody">
+            <div class="row">
+              <div class="col-md-6">
+                <div v-if="proxyInfo.directProxyDelegation">
+                  <img :src="proxyInfo.directProxyDelegation.toProxy.profile.picture" class="avatarImg pull-left"/>
+                  Your direct proxy:
+                  <span v-if="proxyInfo.directProxyDelegation.delegationRequest">(requested)</span>
+                  <span v-if="!proxyInfo.directProxyDelegation.transitive">(non-transitive)</span>
+                  <a class="removeHover" @click="removeProxy(proxyInfo.area)"><i class="far fa-fw fa-times-circle" aria-hidden="true"></i>remove</a>
+                  <br/>
+                  {{proxyInfo.directProxyDelegation.toProxy.profile.name}}<br/>
+                  &lt;{{ proxyInfo.directProxyDelegation.toProxy.email }}&gt;
+                </div>
+                <div v-else>
+                  <a href="#" @click="assignProxy(proxyInfo.area)">
+                    <img src="/static/img/placeholder.png" class="avatarImg pull-left placeholderImg"/> Assign a proxy
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div v-if="proxyInfo.topProxy">
+                  <img :src="proxyInfo.topProxy.profile.picture" class="avatarImg pull-left"/>
+                  Top proxy:<br/>
+                  {{proxyInfo.topProxy.profile.name}}<br/>
+                  &lt;{{ proxyInfo.topProxy.email }}&gt;
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="panel-footer proxyDataSmall">
+            <a href="#" v-if="!proxyInfo.isPublicProxy" class="pull-right" @click="becomePublicProxy(proxyInfo.area)">
+              <i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;public proxy
+            </a>
+            <span v-if="proxyInfo.isPublicProxy"  class="pull-right"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;public proxy</span>
+            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{proxyInfo.delegationCount}}&nbsp;delegations
+            <a href="#" v-if="proxyInfo.delegationRequests.length > 0" @click="acceptDelegationRequest(proxyInfo.area)">
+              &nbsp;({{proxyInfo.delegationRequests.length}}&nbsp;request{{proxyInfo.delegationRequests.length > 1 ? "s" : ""}})
+            </a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -55,13 +75,13 @@ export default {
   data () {
     return {
       categories: [],
-      proxyMap: {}
+      proxyInfoMap: {}   // information about proxies per area.  key is areaURI
     }
   },
 
   methods: {
     getAllCategories() {
-      return this.$root.api.getAllCategories()
+      return this.$root.api.getAllCategories().then(categories => this.categories = categories)
     },
 
     getVoterTokens(areas) {
@@ -71,47 +91,113 @@ export default {
       return Promise.all(requests)
     },
 
+    getProxyInfos(tokens) {
+      var requests = tokens.map(token => {
+        var areaURI = this.$root.api.getHateoasLink(token, "area")
+        return this.$root.api.getMyProxyInfo(areaURI, token.voterToken)
+      })
+      return Promise.all(requests).then(proxyInfos => {
+        for (const proxyInfo of proxyInfos) {
+          var areaURI = this.$root.api.getHateoasLink(proxyInfo, "area")
+          this.$set(this.proxyInfoMap, areaURI, proxyInfo)
+        }
+        return proxyInfos
+      })
+    },
+
     getDirectProxyInCategory: function(category) {
-      //var categoryId = this.$root.api.getId(category)
-      var proxy = this.proxyMap[category.title].directProxy
-      if (!proxy) return "---"
-      return '<img src="' + proxy.profile.picture + '">&nbsp;' +
-        proxy.profile.name + ' <' + proxy.email + '>'
+      try {
+        var categoryURI = this.$root.api.getURI(category)
+        var delegation = this.proxyInfoMap[categoryURI].directProxyDelegation
+        return '<img src="' + delegation.toProxy.profile.picture + '">' +
+          delegation.toProxy.profile.name + '<br/>&lt;' + delegation.toProxy.email + '&gt;' +
+          (delegation.delegationRequest ? "(requested)" : "")
+      } catch(err) {
+        return "&nbsp;"
+      }
     },
+
     getTopProxyInCategory: function(category) {
-      //var categoryId = this.$root.api.getId(category)
-      var proxy = this.proxyMap[category.title].topProxy
-      if (!proxy) return "---"
-      return '<img src="' + proxy.profile.picture + '">&nbsp;' +
-        proxy.profile.name + ' <' + proxy.email + '>'
+      try {
+        var categoryURI = this.$root.api.getURI(category)
+        var topProxy = this.proxyInfoMap[categoryURI].topProxy
+        return '<img src="' + topProxy.profile.picture + '">' +
+          topProxy.profile.name + '<br/>&lt;' + topProxy.email + '&gt;'
+      } catch (err) {
+        return "&nbsp;"
+      }
     },
+
+    becomePublicProxy(area) {
+      this.$root.api.becomePublicProxy(area).then(res => {
+         this.loadProxyMap(voterToken)
+      })
+    },
+
+    acceptDelegationRequest(area) {
+      this.$root.api.acceptDelegationRequests(area).then(res => {
+         this.loadProxyMap(voterToken)
+      })
+    },
+
+
 
   },
 
   created () {
-    this.getAllCategories()
-      .then(this.getVoterTokens)
+    $('[data-toggle="popover"]').popover()
+
+    // fetch all proxy details for every area
+    this.getAllCategories()         // returns an array of areas
+      .then(this.getVoterTokens)    // returns an array of voterTokens
+      .then(this.getProxyInfos)     // returns an array of proxyInfos
       .then(result => {
         console.log(result)
       })
 
-
-      /*
-      categories.forEach(category => {
-        getVoterTokenInArea(category).then(voterToken => {
-          this.$root.api.getMyProxyInfo(category.id, voterToken).then(proxyInfo => { this.proxyMap[category.id] = proxyInfo })
-        })
-      })
-    })
-    */
-    $('[data-toggle="popover"]').popover()
   }
 
 }
 </script>
 
 <style>
-  #proxyTable td {
-    vertical-align: middle;
+  .proxyPanelBody {
+    height: 80px;
+    padding: 10px;
+  }
+  .proxyPanel .panel-heading {
+    padding: 5px 15px;
+  }
+  .proxyPanelBody {
+    font-size: 12px;
+  }
+  .proxyPanel .avatarImg {
+    margin-right: 1em;
+  }
+  .removeHover {
+    color: red;
+    /*visibility: hidden;*/
+  }
+  .removeHover:hover {
+    visibility: show;
+  }
+  .placeholderImg {
+    opacity: 0.5;
+    filter: alpha(opacity=50); /* For IE8 and earlier */
+  }
+  .placeholderImg:hover {
+    opacity: 1;
+    filter: alpha(opacity=100); /* For IE8 and earlier */
+  }
+  .panel-heading h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .proxyDataSmall {
+    color: #999;
+    font-size: 12px;
+    line-height: 1.4;
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 </style>

@@ -184,6 +184,12 @@ export default {
 		padding: 0;
 		border: none;
   }
+  .userDataSmall {
+    color: #999;
+    font-size: 12px;
+    line-height: 1.4;
+    vertical-align: middle;
+  }
   .likeButtonCell {
     text-align: right;
 		vertical-align: middle;

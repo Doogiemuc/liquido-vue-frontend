@@ -159,6 +159,11 @@ module.exports = {
   // I had a nice caching interceptor. But do I globally need that?
 
 
+
+//==================================================================================================================
+// HATEOAS
+//==================================================================================================================
+
   /**
    * The ID of a domain object in our REST HATEOAS context is the full REST URI of this REST resource,
    * e.g. <pre>http://localhost:8080/liquido/v2/areas/42</pre>
@@ -183,12 +188,6 @@ module.exports = {
       }
     }
   },
-
-  //MAYBE: getModelById(id, modelClass),  e.g   getModelById(4711, 'laws') => process.env.backendBaseURL + '/' + modelClass + '/' + id
-
-//==================================================================================================================
-// HATEOAS
-//==================================================================================================================
 
   /**
    * In HATEOAS every JSON entity has some _links that you can follow.
@@ -219,7 +218,16 @@ module.exports = {
     return axios.get(url)  // might return just one entity or an array of entities
   },
 
-
+  /**
+   * get the internal ID from a URI that points to an entity resource in the backend
+   * Yes I know this is a crude hack. But necessary, when such an ID is needed as a PathParameter for the next request
+   */
+  getIdFromUri(modelUri) {
+    var uriRegEx = new RegExp("(\\d+)$")  // javascript default is greedy match, so this will match the number at the end of modelUri
+    var match = modelUri.match(uriRegEx)
+    if (!match || !match[1]) throw new Error("Cannot getIdFromUri: "+modelUri)
+    return match[1]
+  },
 
 //==================================================================================================================
 // Users
@@ -327,8 +335,11 @@ module.exports = {
   },
 
   /** fetch information about proxies in that area */
-  getMyProxyInfo(areaId, voterToken) {
-    return axios.get('/my/proxy/'+areaId, { params: { voterToken : voterToken }}).then(res => res.data)
+  getMyProxyInfo(area, voterToken) {
+    return axios.get('/my/proxy', { params: {
+      area: this.getURI(area),
+      voterToken : voterToken
+    }}).then(res => res.data)
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
@@ -708,14 +719,16 @@ module.exports = {
   getVoterToken(areaId, tokenSecret, becomePublicProxy) {
     log.debug("getVoterToken(area.id="+areaId+")")
     return axios.get("/my/voterToken", { params: {
-        area: areaId,             // spring does require the numerical ID and not the URI in this case
+        area: areaId,
         tokenSecret: tokenSecret,
         //becomePublicProxy: becomePublicProxy
-      } })          //TODO: accepet text
+      } })
       .then(res => res.data )
-      /*
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err}) })
-      */
+      // This is too important, therefore we have a special error handling
+      .catch(err => {
+        log.error("LiquidoApiClient: Cannot getVoterToken for areaId="+areaId, err)
+        return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err})
+      })
   },
 
   /**

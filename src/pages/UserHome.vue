@@ -60,51 +60,6 @@
 
       <!-- right column: voters personal stuff -->
       <div class="col-sm-6">
-        <h2>Liquido Proxies</h2>
-        <div v-if="areaDataMap[0] === undefined" class="panel panel-default">
-          <div class="panel-body">
-            <button type="button" class="btn btn-default btn-sm pull-right" @click="getVoterToken(areas[0])">
-              Load Area1
-            </button>
-          </div>
-        </div>
-
-        <div v-if="areaDataMap[0] !== undefined" class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Liquido Proxies</h3>
-          </div>
-          <div class="panel-body">
-            <div v-for="(areaData, area) in areaDataMap">
-              <h3>{{area.title}}</h3>
-              <p v-if="areaData.directProxy !== undefined">Direct Proxy: {{areaData.directProxy.profile.name}}</p>
-              <p v-if="areaData.topProxy !== undefined">Top Proxy: {{areaData.topProxy.profile.name}}</p>
-
-              <p v-if="areaData.numVotes > 0">Your are already the proxy for {{numVotes == 1 ? 'one voter' : numVotes+' voters'}}.</p>
-              <p v-if="areaData.isPublicProxy">You already are a public proxy. Other voters can delegate their vote to you.</p>
-              <p v-if="!isPublicProxy">You are not yet a public proxy. Do you want to become one, so that others can immideately delegate their vote to you?</p>
-              <button v-if="!areaData.isPublicProxy" type="button" id="becomePublicProxyButton" class="btn btn-default btn-sm pull-right" @click="becomePublicProxy(area)">
-                Become Public Proxy
-              </button>
-
-              <div v-if="numDelReq(area.id) > 0">
-                <p v-if="numDelReq(area.id) == 1">
-                  One more voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
-                  Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
-                </p>
-                <p v-if="numDelReq(area.id) > 1">{{numDelReq(area.id)}} voters would like to delegate their votes to you.
-                  Do you want to accept these requests? These voters will be able to see how you voted. But only them because you are their proxy.
-                  Your vote would then count {{areaData.numVotes + numDelReq(area.id)}} times. (Including your own vote.)
-                </p>
-                <button type="button" id="acceptDelegationRequestButton" class="btn btn-default btn-sm" @click="acceptDelegationRequest(area)">
-                  Accept delegation requests
-                </button>
-              </div>
-              <hr/>
-            </div>
-          </div>
-        </div>
-
-
         <h2>Your ideas and proposals</h2>
 
         <div class="panel panel-default">
@@ -271,28 +226,6 @@ export default {
         this.recentIdeas = recentIdeas.slice(0,10)
       })
     },
-
-    getVoterToken(area) {
-      this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(res => {
-        this.areaDataMap[area].voterToken = res.voterToken
-        this.areaDataMap[area].numVotes = res.numVotes
-        this.areaDataMap[area].isPublicProxy = res.isPublicProxy
-        this.areaDataMap[area].delegationRequests = res.delegationRequests
-      })
-    },
-
-    becomePublicProxy(area) {
-      this.$root.api.becomePublicProxy(area).then(res => {
-         this.loadProxyMap(voterToken)
-      })
-    },
-
-    acceptDelegationRequest(area) {
-      this.$root.api.acceptDelegationRequests(area).then(res => {
-         this.loadProxyMap(voterToken)
-      })
-    },
-
 
     /** a lot of data calculations for our pretty timeline
 	    SEE ALSO   LawPanel!  Same function ?!?!??!
