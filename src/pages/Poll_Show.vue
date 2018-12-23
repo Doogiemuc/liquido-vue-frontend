@@ -6,7 +6,7 @@
 
 <template>
   <div class="container">
-		<h1><i class="fas fa-balance-scale"></i>
+		<h1><i class="fas fa-poll"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
 			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
@@ -246,7 +246,7 @@ export default {
 
   	getOwnBallot() {
   		var that = this
-  		return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false).then(voterToken => {
+  		return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(voterToken => {
   			this.$root.api.getOwnBallot(that.poll.id, voterToken).then(ballot => {
   				console.log(ballot)
 	  		})

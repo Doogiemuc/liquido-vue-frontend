@@ -78,7 +78,7 @@
           <th v-if="showRowNumbers">
             {{page*rowsPerPage + index + 1}}
           </th>
-          <td v-for="col in columns" v-bind:class="{'selectedRow':isSelected(row)}"  @click="cellClicked(row, col, $event)">
+          <td v-for="col in columns" v-bind:class="{'selectedRow':highlightRow(row)}"  @click="cellClicked(row, col, $event)">
             <editable-cell
               v-if="col.editable"
               :pk="getPath(row, primaryKeyForRow)"
@@ -181,6 +181,9 @@ export default {
 
     // button for adding a new row. Will fire the 'addButtonClicked' event
     showAddButton: { type: Boolean, required: false, default: false },
+
+    // show selected row with blue background
+    highlightSelectedRow: { type: Boolean, required: false, default: false },
 
 		// client side filtering of tableData. When rowFilterFunc(row) returns false, that row will not be shown.
 		rowFilterFunc: { type: Function, required: false },
@@ -358,6 +361,10 @@ export default {
       return row == this.selectedRow
     },
 
+    highlightRow(row) {
+      return (row == this.selectedRow) && this.highlightSelectedRow
+    },
+
 		/**
 		 * Get the <b>unfiltered</b> index of row in this.rowData array.  Compares on object equality. Not just primaryKey!
 		 * @param {object} row one element from this.rowData
@@ -487,10 +494,10 @@ nav ul.pagination {
 .pagination > li > a:hover {
   cursor: pointer;
 }
-/*
+
 .selectedRow {
   color: white;
   background: #337ab7;
 }
-*/
+
 </style>

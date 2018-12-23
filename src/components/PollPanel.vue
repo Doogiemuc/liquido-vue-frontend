@@ -4,7 +4,7 @@
 			<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
 				<i class="fas fa-angle-double-right"></i>
 			</router-link>
-			<h4><i class="fas fa-balance-scale"></i> Poll
+			<h4><i class="fas fa-poll"></i> Poll
 				<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
 				<template v-if="poll.status === 'VOTING'">in voting phase</template>
 			</h4>
@@ -14,8 +14,8 @@
 				<h4 class="proposalTitle collapsedTitle" :class="{ firstHeader: isFirst(index), lastHeader: isLast(index) }">{{proposal.title}}</h4>
 				<p class="collapse">{{proposal.description}}</p>
 				<p class="pfooter collapse">
-					<i class="far fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp; 
-					<i class="far fa-clock"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp; 
+					<i class="far fa-user"></i> {{proposal.createdBy.profile.name}} &nbsp;&nbsp;
+					<i class="far fa-clock"></i> {{getFromNow(proposal.createdAt)}} &nbsp;&nbsp;
 					<i class="far fa-bookmark"></i> {{proposal.area.title}}&nbsp;&nbsp;
 					<i class="far fa-thumbs-up"></i> {{proposal.numSupporters}}
 				</p>
@@ -35,13 +35,13 @@ export default {
   props: {
 		'poll': { type: Object, required: true }
 	},
-	
+
 	data () {
     return {
       pollPanelID: "Poll_"+this.poll.id+"_"+Date.now() // unique UID for this poll panel
 		}
 	},
-	
+
   methods: {
 		/** get localized display Value of a date */
     getFromNow: function(dateVal) {
@@ -51,11 +51,11 @@ export default {
 		isFirst(index) {
 			return index === 0
 		},
-		
+
 		isLast: function(index) {
 			return index === this.poll._embedded.proposals.length - 1
 		},
-		
+
 		/**
 		 * open or collapse the description of the proposals in a poll
 		 * And toggle the expand/collapse icon   (Needs some fontawesome SVG magic *G*)
@@ -70,7 +70,7 @@ export default {
 
 		}
   },
-	
+
 	mounted () {
 		$('#'+this.pollPanelID+' .collapse').collapse('hide')
 	},
@@ -92,10 +92,10 @@ export default {
 	 	font-size: 14px;
 		font-weight: normal;
 	}
-	
+
 	.poll-list {
 		padding: 10px;
-	}	
+	}
   .poll-list p {
     margin: 0;
   }

@@ -29,7 +29,7 @@
             <tbody>
               <tr v-for="proposal in poll._embedded.proposals">
                 <td width="80%">
-                  <img src="/static/img/Avatar_32x32.jpeg" class="userPictureLeft">
+                  <img src="/static/img/photos/Avatar_32x32.jpeg" class="userPictureLeft">
                   <h4 class="proposalTitle">{{proposal.title}}</h4>
                   <div class="maxHeightPreviewWrapper">
                     <div class="maxHeightPreview">{{proposal.description}}</div>

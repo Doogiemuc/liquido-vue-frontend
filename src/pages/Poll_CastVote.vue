@@ -128,7 +128,7 @@ export default {
   components: { LawPanel, timeline },
 
   props: {
-    'pollId':        { type: Number, required: true },  // Nummbe is passed via named route params
+    'pollId':        { type: Number, required: true },  // a Number is passed via named route params
     'voteOrderUris': { type: Array,  required: true }
   },
 

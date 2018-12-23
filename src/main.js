@@ -102,13 +102,15 @@ const routes = [
   // ======================= Proxies =======================
   { path: '/proxies',
     component: function(resolve) {
-      require(['./pages/Proxies.vue'], resolve)
+      require(['./pages/Proxies_Show.vue'], resolve)
     }
   },
-  { path: '/editProxy',   // ?categoryId=42
+  { path: '/proxies/:categoryId',
+    name: 'editProxy',
     component: function(resolve) {
       require(['./pages/Proxy_Edit.vue'], resolve)
-    }
+    },
+    props: true
   },
   // ======================= Polls =======================
   { path: '/polls',

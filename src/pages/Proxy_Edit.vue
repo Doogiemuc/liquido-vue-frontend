@@ -12,26 +12,22 @@
           </div>
           <div class="panel-body">
             <doogie-filter
-              :filtersConfig="filtersConfig"
               ref="proxyTableFilter"
+              :filtersConfig="filtersConfig"
             />
             <doogie-table
               id="proxyTable"
+              ref="proxyTable"
               :row-data="userList"
               :columns="usersColumns"
               :primary-key-for-row="userKey"
               :loading="true"
               :show-add-button="false"
               :show-row-numbers="false"
-              :selectable-rows="true"
-              v-on:rowSelected="rowSelected"
+              :highlightSelectedRow="true"
               :rowFilterFunc="rowFilterFunc"
-              ref="proxyTable"
+              v-on:rowSelected="rowSelected"
             ></doogie-table>
-
-            <div class="buttonWrapper">
-              <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.selectedProxy == null" @click="assignProxy()">Assign selected proxy</button>
-            </div>
 
           </div>
         </div>
@@ -44,18 +40,24 @@
           </div>
           <div class="panel-body">
             <div v-if="proxy">
-              <img v-bind:src="proxy.profile.picture" />&nbsp;{{proxy.profile.name}} &lt;{{proxy.email}}&gt;
+              <img :src="proxy.profile.picture" class="avatarImg pull-left"/>
+              {{proxy.profile.name}}<br/>
+              &lt;{{proxy.email}}&gt;
               <br/><br/>
-              <button type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation to this proxy</button>
+              <button type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation</button>
             </div>
             <div v-else>
-              <h4>Currently no proxy is assigned</h4>
+              <h4>- None -</h4>
               <p>You currently have no proxy assigned in this category.</p>
+              <div class="pull-right">
+                <input type="checkbox" v-model="transitive" />&nbsp;transitive&nbsp;
+                <button type="button" class="btn btn-primary" v-bind:disabled="this.selectedProxy == null" @click="assignProxy()">Assign selected</button>
+              </div>
             </div>
-            <br/><br/>
-            <router-link to="/proxies" class="btn btn-default pull-right" role="button">&laquo; Back</router-link>
           </div>
         </div>
+
+        <router-link to="/proxies" class="btn btn-default" role="button">&laquo; Back</router-link>
       </div>
 
     </div>
@@ -63,27 +65,34 @@
 </template>
 
 /**
- * ProxyEdit.vue - set or remove a proxy in one given category.
+ * ProxyEdit.vue - assign or remove a proxy in one given category.
  */
-
 <script>
 
 import _ from 'lodash'
 import DoogieTable from '../components/DoogieTable'
 import DoogieFilter from '../components/DoogieFilter'
 import loglevel from 'loglevel'
-
 var log = loglevel.getLogger('ProxyEdit.vue');
 
 export default {
+  components: {
+    DoogieTable,
+    DoogieFilter
+  },
+
+  props: {
+    'category':   { type: Object, required: true },
+    'delegation':  { type: Object, required: false },
+  },
+
   data () {
     return {
-      category: { title: '' },      // the category of the proxy that is currently beeing edited, will be loaded in ready()
-      proxy: null,                  // user information of currently set proxy in this category (if any)
-      selectedProxy: null,          // currently selected row in the table
-      // list of available users that could be assigned as proxies
-      userList: [],
-      usersColumns: [
+      proxy: this.delegation ? this.delegation.toProxy : undefined,
+      selectedProxy: undefined,         // currently selected row in the table
+      transitive: true,                 // assign transitive proxy
+      userList: [],                     // list of available users that could be assigned as proxies
+      usersColumns: [                   // DoogieTable with filter
         { title: "Avatar", path: "profile.picture", vueFilter: 'userPicture', rawHTML: true },
         { title: "Name", path: "profile.name" },
         { title: "Email", path: "email" },
@@ -99,13 +108,8 @@ export default {
     }
   },
 
-  components: {
-    DoogieTable,
-    DoogieFilter
-  },
-
-  filters: {
-    userAvatar(pic) {                   // filte for table cell
+  filters: {        // Vue "filters" should be called "formatters". They are not filtering anything. They are (re-)formatting.
+    userAvatar(pic) {                   // filter for table cell
       return '<img src="'+pic+'" />'
     }
   },
@@ -116,17 +120,18 @@ export default {
      * ie. all users minus the currently logged in user and any already assigned proxy
      * @return (A Promise that will resolve to) a list of users that could be assigned as proxy
      */
-    getAssignableProxies: function() {
+    getAssignableProxies() {
       return this.$root.api.getAllUsers().then(userList => {
         _.remove(userList, user => {
           return user.email == this.$root.currentUser.email ||
                  (this.proxy != null && user.email == this.proxy.email)
         })
+        this.userList = userList
         return userList
       })
     },
 
-    rowSelected: function(row) {
+    rowSelected(row) {
       this.selectedProxy = row
     },
 
@@ -143,37 +148,47 @@ export default {
     /**
      * Save the currently selected proxy. This can overwrite any existing proxy
      */
-    assignProxy: function() {
+    assignProxy() {
       log.debug("assignProxy: set '"+this.selectedProxy.email+"' as proxy for '"+this.$root.currentUser.email+"' in category '"+this.category.title+"'")
-
-      this.$root.api.assignProxy(this.category, this.selectedProxy)
-      .then(result => {
-        log.debug("Successfully saved proxy:", result)
-        this.proxy = this.selectedProxy  // this we we do not need to reload the proxy's user information from the server
-        iziToast.success({
-          title: 'OK',
-          message: "Proxy assigned successfully."
-        });
-      })
-      .catch(err => {
-        log.error("Couldn't assign proxy: ", err)
-        iziToast.error({
-          title: 'Error',
-          message: "Couldn't assign proxy.<br/>Please try again later.",
-          timout: 20000,
-        });
+      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+        this.$root.api.assignProxy(this.category, this.selectedProxy, token.voterToken, this.transitive).then(res => {
+          log.debug("Successfully saved proxy:", res)
+          this.proxy = this.selectedProxy
+          iziToast.success({
+            title: 'OK',
+            message: "Proxy assigned successfully."
+          })
+        })
+        .catch(err => {
+          log.error("Couldn't assign proxy: ", err)
+          iziToast.error({
+            title: 'Error',
+            message: "Couldn't assign proxy.<br/>Please try again later.",
+            timout: 20000,
+          })
+        })
       })
     },
 
     /** remove the currently set proxy */
-    removeProxy: function() {
+    removeProxy() {
       log.debug("Removing proxy in category ", this.category)
-      this.$root.api.removeProxy(this.category)
-      .then(result => {
-        this.proxy = null
-      })
-      .catch(err => {
-        log.error("Couldn't remove proxy: ", err)
+      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+        this.$root.api.removeProxy(this.category, token.voterToken).then(res => {
+          this.proxy = undefined
+          iziToast.success({
+            title: 'OK',
+            message: "Proxy removed."
+          });
+        })
+        .catch(err => {
+          log.error("Couldn't remove proxy: ", err)
+          iziToast.error({
+            title: 'Error',
+            message: "Couldn't remove proxy.<br/>Please try again later.",
+            timout: 20000,
+          });
+        })
       })
     }
   },
@@ -190,46 +205,27 @@ export default {
    *  - assignable proxies
    *  - the proxy map of the currenlty logged in useer
    */
-  mounted () {
-    var categoryId = this.$route.query.categoryId
-    if (categoryId == undefined || categoryId == null) {
-      console.error("Proxy_Edit.vue: Missing URL parametere categoryId!")
-    }
-
+  mounted () {   // must do this in mounted, because only then $refs are available
     this.$refs.proxyTable.loading = true
     //this.$refs.proxyTable.localizedTexts.searchFilter = 'Search for name or e-mail'
     this.$refs.proxyTable.setSortCol(this.usersColumns[1])
-
-    // Here we send three parallel requests to our backend. Javascript Promises are cool :-)
-    Promise.all([
-      this.$root.api.getCategory(categoryId),
-      this.getAssignableProxies(),
-      this.$root.api.getProxyMap(this.$root.currentUser)
-    ])
-    .then(results => {
-      this.category = results[0]
-      this.userList = results[1]
-      var proxyMap  = results[2]
-      if (proxyMap[this.category.title]) {   // may be null if no proxy is assigned
-        this.proxy  = proxyMap[this.category.title].directProxy
-      }
-      this.$refs.proxyTable.loading = false
-    })
-    .catch(err => {
-      log.error("Couldn't load data for ProxyEdidt.vue: "+err)
-    })
-
+    this.getAssignableProxies()
   }
 
 }
 </script>
 
 <style scoped>
-.panel-heading h4 {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-#proxyTable td {
-  vertical-align: middle;
-}
+  .panel-heading h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .avatarImg {
+    margin-right: 0.5em;
+  }
+
+  #proxyTable td {
+    vertical-align: middle;
+  }
+
 </style>

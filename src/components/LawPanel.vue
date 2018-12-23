@@ -69,38 +69,15 @@ export default {
     // BUGFIX: Must be a computed prop. Not a method!
     getIconForLaw: function() {
       switch(this.law.status) {
-        case "IDEA": return { "fa-lightbulb": true }
-        case "LAW":  return { "fa-university": true }
-        default:     return { "fa-file-alt": true }
+        case "IDEA":    return { "far": true, "fa-lightbulb": true }
+        case "LAW":     return { "fa-university": true }  // or balance-scale?
+        default:        return { "fa-file-alt": true }  // proposal etc
       }
     },
 
     createdByCurrentUser: function() {
       return this.$root.currentUser.id == this.law.createdBy.id
     },
-
-    /*
-    timelinePercentFilled() {
-      var start = new Date(this.law.createdAt)
-      var today = new Date()
-      var end
-      switch (this.law.status) {
-        case "IDEA":
-          return 10
-        case "PROPOSAL":
-          end = new Date(this.law.reachedQuorumAt)
-          break;
-        case "ELABORATION":
-          end = new Date(this.law.poll.votingEndAt)
-          break;
-        //case "LAW"
-        //case "RETENTION"
-        default:
-          end = today
-      }
-      return timeline.methods.date2percent(today, start, end)
-    },
-    */
 
     timelineEvents() {
       if (this.law.status === "IDEA") return [

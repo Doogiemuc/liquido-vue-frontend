@@ -312,7 +312,7 @@ module.exports = {
 
   /** fetch HATEOAS details of currently logged in user */
   getMyUser() {
-    return axios.get('/my/user', {headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
+    return axios.get('/my/user', { headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
   },
 
   /** get the checksum of a public proxy */
@@ -335,52 +335,50 @@ module.exports = {
   },
 
   /** fetch information about proxies in that area */
-  getMyProxyInfo(area, voterToken) {
-    return axios.get('/my/proxy', { params: {
-      area: this.getURI(area),
-      voterToken : voterToken
-    }}).then(res => res.data)
+  getMyProxy(area) {
+    return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
 
   /** add or update a delegation from the currently logged in user to a proxy */
-  assignProxy(category, proxy) {
+  assignProxy(category, proxy, voterToken, transitive) {
     if (!category) return Promise.reject("Missing category for saveProxy()")
     if (!proxy) return Promise.reject("Missing proxy for saveProxy()")
-    var categoryURI = this.getURI(category)
     var proxyURI = this.getURI(proxy)
-    log.debug("assignProxy(categor="+categoryURI+", proxy="+proxyURI+")")
-    return client.put({
-      url: '/assignProxy',
-      headers: { 'Content-Type' : 'application/json' },
-      data: {
-        area:     categoryURI,
-        toProxy:  proxyURI
-      }
-    })
+    log.debug("assignProxy(category.id="+category.id+", proxy="+proxyURI+", transitive="+transitive+")")
+    return axios.put('/my/proxy/'+category.id, {
+        toProxy:    proxyURI,
+        voterToken: voterToken,
+        transitive: transitive
+      }).then(res => res.data)
   },
 
   /** remove the proxy of the currently logged in user in the given category */
-  removeProxy(category) {
+  removeProxy(category, voterToken) {
     if (!category) return Promise.reject("Missing category for removeProxy()")
     var categoryURI = this.getURI(category)
     log.debug("removeProxy(category="+categoryURI+")")
-    return axios.delete({
-      url: '/deleteProxy/'+category.id,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    })
+    return axios.delete('/my/proxy/'+category.id, { params : {
+      voterToken: voterToken
+    }})
   },
 
-  /** get all pending delegation requests for this proxy */
-  getDelegationRequests(area) {
-    return axios.get("/my/delegationRequests"+area.id).then(res => res.data)
+  /** get accepted delegations and pending delegation requests for this proxy */
+  getMyDelegations(area) {
+    return axios.get("/my/delegations/"+area.id).then(res => res.data)
   },
 
   acceptDelegationRequests(area, voterToken) {
-    return axios.put("/my/delegationRequests/"+area.id+"?voterToken="+voterToken).then(res => res.data)
+    return axios.put("/my/delegations/"+area.id+"/accept", { params: {
+      voterToken: voterToken
+    }}).then(res => res.data)
   },
+
+  becomePublicProxy(area, voterToken) {
+    return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { params: {
+      voterToken: voterToken
+    }}).then(res => res.data)
+  },
+
 
 //==================================================================================================================
 // Ideas
@@ -716,15 +714,14 @@ module.exports = {
    * @param {String} tokenSecret users private tokenSecret from which his token will be created.
    * @return users voterToken
    */
-  getVoterToken(areaId, tokenSecret, becomePublicProxy) {
-    log.debug("getVoterToken(area.id="+areaId+")")
-    return axios.get("/my/voterToken", { params: {
-        area: areaId,
+  getVoterToken(area, tokenSecret, becomePublicProxy) {
+    log.debug("getVoterToken(area.id="+area.id+")")
+    return axios.get("/my/voterToken/"+area.id, { params: {
         tokenSecret: tokenSecret,
-        //becomePublicProxy: becomePublicProxy
+        becomePublicProxy: becomePublicProxy
       } })
       .then(res => res.data )
-      // This is too important, therefore we have a special error handling
+      // This is too important, therefore we have a dedicated catch clause here
       .catch(err => {
         log.error("LiquidoApiClient: Cannot getVoterToken for areaId="+areaId, err)
         return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err})

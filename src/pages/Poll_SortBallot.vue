@@ -1,7 +1,7 @@
 <template>
   <div class="container">
 
-    <h1><i class="fas fa-balance-scale"></i> Sort proposals into your ballot</h1>
+    <h1><i class="fas fa-poll"></i> Sort proposals into your ballot</h1>
 
     <div class="panel panel-default">
       <div class="panel-body"">
