@@ -101,11 +101,10 @@ export default {
      */
     fetchCachedVoterToken(area) {
       if (this.voterTokenMap[area.id]) return Promise.resolve(this.voterTokenMap[area.id])
-      return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false)
-        .then(token => {
-          this.voterTokenMap[area.id] = token.voterToken
-          return token.voterToken
-        })
+      return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(token => {
+        this.voterTokenMap[area.id] = token.voterToken
+        return token.voterToken
+      })
     },
 
     /* Super advanced promise chaining. The div panels will appear as they area loded */
@@ -133,9 +132,17 @@ export default {
     },
 
     becomePublicProxy(area) {
-      this.$root.api.becomePublicProxy(area).then(res => {
-         this.loadProxyInfo(area)
+      this.fetchCachedVoterToken(area).then(voterToken => {
+        this.$root.api.becomePublicProxy(area, voterToken).then(res => {
+          log.info("User is now public proxy in area(id="+area.id+")")
+          this.proxyInfoMap[area.id].isPublicProxy = true
+          iziToast.success({
+            title: 'Success',
+            message: "Your are now a public proxy in<br/>"+area.title,
+          })
+        })
       })
+
     },
 
     acceptDelegationRequest(area) {

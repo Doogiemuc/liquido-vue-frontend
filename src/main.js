@@ -216,6 +216,8 @@ var checkDevelopmentMode = function() {
 }
 
 var startApp = function(props) {
+  console.log("Properties", props)
+
   const rootVue = new Vue({
     el: '#app',
     router,

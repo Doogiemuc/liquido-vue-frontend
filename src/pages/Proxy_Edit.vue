@@ -153,6 +153,7 @@ export default {
       this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
         this.$root.api.assignProxy(this.category, this.selectedProxy, token.voterToken, this.transitive).then(res => {
           log.debug("Successfully saved proxy:", res)
+
           this.proxy = this.selectedProxy
           iziToast.success({
             title: 'OK',

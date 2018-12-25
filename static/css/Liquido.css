@@ -6,24 +6,6 @@ body {
   padding-top: 50px; /* because of fixed header */
 }
 
-
-footer {
-  margin-top: 15px;
-  background-color: #f8f8f8;
-  border-top: 1px solid #e7e7e7;
-  padding-top: 5px;
-  padding-bottom: 20px;
-}
-
-footer a {
-  font-size: 12px;
-  color: gray;
-}
-
-footer a:hover {
-  color: blue;
-}
-
 .userPicture {
   width: 32px;
   height: 32px;

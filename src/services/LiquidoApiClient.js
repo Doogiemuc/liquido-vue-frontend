@@ -368,15 +368,11 @@ module.exports = {
   },
 
   acceptDelegationRequests(area, voterToken) {
-    return axios.put("/my/delegations/"+area.id+"/accept", { params: {
-      voterToken: voterToken
-    }}).then(res => res.data)
+    return axios.put("/my/delegations/"+area.id+"/accept", { voterToken: voterToken })
   },
 
   becomePublicProxy(area, voterToken) {
-    return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { params: {
-      voterToken: voterToken
-    }}).then(res => res.data)
+    return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { voterToken: voterToken })
   },
 
 

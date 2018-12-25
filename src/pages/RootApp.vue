@@ -62,7 +62,18 @@
         </div>
       </div>
     </div>
+
     <router-view></router-view>
+
+    <footer>
+      <div class="container text-right">
+        <small>{{liqudioVersion}}</small>&nbsp;
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
+          <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
+        </a>
+        <br/>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -78,6 +89,7 @@ import apiClient from '../services/LiquidoApiClient'
 
 export default {
   computed: {
+    liqudioVersion() { return this.$root.props['liquido.version'] },
     showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
     devLoginUser() { return process.env.devLoginMobilePhone },
     userNameShort() {
@@ -143,8 +155,6 @@ export default {
   },
 
   created() {
-    console.log(process.env)
-
     // Global configuration of our dismissable alert lib
     iziToast.settings({
       layout: 2,
@@ -257,5 +267,19 @@ export default {
     cursor: default;
   }
 
+  footer {
+    margin-top: 15px;
+    background-color: #f8f8f8;
+    border-top: 1px solid #e7e7e7;
+    padding-top: 5px;
+    padding-bottom: 20px;
+  }
+  footer a {
+    font-size: 12px;
+    color: gray;
+  }
+  footer a:hover {
+    color: blue;
+  }
 
 </style>
