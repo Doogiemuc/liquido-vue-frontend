@@ -9,7 +9,7 @@
 
     <div class="row">
       <div class="col-sm-6" v-for="area in categories" :key="area.id">
-        <div v-if="proxyInfoMap[area.id]" class="panel panel-default proxyPanel">
+        <div v-if="proxyInfo[area.id] && delegations[area.id]" class="panel panel-default proxyPanel">
           <div class="panel-heading">
             <a class="editIcon pull-right" @click="editProxy(area)"><i class="fas fa-edit" aria-hidden="true"></i></a>
             <h4>{{area.title}} - {{area.description}}</h4>
@@ -17,19 +17,19 @@
           <div class="panel-body proxyPanelBody">
             <div class="row row-no-gutters">
               <div class="col-md-6 ">
-                <div v-if="proxyInfoMap[area.id].directProxyDelegation">
+                <div v-if="myProxy(area)">
                   <a href="#" @click="editProxy(area)">
-                    <img :src="proxyInfoMap[area.id].directProxyDelegation.toProxy.profile.picture" class="avatarImg pull-left"/>
+                    <img :src="myProxy(area).profile.picture" class="avatarImg pull-left"/>
                   </a>
-                  <b v-if="proxyInfoMap[area.id].directProxyDelegation.delegationRequest">
+                  <b v-if="proxyInfo[area.id].directProxyDelegation.delegationRequest">
                     Requested delegation to
                   </b>
                   <b v-else>
-                    Your {{ !proxyInfoMap[area.id].directProxyDelegation.transitive ? "non-transitive" : ""}} proxy
+                    Your {{ !proxyInfo[area.id].directProxyDelegation.transitive ? "non-transitive" : ""}} proxy
                   </b>
                   <br/>
-                  {{proxyInfoMap[area.id].directProxyDelegation.toProxy.profile.name}}<br/>
-                  &lt;{{ proxyInfoMap[area.id].directProxyDelegation.toProxy.email }}&gt;
+                  {{myProxy(area).profile.name}}<br/>
+                  &lt;{{myProxy(area).email }}&gt;
                 </div>
                 <div v-else>
                   <a href="#" @click="editProxy(area)">
@@ -39,23 +39,23 @@
               </div>
               <div class="col-md-6">
                 <div v-if="showTopProxy(area)">
-                  <img :src="proxyInfoMap[area.id].topProxy.profile.picture" class="avatarImg pull-left"/>
+                  <img :src="proxyInfo[area.id].topProxy.profile.picture" class="avatarImg pull-left"/>
                   <b>Top proxy</b><br/>
-                  {{proxyInfoMap[area.id].topProxy.profile.name}}<br/>
-                  &lt;{{ proxyInfoMap[area.id].topProxy.email }}&gt;
+                  {{proxyInfo[area.id].topProxy.profile.name}}<br/>
+                  &lt;{{ proxyInfo[area.id].topProxy.email }}&gt;
                 </div>
               </div>
             </div>
 
           </div>
           <div class="panel-footer proxyDataSmall">
-            <a href="#" v-if="!proxyInfoMap[area.id].isPublicProxy" class="pull-right" @click="becomePublicProxy(area)">
+            <a href="#" v-if="!delegations[area.id].isPublicProxy" class="pull-right" @click="becomePublicProxy(area)">
               <i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;public proxy
             </a>
-            <span v-if="proxyInfoMap[area.id].isPublicProxy"  class="pull-right"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;public proxy</span>
-            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{proxyInfoMap[area.id].acceptedDelegations.length}}&nbsp;delegations
-            <a href="#" v-if="proxyInfoMap[area.id].delegationRequests.length > 0" @click="acceptDelegationRequest(area)">
-              &nbsp;({{proxyInfoMap[area.id].delegationRequests.length}}&nbsp;request{{proxyInfoMap[area.id].delegationRequests.length > 1 ? "s" : ""}})
+            <span v-if="delegations[area.id].isPublicProxy"  class="pull-right"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;public proxy</span>
+            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{delegations[area.id].delegationCountRec}}&nbsp;delegations
+            <a href="#" v-if="delegations[area.id].delegationRequests.length > 0" @click="acceptDelegationRequest(area)">
+              &nbsp;({{delegations[area.id].delegationRequests.length}}&nbsp;request{{delegations[area.id].delegationRequests.length > 1 ? "s" : ""}})
             </a>
 
           </div>
@@ -63,30 +63,29 @@
       </div>
     </div>
 
-    <div v-if="status === 'loading'">
+    <div v-if="status === 'loading'" class="row">
       <span><i class="fas fa-2x fa-spinner grey fa-spin"></i> Loading ...</span>
     </div>
-
   </div>
 </template>
 
+<script>
 /**
  * Show an overview of all proxies in each area
  */
-<script>
 
 import apiClient from '../services/LiquidoApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('Proxies_Show.vue');
-
 
 export default {
   data () {
     return {
       status: "loading",
       categories: [],
-      voterTokenMap: {},      // voterToken for each area. key is areaURI
-      proxyInfoMap: {}        // information about proxies per area.  key is areaURI
+      voterTokenMap: {},      // voterToken for each area. (key is area.id)
+      proxyInfo: {},          // the user's proxy in each area (key in map is area.id)
+      delegations: {}         // delegations to this user as a proxy
     }
   },
 
@@ -107,35 +106,51 @@ export default {
       })
     },
 
-    /* Super advanced promise chaining. The div panels will appear as they area loded */
+    /* Load information about this users proxy in that area. */
     loadProxyInfo(area) {
-      log.debug("Loading proxy info for area.id="+area.id)
+      //log.debug("Loading proxy info for area.id="+area.id)
       return this.$root.api.getMyProxy(area).then(proxyInfo => {
-        this.$set(this.proxyInfoMap, area.id, proxyInfo)    // need vues reactive setter so that UI gets updated dynamically.
+        this.$set(this.proxyInfo, area.id, proxyInfo)    // need vues reactive setter so that UI gets updated dynamically.
         //log.debug("DONE: Loaded proxy info for area.id="+area.id)
       })
     },
 
-    getProxy(area) {   // ES6 defenitely needs a null-save dereferencing operator like groovy's  "?."    https://github.com/davidyaha/ecmascript-optionals-proposal
-      return  this.proxyInfoMap[area.id] &&
-              this.proxyInfoMap[area.id].directProxyDelegation ?
-              this.proxyInfoMap[area.id].directProxyDelegation.toProxy :
+    /** load info about delegations TO this user as a proxy */
+    loadDelegations(area) {
+      this.fetchCachedVoterToken(area).then(voterToken => {
+        this.$root.api.getMyDelegations(area, voterToken).then(dels => {
+          this.$set(this.delegations, area.id, dels)
+        })
+      })
+    },
+
+    /** Get information about the user's direct proxy */
+    myProxy(area) {
+      // ES6 defenitely needs a null-save dereferencing operator like groovy's  "?."    https://github.com/davidyaha/ecmascript-optionals-proposal
+      return  this.proxyInfo[area.id] &&
+              this.proxyInfo[area.id].directProxyDelegation ?
+              this.proxyInfo[area.id].directProxyDelegation.toProxy :
               undefined
     },
 
+    /** Only show the top proxy, if he is different (ie. further up in the proxy tree) than the voter's directly assigned proxy. */
     showTopProxy(area) {
-      return this.proxyInfoMap[area.id] &&
-             this.proxyInfoMap[area.id].topProxy &&
-             this.proxyInfoMap[area.id].directProxyDelegation &&
-             this.proxyInfoMap[area.id].directProxyDelegation.toProxy &&
-             this.proxyInfoMap[area.id].topProxy.id !== this.proxyInfoMap[area.id].directProxyDelegation.toProxy.id
+      return this.proxyInfo[area.id] &&
+             this.proxyInfo[area.id].topProxy &&
+             this.proxyInfo[area.id].directProxyDelegation &&
+             this.proxyInfo[area.id].directProxyDelegation.toProxy &&
+             this.proxyInfo[area.id].topProxy.id !== this.proxyInfo[area.id].directProxyDelegation.toProxy.id
     },
 
+    /**
+     * Become a public proxy in this area.
+     * This will automatically accept all pending delegations
+     */
     becomePublicProxy(area) {
       this.fetchCachedVoterToken(area).then(voterToken => {
         this.$root.api.becomePublicProxy(area, voterToken).then(res => {
           log.info("User is now public proxy in area(id="+area.id+")")
-          this.proxyInfoMap[area.id].isPublicProxy = true
+          this.loadDelegations(area) // reload delegations for that area. (User is now proxy info and delegtion requests might have been accepted.)
           iziToast.success({
             title: 'Success',
             message: "Your are now a public proxy in<br/>"+area.title,
@@ -145,19 +160,28 @@ export default {
 
     },
 
+    /** Accept all pending delegation requests in that area and reload delegation info */
     acceptDelegationRequest(area) {
-      this.$root.api.acceptDelegationRequests(area).then(res => {
-         this.loadProxyInfo(area)
+      //var delReqCount = this.delegations[area.id].delegationRequests.length
+      this.fetchCachedVoterToken(area).then(voterToken => {
+        this.$root.api.acceptDelegationRequests(area, voterToken).then(res => {
+          log.info("Pending delegation requests in area(id="+area.id+") accepted.")
+          this.loadDelegations(area)
+          iziToast.success({
+            title: 'Success',
+            message: "Delegation requests accepted.",
+          })
+        })
       })
     },
 
     editProxy(area) {
-      log.debug("Edit proxy in area(id="+area.id+") current proxy:", this.getProxy(area))
+      log.debug("Edit proxy in area(id="+area.id+") current proxy:", this.myProxy[area.id])
       this.$router.push({ name: 'editProxy', params: {
         categoryId: area.id,
         category:   area,
         voterToken: this.voterTokenMap[area.id],
-        delegation: this.proxyInfoMap[area.id] ? this.proxyInfoMap[area.id].directProxyDelegation : undefined
+        delegation: this.proxyInfo[area.id] ? this.proxyInfo[area.id].directProxyDelegation : undefined
       }})
     }
 
@@ -165,13 +189,16 @@ export default {
   },
 
   created () {
-    $('[data-toggle="popover"]').popover()
+    //$('[data-toggle="popover"]').popover()
     var start = Date.now()
     // fetch all proxy details for every area
     this.getAllCategories().then(categories => {
       var requests = categories.map(category => {
         return this.loadProxyInfo(category)
       })
+      requests.push(categories.map(category => {
+        return this.loadDelegations(category)
+      }))
       Promise.all(requests).then(res => {
         this.status = "finished"
         var end = Date.now()

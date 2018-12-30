@@ -32,7 +32,7 @@
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle userDropdown">
                 {{userNameShort}}<i class="caret"></i>
-                <img v-bind:src="currentUser.profile.picture" class="avatarImg" alt="Avatar Image">
+                <img v-bind:src="currentUser.profile.picture" class="avatarImg">
               </a>
               <ul class="dropdown-menu">
 							  <li><router-link to="/userHome">User Home</router-link></li>
@@ -57,6 +57,10 @@
               <li><a href="#" @click="devLogin(0)">User 1</a></li>
               <li><a href="#" @click="devLogin(1)">User 2</a></li>
               <li><a href="#" @click="devLogin(2)">User 3</a></li>
+              <li><a href="#" @click="devLogin(3)">User 4</a></li>
+              <li><a href="#" @click="devLogin(4)">User 5</a></li>
+              <li><a href="#" @click="devLogin(5)">User 6</a></li>
+              <li><a href="#" @click="devLogin(6)">User 7</a></li>
             </ul>
           </div>
         </div>
@@ -91,7 +95,6 @@ export default {
   computed: {
     liqudioVersion() { return this.$root.props['liquido.version'] },
     showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
-    devLoginUser() { return process.env.devLoginMobilePhone },
     userNameShort() {
       if (!this.currentUser) return ""
       if (this.currentUser.profile.name.length <= 15) return this.currentUser.profile.name;
@@ -123,9 +126,8 @@ export default {
           iziToast.success({
             title: 'Login',
             message: 'You are now logged in as '+user.email,
-            position: 'bottomRight',
+            //position: 'bottomRight',
           });
-          //TODO: show iziToast on success (on users home page!)
         })
         .catch(err => {
           log.error("Cannot find user details with JWT. Invalid JWT?")
@@ -144,7 +146,7 @@ export default {
 
     /** Quick login for development */
     devLogin(userNo) {
-      this.loginViaSms(process.env.devLoginMobilePhone[userNo], process.env.devLoginSmsCode[userNo])
+      this.loginViaSms(process.env.devLoginMobilePhones[userNo], process.env.devLoginDummySmsCode)
     },
 
 
@@ -186,8 +188,8 @@ export default {
   }
 
   .avatarImg {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
 
   .userNameEllipsis {

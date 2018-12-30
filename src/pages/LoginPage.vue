@@ -89,14 +89,19 @@ var log = loglevel.getLogger('LoginPage.vue');
 var validEMailRe = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
 
 export default {
+  props: {
+    'initEmail': { type: String, required: false, default: "" },
+    'initMobilePhone': { type: String, required: false, default: "" },
+  },
+
   data () {
     return {
       emailSuccess: false,
       emailErrorMsg: '',
       smsCodeSent: false,
       smsErrorMsg: '',
-      email: '',
-      mobilephone: '',
+      email: this.initEmail,
+      mobilephone: this.initMobilePhone,
       rememberMe: false,
       smsCodeSent: false,
       digits: []            // 6 digit sms code entered by user

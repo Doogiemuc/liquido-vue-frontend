@@ -21,21 +21,22 @@ var log = loglevel.getLogger('main.js')
 Vue.use(VueRouter)
 
 // ================= Setup Vue-router for navigation =============
-
-//MAYBE: With named routes https://router.vuejs.org/en/essentials/named-routes.html
-//       I could abstract away from the client URL pathes one level more. But is that necessary?
+// Some use named routes https://router.vuejs.org/en/essentials/named-routes.html
 const routes = [
   { path: '/',
     component: LiquidoHome,
     meta: { requiresAuth: false }
   },
   { path: '/register',
+    name: 'register',
     component: RegisterPage,
     meta: { requiresAuth: false }
   },
   { path: '/login',
+    name: 'login',
     component: LoginPage,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
+    props: true
   },
   { path: '/logout',
     component: LogoutPage,
@@ -209,15 +210,15 @@ var currentUser = undefined
 
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
-    log.info("Running LIQUDIO in development mode.")
+    log.info("LIQUDIO is running in DEVELOPMENT mode!")
     loglevel.setLevel("trace")   // trace == log everything
+    log.debug("process.env", process.env)
   }
   return Promise.resolve()
 }
 
 var startApp = function(props) {
-  console.log("Properties", props)
-
+  //console.log("Properties", props)
   const rootVue = new Vue({
     el: '#app',
     router,

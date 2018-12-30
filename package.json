@@ -14,7 +14,7 @@
     "unit": "karma start test/unit/karma.conf.js --single-run",
     "test_iron_aws": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_aws",
     "test_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env chrome_local",
-		"test_iron_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
+	"test_iron_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
     "e2e_with_devServer": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e-dev"
   },

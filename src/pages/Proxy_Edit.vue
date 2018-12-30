@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <router-link to="/proxies" class="btn btn-default" role="button">&laquo; Back</router-link>
+        <button type="button" @click="goBack" class="btn btn-default">&laquo; Back</button>
       </div>
 
     </div>
@@ -81,9 +81,11 @@ export default {
     DoogieFilter
   },
 
+  // caller MUST pass the category and MUST pass the delegation if one alreaddy exists
+  // We assume that all callers already have loaded this info
   props: {
     'category':   { type: Object, required: true },
-    'delegation':  { type: Object, required: false },
+    'delegation': { type: Object, required: false },
   },
 
   data () {
@@ -191,12 +193,25 @@ export default {
           });
         })
       })
-    }
+    },
+
+    goBack() {
+      this.$router.back()
+    },
   },
 
   filters: {
     userPicture(picturePath) {
       return '<img src="'+picturePath+'" />'
+    }
+  },
+
+  /** if delegation is not passed as parameter, then load it from backend */
+  created() {
+    if (!this.delegation) {
+      this.$root.api.getMyProxyInfo(this.category).then(proxyInfo => {
+        this.delegation = proxyInfo.directProxyDelegation
+      })
     }
   },
 

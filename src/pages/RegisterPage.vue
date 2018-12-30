@@ -12,7 +12,7 @@
             <h3 class="panel-title">Regsiter as a new user</h3>
           </div>
           <div class="panel-body">
-            <form accept-charset="UTF-8" role="form" class="form-horizontal">
+            <form accept-charset="UTF-8" role="form" class="form-horizontal" id="registerForm">
               <div class="form-group form-group-error">
                 <label for="inputEmail3" class="col-sm-2 control-label">Email<sup class="required">*</sup></label>
                 <div class="col-sm-10">
@@ -35,16 +35,31 @@
                 </div>
               </div>
               <div class="form-group">
+                <label for="avatar" class="col-sm-2 control-label">Avatar<sup class="required">*</sup></label>
+                <div class="col-sm-10">
+                  <img v-for="i in 16" class="chooseAvatar"
+                    :src="getAvatarPath(i)"
+                    :class="{ opaqueImg: !isSelectedAvatar(i), selectedAvatar: isSelectedAvatar(i) }"
+                    @click="chooseAvatar(i)" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="websiteInput" class="col-sm-2 control-label">Website</label>
+                <div class="col-sm-10">
+                  <input class="form-control" id="websiteInput" name="website" type="text" v-model.trim="website" @blur="$v.website.$touch()">
+                </div>
+              </div>
+              <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
-                  <p><small>You do not need a password for Liquido. You will login through your mobile phone. (2-factor-authentication)</small></p>
-                  <button type="submit" id="registerButton" @click.prevent="register()" class="btn btn-primary" :disabled="$v.$error">Register</button>
+                  <p><button v-if="!registerSuccess" type="submit" id="registerButton" @click.prevent="register()" class="btn btn-primary" :disabled="disableRegisterButton ">Register</button></p>
+                  <p v-if="!registerSuccess"><small>You do not need a password for Liquido. You will login through your mobile phone. (2-factor-authentication)</small></p>
+                  <div v-if="registerSuccess" class="alert alert-success">
+                    <p>You have been registerd successfully. You may now login via email or SMS.</p>
+                  </div>
+                  <router-link v-if="registerSuccess" :to="{ name: 'login', params: { initEmail: email, initMobilePhone: mobilephone }}" role="button" class="btn btn-default">Login &raquo;</router-link>
                 </div>
               </div>
             </form>
-
-            <div class="alert alert-success" v-if="registerSuccess">
-              <p>You have been registerd successfully. You may now login.</p>
-            </div>
 
             <alert-panel ref="alertPanel" title="Error" class="alert-danger errorAlert"></alert-panel>
           </div>
@@ -92,6 +107,8 @@ export default {
       email: '',
       fullname: '',
       mobilephone: '',
+      website: '',
+      pictureURL: '',
       registerSuccess: false
     }
   },
@@ -106,7 +123,8 @@ export default {
     },
     mobilephone: {
       required, validMobilephone
-    }
+    },
+    website: {  }
   },
 
   watch: {
@@ -122,33 +140,55 @@ export default {
   },
 
   computed: {
-    isDevEnv() { return process.env.NODE_ENV === 'development' },
     isEmailValid() {
       return validEMailRegEx.test(this.email)
+    },
+    disableRegisterButton() {
+      return this.$v.$error || this.$v.$dirty === false || this.registerSuccess
     }
   },
 
-  methods: {
+  mounted() {
+    var rand = Math.floor(Math.random() * 16) + 1;   //randomly select an avatar
+    this.chooseAvatar(rand)
+  },
 
+  methods: {
     register() {
       var newUser = {
         email: this.email,
         profile: {
           name: this.fullname,
-          //website: this.website,
-          //picture: this.pictureURL,
+          website: this.website,
+          picture: this.pictureURL,
           mobilephone: this.mobilephone,
         }
       }
       apiClient.register(newUser).then(res => {
         this.registerSuccess = true
-        this.$refs.alertPanel.closeAlert()
+        this.$refs.alertPanel.clearAlert()
       }).catch(err => {
-        var errorMessage = "Could not register."
+        if (err.response.data.liquidoErrorName === "USER_EXISTS") {
+          var errorMessage = "This user already exists. Please go to login."
+        } else {
+          var errorMessage = "Could not register. Please try again later."
+        }
         var errorDetails = JSON.stringify(err)
         this.$refs.alertPanel.showAlert(errorMessage, errorDetails)
       })
     },
+
+    getAvatarPath(i) {
+      return '/static/img/avatars/Avatar'+i+'.png'
+    },
+
+    isSelectedAvatar(i) {
+      return this.pictureURL === this.getAvatarPath(i)
+    },
+
+    chooseAvatar(i) {
+      this.pictureURL = this.getAvatarPath(i)
+    }
 
   },
 
@@ -157,6 +197,12 @@ export default {
 </script>
 
 <style scoped>
+  .chooseAvatar {
+    border: 1px solid #FFF;
+  }
+  .selectedAvatar {
+    border: 1px solid #204d74;
+  }
   .required {
     color:red;
   }
@@ -170,5 +216,9 @@ export default {
     font-size: 90%;
     color: #a94442;
     margin-left: 10px;
+    margin-bottom: 0;
+  }
+  .errorAlert {
+    margin-bottom: 0;
   }
 </style>

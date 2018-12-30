@@ -17,7 +17,7 @@
 			<table class="table lawFooterTable">
 				<tbody>
 					<tr>
-						<td><img :src="law.createdBy.profile.picture" class="media-object userPicture"></td>
+						<td><img :src="law.createdBy.profile.picture" class="media-object avatarImg"></td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
 							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}
@@ -151,6 +151,10 @@ export default {
   .lawPanel .panel-footer {
     padding-top: 3px;
     padding-bottom: 3px;
+  }
+  .avatarImg {
+    width: 32px;
+    height: 32px;
   }
   .lawFooterTable {
 		margin: 0;

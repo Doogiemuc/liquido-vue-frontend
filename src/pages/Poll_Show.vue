@@ -30,24 +30,6 @@
 	    </div>
 	  </div>
 
-	  <div v-if="poll.status == 'VOTING'" class="panel panel-default">
-	  	<div class="panel-heading">
-	  		<h4>Your info for this area</h4>
-	  	</div>
-	  	<div class="panel-body"">
-	  		<ul>
-	  			<li v-if="isPublicProxy">You already are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
-	  			<li v-else="isPublicProxy">You are not yet a public proxy in this area. Voters can not yet delegate their vote to you. Do you want to
-	  				<a href="#" @click="becomePublicProxy">become a public proxy</a>?
-	  			</li>
-	  			<li v-if="delegationRequests.length > 0">{{delegationRequests.length}} voters would like to delegate their vote to you. Do you want
-	  				to <a href="#" @click="acceptDelegations">accept these requests</a>?
-	  			</li>
-	  			<li v-if="directProxy">Your direct proxy in this area is {{directProxy.profile.name}} &lt;{{directProxy.email}}&gt;</li>
-	  		</ul>
-	    </div>
-	  </div>
-
 		<div class="row" v-if="poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
 				<h3>Alternative proposals in this poll</h3>
@@ -128,15 +110,37 @@
 	    </div>
 		</div>
 
+		<div class="panel panel-default" v-if="this.delegations">
+	  	<div class="panel-heading">
+	  		<h4>You as a proxy in this area</h4>
+	  	</div>
+	  	<div class="panel-body"">
+	  		<ul>
+	  			<li v-if="delCount == 1">You are the proxy for one voter who delegated his right to vote to you.</li>
+	  			<li v-if="delCount >  1">You are the proxy for {{delCount}} voters who delegated their right to vote to you.</li>
+	  			<li v-if="delReq == 1">A voter would like to delegate his right to vote to you as his proxy. Do you want
+	  				to <a href="#" @click="acceptDelegations">accept this request?</a> Then your ballot will also be casted for this delegee. This voter will thus be able to see how you voted.
+	  			</li>
+	  			<li v-if="delReq > 1">{{delReq}} voters would like to delegate their vote to you as their proxy. Do you want
+	  				to <a href="#" @click="acceptDelegations">accept these request?</a>
+	  			</li>
+	  			<li v-if="delegations.isPublicProxy">You are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
+	  			<li v-else="delegations.isPublicProxy">You are not yet a public proxy in this area. Furhter voters can not yet immideately delegate their vote to you. Do you want to
+	  				<a href="#" @click="becomePublicProxy">become a public proxy?</a>
+	  			</li>
+	  		</ul>
+	    </div>
+	  </div>
+
 	</div>
 </template>
 
 <script>
 import moment from 'moment'
-//import TypeAhead from 'vue2-typeahead'
 import LawPanel from '../components/LawPanel'
 import Timeline from '../components/Timeline'
-
+var loglevel = require('loglevel')
+var log = loglevel.getLogger("Poll_Show")
 
 export default {
 	props: {
@@ -146,12 +150,8 @@ export default {
 	data () {
     return {
       poll: { _embedded: { proposals: [] }},
-
-      isPublicProxy: false,
-      delegationRequests: [],
-      directProxy: undefined,
-      topProxy: undefined,
-
+      delegations: undefined,
+      voterToken: undefined,
       userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
       searchVal: "",
       selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
@@ -161,7 +161,6 @@ export default {
 	components: {
 		timeline: Timeline,
 		lawPanel: LawPanel,
-//		typeahead: TypeAhead
 	},
 
 	computed: {
@@ -176,6 +175,10 @@ export default {
         { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
       ]
 		},
+
+		delCount()              { return this.delegations.delegationCountRec },
+		delReq()                { return this.delegations.delegationRequests.length },
+
 		canJoinPoll() {
 			var alreadyJoined = false  //TODO: Can a user join a poll with more than one of its own proposals?  Maybe not?
 			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
@@ -198,16 +201,10 @@ export default {
 	},
 
 	created() {
-		this.$root.api.getPoll(this.pollId)
-			.then(poll => { this.poll = poll })
-			.then(this.getAreaInfo)
-		//.then(this.getOwnBallot)
-
+		this.loadPoll().then(this.loadDelegations)
 		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
 			this.userProposals = proposals
 		})
-
-
 	},
 
 	mounted() {
@@ -215,10 +212,75 @@ export default {
 	},
 
 	methods: {
-		/** get localized display Value of a date */
-    getFromNow(dateVal) {
-      return moment(dateVal).fromNow();
+		loadPoll() {
+			return this.$root.api.getPoll(this.pollId).then(poll => { this.poll = poll })
+		},
+
+    /**
+     * Load info about delegations TO this user as a proxy
+     * On this Poll_Show page, we only show the info about delegations TO this user.
+     * The information about being a proxy himself can be seen under /proxies -> Proxies_Show  !
+     */
+  	loadDelegations() {
+  		return this.fetchVoterToken().then(voterToken => {
+	      return this.$root.api.getMyDelegations(this.poll.area, this.voterToken).then(del => {
+	      	this.delegations = del
+	      })
+	    })
     },
+
+    /* lazily fetchc the user's voterToken and cache it locally */
+    fetchVoterToken() {
+    	if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
+    	return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
+    		this.voterToken = token.voterToken
+    		return this.voterToken
+    	})
+    },
+
+  	getOwnBallot() {
+  		var that = this
+  		return this.fetchVoterToken().then(voterToken => {
+  			this.$root.api.getOwnBallot(that.poll.id, voterToken).then(ballot => {
+  				console.log("getOwnBallot", ballot)
+	  		})
+  		})
+  	},
+
+  	becomePublicProxy() {
+  		var that = this
+  		return this.fetchVoterToken().then(voterToken => {
+  			return this.$root.api.becomePublicProxy(this.poll.area, voterToken).then(res => {
+  				log.info("User is now a public proxy")
+  				this.loadDelegations()
+  			})
+  		})
+  	},
+
+  	acceptDelegations() {
+  		var that = this
+  		return this.fetchVoterToken().then(voterToken => {
+  			this.$root.api.acceptDelegationRequests(this.poll.area, voterToken).then(res => {
+  				log.info("Accepted delgation requests")
+  				this.loadDelegations()
+  			})
+  		})
+  	},
+
+  	/* jump to the edit proxy page */
+  	editProxy() {
+  		this.$router.push({name: "editProxy", params: {
+  			categoryId: this.poll.area.id,
+  			category:   this.poll.area,
+  			//we do not have the assigned proxy.  Proxy_edit.vue will load it02
+  		}})
+  	},
+
+  	joinPoll() {
+  		return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
+				console.log("joined proposal into poll.", res)
+			})
+		},
 
 		/**
 		 * When a user likes a proposal, then we update its properties
@@ -233,30 +295,6 @@ export default {
   		})
   	},
 
-  	getAreaInfo() {
-      console.log("getAreaInfo")
-      return this.$root.api.getAreaInfo(this.poll.area.id)
-        .then(res => {
-          this.isPublicProxy = res.isPublicProxy
-          this.delegationRequests = res.delegationRequests
-          this.directProxy = directProxy
-          this.topProxy = topProxy
-        })
-    },
-
-  	getOwnBallot() {
-  		var that = this
-  		return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(voterToken => {
-  			this.$root.api.getOwnBallot(that.poll.id, voterToken).then(ballot => {
-  				console.log(ballot)
-	  		})
-  		})
-  	},
-
-  	becomePublicProxy() {
-  		return this.$root.api.becomePublicProxy(this.poll.area.id)
-  	},
-
 		toggleCollapse() {
 			$('#joinPollDiv').collapse('toggle')
 			$('#joinPollPanel').collapse('toggle')
@@ -269,11 +307,11 @@ export default {
 			})
 		},
 
-		joinPoll() {
-			return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
-				console.log("joined proposal into poll.", res)
-			})
-		}
+  	/** get localized display Value of a date */
+    getFromNow(dateVal) {
+      return moment(dateVal).fromNow();
+    },
+
   }
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="alert alert-dismissible fade" role="alert">
-    <button type="button" class="close" aria-label="Close" ><span @click="closeAlert" aria-hidden="true">&times;</span></button>
+    <button type="button" class="close" aria-label="Close" ><span @click="clearAlert" aria-hidden="true">&times;</span></button>
     <h4>{{title}}</h4>
     <p>{{message}}</p>
     <div id="detailsWrapper" class="collapse">
@@ -11,7 +11,7 @@
     </div>
     <div style="text-align: right">
       <button type="button" class="btn btn-default btn-sm" @click="copyDetailsToClipboard">Copy error details to clipboard</button>
-      <button type="button" class="btn btn-primary btn-sm" @click="closeAlert">Close</button>
+      <button type="button" class="btn btn-primary btn-sm" @click="clearAlert">Close</button>
     </div>
   </div>
 </template>
@@ -43,8 +43,9 @@ export default {
     	$("div.alert").addClass('in')
     },
 
-    closeAlert() {
-      //console.log("closing alert")
+    clearAlert() {
+      this.message = ""
+      this.detailMessage = ""
       $("div.alert").removeClass('in')
     },
 

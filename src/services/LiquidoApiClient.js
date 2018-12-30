@@ -20,7 +20,7 @@ var _ = require('lodash')
 var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
 var template = require('url-template');   // parsing and expanding RFC 6570 URI Templates
 var loglevel = require('loglevel')
-var log = loglevel.getLogger("LiquidoApiClient");
+var log = loglevel.getLogger("LiquidoApiClient")
 
 
 //==================================================================================================================
@@ -260,7 +260,7 @@ module.exports = {
    */
   getGlobalProperties() {
     if (globalPropertiesCache !== undefined) return globalPropertiesCache;
-    log.debug("Loading global properties from backend (and caching them)")
+    //log.debug("Loading global properties from backend (and caching them)")
     return anonymousClient.get('/globalProperties').then(
       res => {
         globalPropertiesCache = res.data
@@ -334,7 +334,7 @@ module.exports = {
     })
   },
 
-  /** fetch information about proxies in that area */
+  /** fetch all information about proxies in that area */
   getMyProxy(area) {
     return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
@@ -362,9 +362,9 @@ module.exports = {
     }})
   },
 
-  /** get accepted delegations and pending delegation requests for this proxy */
-  getMyDelegations(area) {
-    return axios.get("/my/delegations/"+area.id).then(res => res.data)
+  /** get accepted delegations, pending delegation requests and the recursive delegation count for this proxy */
+  getMyDelegations(area, voterToken) {
+    return axios.get("/my/delegations/"+area.id, { params: { voterToken: voterToken }}).then(res => res.data)
   },
 
   acceptDelegationRequests(area, voterToken) {
