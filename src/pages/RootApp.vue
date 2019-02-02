@@ -127,8 +127,8 @@ export default {
           iziToast.success({
             title: 'Login',
             message: 'You are now logged in as '+user.email,
-            //position: 'bottomRight',
-          });
+            position: 'bottomRight',
+          })
         })
         .catch(err => {
           log.error("Cannot find user details with JWT. Invalid JWT?")

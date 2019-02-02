@@ -27,7 +27,6 @@
 //import 'tinymce/plugins/placeholder';
 
 
-//FIXME: initially the textare has {{value}}
 // When value changes the watcher needs to update the content of tinyMCE
 // When the user inputs something in tinyMCE then this needs to be reflected to the parent component
 // How to handle both at the same time?
@@ -63,18 +62,21 @@ export default {
   },
 
   watch: {
-    // When the 'value' property is changed by the parent Vue component (e.g. via v-model)
-    // then we also need to update the TinyMCE editor's content.
-    // => This will emit an 'input' event back to the parent component.
-    // We do NOT want to replace the the content when 'value' was changed by user input within TinyMCE.
-    // => Need to prevent endless circle :-)
+    /**
+     This is actually tricky!
+     When the 'value' property of this Vue component is changed by the parent Vue component (e.g. v-model)
+     then we also need to update the TinyMCE editor's content.
+     But this will emit an 'input' event back to the parent component. => Need to prevent endless circle :-)
+     And We do NOT want to replace the  content when 'value' was changed by user input within TinyMCE, because
+     a call to setContent forces  the cursor to the beginning of the TinyMCE input field.
+    */
     'value': function(newValue) {
-      console.log("TinyMceComponent. value.watcher: value property has changed to "+newValue)
+      //console.log("TinyMceComponent. value.watcher: value property has changed to "+newValue)
       if (ownChange) {
-        console.log("This was my own change, alraedy updated")
+        //console.log("This was my own change, alraedy updated")
         ownChange = false
       } else {
-        console.log("TinyMceCompnoent.setContent due to change of value property")
+        //console.log("TinyMceCompnoent.setContent due to change of value property")
         this.setContent(newValue)
       }
     }
@@ -90,47 +92,46 @@ export default {
 
     /* completely overwrite and set a new content into the tinymce editor */
     setContent(newContent) {
-      console.trace("TinyMceComponent.setContent("+newContent+")")
+      console.debug("TinyMceComponent.setContent("+newContent+")")
       if (!this.tinyMceReady) {
-        console.error("WARN: TinyMceComponent: cannot setContent, because TinyMCE is not yet ready. "+newContent)
+        console.warn("WARN: TinyMceComponent: cannot setContent, because TinyMCE is not yet ready. "+newContent)
         return      //OR: if (!tinymce.get(this.textareaId).initialized)
       }
       tinymce.get(this.textareaId).setContent(newContent)
     },
 
     /**
-     * Automatically called when the content of the editor has change in any way
+     * Automatically called when the content of the editor has changed in _any_ way.  (Me be called some more often.)
      * Content may have changed either by keypress, unde/redo or via copy&paste.
      * Will $emit an 'input' event that can automatically be handled by v-model. See https://vuejs.org/v2/guide/components.html#Form-Input-Components-using-Custom-Events
      */
     contentUpdated(evt) {
-      console.log("TinyMCE contentUpdated to "+this.getContent()+" ownChange="+this.ownChange)
       ownChange = true
       this.$emit('input', this.getContent());
     }
   },
 
   created() {
-    console.log("TinyMceComponent.created() id="+this.textareaId+", value='"+this.value+"'")
+    //console.log("TinyMceComponent.created() id="+this.textareaId+", value='"+this.value+"'")
     // load tinymce placeholder plugin from from local static file
     tinymce.PluginManager.load('placeholder', '/static/js/tinymce/plugins/tinymce-placeholder.plugin.js')
-    this.ownChange = false
+    ownChange = false
   },
 
   mounted() {
-    console.log("TinyMceComponent.mounted() id="+this.textareaId+", value="+this.value)
+    //console.log("TinyMceComponent.mounted() id="+this.textareaId+", value="+this.value)
     this.ownChange = false
     this.tinyMceConfig.selector = '#' + this.textareaId
     tinymce.init(this.tinyMceConfig)
     .then(editors => {
-      console.log("TinyMCE initialized value="+this.value, "content="+this.getContent(), tinymce.editors)
+      //console.log("TinyMCE initialized value="+this.value, "content="+this.getContent(), tinymce.editors)
       this.tinyMceReady = true
-      var ownChange = false
-      this.setContent(this.value)
+      this.setContent(this.value)  // make sure that the last version of this.value is aligned with content
       // No need to handle any updates between textarea and tinymce's content. tinymce already keeps the text areas content in sync with its content.
+      // TinyMCE's "change" evnet does by far(!) not trigger on all changes. on the other hand, keyup is a bit too much, it also triggers on shift or ctrl. But just to be sure to catch every update
       tinymce.get(this.textareaId)
-      .on('keyup',  this.contentUpdated)
       .on('change', this.contentUpdated)
+      .on('keyup',  this.contentUpdated)
       .on('undo',   this.contentUpdated)
       .on('redo',   this.contentUpdated)
     })

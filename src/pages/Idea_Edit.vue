@@ -99,7 +99,7 @@ export default {
 
   },
 
-
+  /*
   watch: {
     'title': function(newTitle) {
       console.log("EdidtIdea: title changed to "+newTitle)
@@ -111,6 +111,7 @@ export default {
       console.log("AreaURI has been set to "+newAreaURI)
     }
   },
+  */
 
 
   mounted() {
