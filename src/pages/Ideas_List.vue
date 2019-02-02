@@ -31,6 +31,7 @@
     v-on:saveNewValue="saveNewValue"
     v-on:cellClicked="cellClicked"
     ref="ideatable"
+    id="ideatable"
   />
 </div>
 
@@ -205,8 +206,11 @@ export default {
 
 		},
 
+    /** When clicking (once) on title or description col of an idea, then open that idea */
     cellClicked(idea, col) {
-      if (col.path === "title") { this.$router.push('/ideas/'+idea.id) }
+      if (col.path === "title" || col.path === "description") {
+        this.$router.push('/ideas/'+idea.id)
+      }
     },
 
     /**
@@ -290,6 +294,14 @@ export default {
 
 <style>
   .reloadIcon {
+    cursor: pointer;
+  }
+  /* Clickable title col */
+  #ideatable tbody tr td:nth-child(2) {
+    cursor: pointer;
+  }
+  /* Clickable description col */
+  #ideatable tbody tr td:nth-child(3) {
     cursor: pointer;
   }
 </style>

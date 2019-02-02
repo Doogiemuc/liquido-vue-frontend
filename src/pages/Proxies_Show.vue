@@ -2,10 +2,12 @@
   <div class="container">
     <h1>Liquid Democracy Proxy Voting</h1>
     <p>In Liquid Democracy voters can delegate their vote to a proxy. Maybe you now someone who is an expert in an area and trust him
-      to vote better for you. Other voters might want to delegate their right to vote to you, so that you may vote for them as a proxy.
-      When you accept these delegations, then your ballot will not count just once, but also for each of your delegees.</p>
-    <p>It is always possible to vote for yourself, no matter if you have a proxy or not. Even when your proxy has already voted for you in a poll,
-    you can still override his ballot and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
+      to vote better for you. Then you can assign him as your proxy. But even then, it is <b>always</b> possible to vote for yourself. Even when your proxy has already voted for you in a poll,
+    you can still override his decision and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
+    <p>Other voters might also want to delegate their right to vote to you, so that you may vote for them as their proxy. This is a delegation request.
+      When you accept these delegations, then your ballot will also be counted for each of your delegees.
+    <p>There is one thing to consider. When you accept delegations and become a proxy, then your delegees will know how you voted, because you also voted for them. Therefore becoming a proxy
+      is an opt-in step in Liquido. By default you must accept delegation requests. But you can decide to immideately and automatically accept all delegations to you. This is called becoming a public proxy.</p>
 
     <div class="row">
       <div class="col-sm-6" v-for="area in categories" :key="area.id">
@@ -53,7 +55,7 @@
               <i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;public proxy
             </a>
             <span v-if="delegations[area.id].isPublicProxy"  class="pull-right"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;public proxy</span>
-            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{delegations[area.id].delegationCountRec}}&nbsp;delegations
+            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{delegations[area.id].delegationCount}}&nbsp;delegations
             <a href="#" v-if="delegations[area.id].delegationRequests.length > 0" @click="acceptDelegationRequest(area)">
               &nbsp;({{delegations[area.id].delegationRequests.length}}&nbsp;request{{delegations[area.id].delegationRequests.length > 1 ? "s" : ""}})
             </a>

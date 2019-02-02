@@ -46,7 +46,7 @@
 	  <div v-else class="panel panel-default" id="infoPanel">
 	    <div class="panel-body">
 	    	<div v-if="proposal.status === 'IDEA'">
-	    		<p>This idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
+	    		<p>This idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
 	    		will become a proposal that can be discussed.</p>
 	    	</div>
 	    	<div v-else-if="proposal.status === 'PROPOSAL'">
@@ -235,7 +235,7 @@ export default {
     },
 
     editProposal() {
-			//TODO: this.$router.push('/proposals/'+this.proposal.poll.id+"/edit")
+			//TODO: this.$router.push('/proposals/'+this.proposal.id+"/edit")
     },
 
 		upvoteComment(comment) {

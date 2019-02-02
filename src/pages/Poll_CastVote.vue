@@ -7,9 +7,9 @@
       <div class="panel-heading">
         <h4>Your ballot</h4>
       </div>
-      <div class="panel-body"">
+      <div class="panel-body ballot-body">
         <ol>
-          <li v-for="proposal in voteOrderProposals">"{{proposal.title}}" by {{proposal.createdBy.email}}</li>
+          <li v-for="proposal in voteOrderProposals">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
         </ol>
       </div>
     </div>
@@ -34,17 +34,17 @@
 
             <div class="well well-sm monspaceFont">{{voterToken || '&nbsp;'}}</div>
 
-            <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken" :disabled="step1_status === 'loading'">
-              Fetch voter token
+            <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken" :disabled="disableFetchVoterTokenButton">
+              Fetch voter token<span v-if="step1_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
             </button>
           </li>
         </ul>
       </div>
     </div>
 
-    <div v-if="numDelReq > 0 || delegationRequestsAccepted > 0" class="panel panel-default">
+    <div v-if="delegationCount > 0 || numDelReq > 0" class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Delegation requests</h3>
+        <h3 class="panel-title">Delegations to you as a proxy</h3>
       </div>
       <div class="panel-body">
         <ul class="fa-ul">
@@ -59,12 +59,13 @@
             </p>
             <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
               Do you want to accept these requests? These voters would then be able to see how you voted. But only them because you are their proxy.
-              Your vote would then count {{areaData.delegationCount + numDelReq + 1}} times (including your own vote).
+              Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote).
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
               Accept delegation requests
             </button>
-            <p v-if="delegationRequestsAccepted > 0">Accepted {{delegationRequestsAccepted}} delegation requests. You are now a proxy for {{delegationCount}} voters.</p>
+            <p v-if="delegationCount == 1">You are the proxy for one voter. Your vote will also create a ballot for this delegee.</p>
+            <p v-if="delegationCount >  1">You are the proxy for {{delegationCount}} voters. Your vote will also create ballots for these delegees.</p>
           </li>
         </ul>
       </div>
@@ -82,10 +83,10 @@
               <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
               <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p>Here we cast you vote completely anonymously. <span v-if="delegationCount > 0">Your vote will count {{delegationCount + 1}} times (including your own vote)</span> When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. This checksum is also confidential. Do not share it!</p>
+              <p>Here we cast you vote completely anonymously. When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. Do not reveal that this is <em>your</em> checksum!</p>
               <div class="well well-sm monspaceFont">{{checksum || '&nbsp;'}}</div>
               <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
-                Cast vote anonymously
+                Cast vote anonymously<span v-if="step3_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
               </button>
             </li>
           </ul>
@@ -128,8 +129,10 @@ export default {
   components: { LawPanel, timeline },
 
   props: {
-    'pollId':        { type: Number, required: true },  // a Number is passed via named route params
-    'voteOrderUris': { type: Array,  required: true }
+    // pollId is passed as a Number from named route params.
+    // If Poll_CastVote would be called via URL, then pollId would be a String and Vue's validation would fail. This is what we want. Poll_CastVoute page should not be opened directly.
+    'pollId':        { type: Number, required: true },
+    'voteOrderUris': { type: Array,  required: true }   // MUST pass voteOrder
   },
 
   data () {
@@ -140,8 +143,9 @@ export default {
       directProxy: undefined,
       topProxy: undefined,
       voterToken: "",
-      delegationCount: 1,
+      delegationCount: 0,
       checksum: "",
+      voteCount: undefined,
       step1_status: 'dimmed',
       step2_status: 'dimmed',
       step3_status: 'dimmed',
@@ -154,18 +158,11 @@ export default {
   },
 
   computed: {
-    pollCreated()    { return moment(this.poll.createdAt).format('L') },
-    votingStart()    { return moment(this.poll.votingStartAt).format('L') },
-    votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
-    untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
-    timelineEvents() {
-      return [
-        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
-        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
-        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
-      ]
-    },
     hideErrorMessage() { return this.errorMessage == "" },
+    disableFetchVoterTokenButton() {
+      return this.step1_status === 'success' ||
+             this.step1_status === 'loading'
+    },
     disableCastVoteButton() {
       return this.step1_status !== 'success' ||
              this.step1_status === 'loading' ||
@@ -206,11 +203,13 @@ export default {
     fetchVoterToken() {
       log.info("Starting to cast the vote.")
       this.step1_status = "loading"
-      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false)  // do not automatically become a proxy here
+      return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false)  // do not automatically become a proxy here
         .then(res => {
-          this.voterToken      = res.voterToken
-          this.delegationCount = res.delegationCount
-          this.step1_status    = "success"
+          console.log("got voterToken", res)
+          this.voterToken         = res.voterToken
+          this.delegationCount    = res.delegationCount    // overall recursive count of delegations
+          this.delegationRequests = res.delegationRequests
+          this.step1_status = "success"
           return this.voterToken
         })
         .catch(err => {
@@ -245,8 +244,25 @@ export default {
       return this.$root.api.castVote(this.poll, this.voteOrderUris, this.voterToken)
         .then(res => {
           this.checksum = res.checksum
+          this.voteCount = res.voteCount
           this.step3_status = "success"
           log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
+
+          swal({
+            title: "SUCCESS",
+            text: "Your vote was casted successfully.",
+            type: "success"
+          },
+          function () {
+            //that.$router.push('/userHome')
+          })
+
+          /*
+          iziToast.success({
+            title: 'Success',
+            message: "Your vote was casted successfully."
+          })
+          */
           return this.checksum
         })
         .catch(err => {
@@ -310,6 +326,10 @@ export default {
 
   .fa-li {
     left: -2.5em;
+  }
+
+  .ballot-body {
+    background-color: #F9F9F9;
   }
 
   .expandButton {

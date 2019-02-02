@@ -24,7 +24,7 @@
         <tr>
           <td width="49%" class="text-center">
             <h3>Proposals</h3>
-            <p>These are the competing alternative proposals in this poll.</p>
+            <p>These are the competing proposals in this poll.</p>
           </td>
           <td width="2%"></td>
           <td width="49%" class="text-center">
@@ -35,7 +35,7 @@
         <tr>
           <td width="49%" id="leftContainer">
 
-            <law-panel v-for="proposal in poll._embedded.proposals"
+            <law-panel v-for="proposal in notVotedForProposals"
               :law="proposal"
               :showTimeline="false"
               :fixedHeight="100"
@@ -47,11 +47,18 @@
             <i class="fa fa-angle-double-right fa-4x" aria-hidden="true"></i>
           </td>
           <td width="49%" id="rightContainer">
-            <div class="rightWrapper">
-              <div v-if="ballotIsEmpty" class="rightDropHere">
+            <div v-if="ballotIsEmpty" class="rightWrapper">
+              <div class="rightDropHere">
                 Drop proposals here!
               </div>
             </div>
+            <!-- already voted for proposals -->
+            <law-panel v-for="proposal in votedForProposals"
+              :law="proposal"
+              :showTimeline="false"
+              :fixedHeight="100"
+              :readOnly="true">
+            </law-panel>
           </td>
         </tr>
       </tbody>
@@ -66,37 +73,37 @@
 
 <script>
 import LawPanel from '../components/LawPanel'
-import timeline from '../components/Timeline'
+//import timeline from '../components/Timeline'
 import moment from 'moment'
 import dragula from 'dragula'   // TODO: https://github.com/RubaXa/Sortable
 import loglevel from 'loglevel'
  var log = loglevel.getLogger("Poll_CastVote");
 
 export default {
-  components: { LawPanel, timeline },
+  components: { LawPanel },
 
   props: {
-    'pollId': { type: String, required: true }  // String is passed from url-param
+    'pollId': { type: String, required: true },    // String is passed from url-param
+    'voteOrder': { type: Array, required: false }  // optional array of proposals, if voter already has a ballot
   },
 
   data () {
     return {
-      poll: { _embedded: { proposals: [] }},
-      ballotIsEmpty: true,
+      poll: undefined,
       voterToken: "",
       checksum: "",
       loading: true,
+      ballotIsEmpty: true,    // cannot have this as computed prop, because it's hard to make it reactive
       step1_status: 'loading',
       step2_status: 'dimmed',
       step3_status: 'dimmed',
       mainButton: "Processing ...",
-      successMessage: "",
-      errorMessage: "",
-      errorMessageDetails: "",
+      //TODO: add AlertPanel for errors
     }
   },
 
   computed: {
+    /*
     pollCreated()    { return moment(this.poll.createdAt).format('L') },
     votingStart()    { return moment(this.poll.votingStartAt).format('L') },
     votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
@@ -108,21 +115,48 @@ export default {
         { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
       ]
     },
-    hideErrorMessage() { return this.errorMessage == "" },
+    */
+    /**
+     * Get all proposals for the left container. That the user did not yet vote for.
+     * @return subset of poll._embedded.proposals
+     */
+    notVotedForProposals() {
+      if (!this.poll) return []
+      if (!this.voteOrder) return this.poll._embedded.proposals
+      var result = this.poll._embedded.proposals.filter(proposal => {
+        return !this.voteOrder.some(votedForProp => proposal.id == votedForProp.id)
+      })
+      //console.log("notVotedForProposals result", result)
+      return result
+    },
+    /**
+     * Get all proposals for the right container. Empty or the list of proposals that the user already voted for.
+     * We return proposal JSONs from poll._embedded.proposals, that we loaded from the backend, because they contain HATEOAS links.
+    */
+    votedForProposals() {
+      if (!this.poll) return []  // reactive: only return something after poll is loaded
+      if (!this.voteOrder) return []
+      return this.poll._embedded.proposals.filter(proposal => {
+        return this.voteOrder.some(votedForProp => proposal.id == votedForProp.id)   // return all elements from poll._embedded.proposals that are contained in the voteOrder with the same ID
+      })
+    },
+
+
   },
 
+  /** reload the poll from poll Id */
   created () {
-    this.$root.api.getPoll(this.pollId).then(poll => {
-      this.poll = poll
-    })
+    this.$root.api.getPoll(this.pollId).then(poll => { this.poll = poll })
   },
 
+  /** init "Dragula" the great drag'n'drop lib */
   mounted() {
     this.$nextTick(() => {
       var drake = dragula([document.getElementById('leftContainer'), document.getElementById('rightContainer')]);
       //console.log(drake, document.getElementById('test'))
       drake.on('drop', this.ballotDropped)
     })
+    if (this.voteOrder && this.voteOrder.length > 0) this.ballotIsEmpty = false
     // Show a popover when button is disabled (needs some more CSS adaptions below)
     var that = this
     $('#castVoteButtonWrapper').popover()
@@ -140,21 +174,19 @@ export default {
     ballotDropped(el, target, source, sibbling) {
       //console.log("dropped onto target=", target, $('#rightContainer div.panel').length)
       this.ballotIsEmpty = $('#rightContainer div.panel').length == 0
-
     },
 
     /**
      * Cast vote for this VoteOrder
      */
     clickCastVoteButton() {
-      var voteOrderUris = []        // get vote Order from #rightContainer as sorted by user
+      var voteOrderUris = []        // get voteOrderUris from #rightContainer as sorted by user
       $('#rightContainer div.lawPanel').each((idx, panel) => {
         voteOrderUris.push(panel.dataset.proposaluri)
       })
-      log.info("clickCastVoteButton", this.poll.id, voteOrderUris)
+      log.info("Sorted Ballot in poll", this.poll.id, voteOrderUris)
       this.$router.push({ name: 'castVote', params: { pollId: this.poll.id, voteOrderUris: voteOrderUris }})
     }
-
   }
 
 }
@@ -175,10 +207,6 @@ export default {
   .panel-heading h4 {
     margin-top: 0;
     margin-bottom: 0;
-  }
-  .userPictureLeft {
-    float: left;
-    margin-right: 8px;
   }
 
   #castVoteButtonWrapper .btn[disabled] {
@@ -214,7 +242,6 @@ export default {
 
   .rightWrapper {
     position: relative;
-    /*border: 1px solid green; */
   }
 
   .rightDropHere {
@@ -231,59 +258,10 @@ export default {
     border-radius: 8px;
   }
 
-  .stepTitle {
-    padding-top: 3px;
-  }
-
-  .fa-li {
-    left: -2.5em;
-  }
-
-  .fa-ul>li {
-    margin-bottom: 2em;
-  }
-
-  .expandButton {
-    float: right;
-    color: #a94442;
-  }
-
-  #steps div.well {
-    margin-bottom: 0;
-  }
-
-  .monspaceFont {
-    font-family: monospace;
-  }
-
 </style>
 
 /*
   BUGFIX: DOM content created with v-html are not affected by scoped styles, but you can still style them using deep selectors
   https://vue-loader.vuejs.org/guide/scoped-css.html
 */
-<style>
- .roundedMessage {
-    padding: 10px;
-    border-radius: 4px;
-  }
-
-  .errorMessageDetails {
-    font-size: 10px;
-    font-family: monospace;
-    overflow: scroll;
-  }
-
-  .dimmed {
-    color: #EEE;
-  }
-
-  .red {
-    color: red;
-  }
-
-  .green {
-    color: green;
-  }
-
 </style>

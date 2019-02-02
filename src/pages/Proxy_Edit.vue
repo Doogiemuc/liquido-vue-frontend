@@ -81,8 +81,8 @@ export default {
     DoogieFilter
   },
 
-  // caller MUST pass the category and MUST pass the delegation if one alreaddy exists
-  // We assume that all callers already have loaded this info
+  // caller MUST pass the category. We assume that all callers already have loaded this info
+  // The delegation will be loaded in not passed
   props: {
     'category':   { type: Object, required: true },
     'delegation': { type: Object, required: false },

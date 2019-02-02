@@ -39,7 +39,6 @@ var jsonWebToken = undefined
 axios.defaults.baseURL = process.env.backendBaseURL
 
 
-
 /****** Axios REQUEST interceptor that adds the JWT token into the header (if known) *****/
 axios.interceptors.request.use(function (config) {
   if (jsonWebToken) {
@@ -58,10 +57,14 @@ axios.interceptors.response.use(function (response) {
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    if (error.response.data && error.response.data.message) {
-      log.error("Error response: "+error.response.data.message, error.response)
+    if (error.response.status >= 500) {
+      if (error.response.data && error.response.data.message) {
+        log.error("Error response: "+error.response.data.message, error.response)
+      } else {
+        log.error("Error response", error.response)
+      }
     } else {
-      log.error("Error response", error.response)
+      log.warn("Http Error Response 4xx: ", error.response)
     }
   } else if (error.request) {
     // The request was made but no response was received
@@ -130,6 +133,7 @@ module.exports = {
       })
   },
 
+  /** Set the JWT that will be used for all future requests */
   setJsonWebToken(jwt) {
     jsonWebToken = jwt
   },
@@ -194,7 +198,7 @@ module.exports = {
    * There is always a self link that points to the REST resource itself:  _links.self.href
    * @param HATEOAS {JSON} JSON as returned by the spring-data-rest server
    * @param linkName {String} the name of the link that we want to follow, e.g. "self" or "childObject"
-   * @param urlTemplateParams {Object} RFC6570 URI template parameters that we can extend
+   * @param urlTemplateParams {Object} optional RFC6570 URI template parameters for url template expansion, e.g. {?projection}
    * @return the links's parsed URL
    */
   getHateoasLink(hateoasJson, linkName, urlTemplateParams) {
@@ -215,7 +219,7 @@ module.exports = {
    */
   follow(hateoasJson, linkName, uriTemplateParams) {
     var url = this.getHateoasLink(hateoasJson, linkName, uriTemplateParams)
-    return axios.get(url)  // might return just one entity or an array of entities
+    return axios.get(url).then(res => res.data)       // might return just one entity or an array of entities
   },
 
   /**
@@ -334,7 +338,7 @@ module.exports = {
     })
   },
 
-  /** fetch all information about proxies in that area */
+  /** fetch all information about a voter's proxy in one area */
   getMyProxy(area) {
     return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
@@ -368,11 +372,11 @@ module.exports = {
   },
 
   acceptDelegationRequests(area, voterToken) {
-    return axios.put("/my/delegations/"+area.id+"/accept", { voterToken: voterToken })
+    return axios.put("/my/delegations/"+area.id+"/accept", { voterToken: voterToken }).then(res => res.data)
   },
 
   becomePublicProxy(area, voterToken) {
-    return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { voterToken: voterToken })
+    return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { voterToken: voterToken }).then(res => res.data)
   },
 
 
@@ -392,13 +396,13 @@ module.exports = {
     else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
-    return axios.get(lawURI).then(res => {
-      return res.data
-    }).catch(err => {
-      log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
-      return Promise.reject({msg: "Cannot get law", lawURI: lawURI, httpStatusCode: err.status.code})
-      //throw new Error(err)  NO! See https://stackoverflow.com/questions/33445415/javascript-promises-reject-vs-throw
-    })
+    return axios.get(lawURI).then(res => res.data)
+      /*  Global error handler handles this fine
+      .catch(err => {
+        if (err.response.status >= 500) log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
+        return Promise.reject(err)
+      })
+      */
   },
 
   getIdea(ideaIdOrURI, projected) {
@@ -463,6 +467,7 @@ module.exports = {
   /**
    * save a new(!) idea in the backend
    * The new idea will automatically be createdBy the currently logged in user.
+   * @return the stored idea  or 409 if an idea with that title already exists
    */
   saveNewIdea(newIdea) {
     log.debug("POST newIdea: "+JSON.stringify(newIdea))
@@ -474,15 +479,19 @@ module.exports = {
     }).then(res => {
       return res.data
     }).catch(err => {
-      log.error("Cannot post newIdea:"+JSON.stringify(newIdea)+" :", err)
+      if (err.response.status == 409) {
+        log.warn("Cannot saveNewIdea: An idea with that exact title already exists! "+JSON.stringify(newIdea)+" :", err)
+      } else {
+        log.error("Cannot saveNewIdea:"+JSON.stringify(newIdea)+" :", err)
+      }
       return Promise.reject(err)
     })
   },
 
   /**
-   * Update some fields of an existing(!) idea, proposal or law.
-   * @param URI the absolute REST path to the resource on the server.
-   * @param the fields that shall be updated. (Does not need to contain all fields.)
+   * Update some fields of an existing(!) idea, proposal or law. Keep in mind that title must be unique.
+   * @param {URI} uri the absolute REST path to the resource on the server.
+   * @param {JSON} update the fields that shall be updated. Does not need to contain all fields of an idea.
    * @return the response sent from the server which is normally the complete updated resource with all its fields.
    */
   patchIdea(uri, update) {
@@ -491,7 +500,7 @@ module.exports = {
     if (!update) return Promise.reject("patchIdea called with empty update")
     return axios({
       method: 'PATCH',
-      path: uri,
+      url: uri,                                             // Wanna discuss the difference between url and uri :-)
       headers: { 'Content-Type' : 'application/json' },
       data: update
     }).then(res => {
@@ -536,7 +545,7 @@ module.exports = {
     return axios.get('/laws/search/recentIdeas')
 			.then(res => { return res.data._embedded.laws })
 			.catch(err => {
-				log.error("ERROR in apiClient: ", JSON.stringify(err))
+				log.error("cannot getRecentIdeas: ", JSON.stringify(err))
 				return Promise.reject("LiquidoApiClient: Cannot getRecentIdeas(since="+since+"): "+JSON.stringify(err))
 			})
   },
@@ -671,9 +680,9 @@ module.exports = {
   },
 
   /**
-   * Get a poll with all its proposals
-   * @param pollSelector a poll or a poll URI
-   * @return a poll as JSON
+   * Load a poll with all its proposals from the backend.
+   * @param pollSelector {Number|URI} a poll ID or a poll URI
+   * @return the poll as JSON
    */
   getPoll(pollIdOrUri) {
     log.debug("getPoll", pollIdOrUri)
@@ -717,7 +726,7 @@ module.exports = {
         becomePublicProxy: becomePublicProxy
       } })
       .then(res => res.data )
-      // This is too important, therefore we have a dedicated catch clause here
+      // This is too important, therefore we have a dedicated catch clause here. In addition to the global one
       .catch(err => {
         log.error("LiquidoApiClient: Cannot getVoterToken for areaId="+areaId, err)
         return Promise.reject({msg: "LiquidoApiClient: Cannot getVoterToken()", areaId: areaId, err: err})
@@ -760,10 +769,10 @@ module.exports = {
   },
 
     /** get voter's own ballot in that poll, if he has already voted */
-  getOwnBallot(pollId, voterToken) {
-    log.debug("getOwnBallot(pollId="+pollId+" with voterToken)")
-    if (!_.isNumber(pollId)) return Promise.reject("pollId MUST be a number")
-    return axios.get('/polls/${pollId}/ballot/my', { params : {
+  getOwnBallot(poll, voterToken) {
+    log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
+    if (!poll) return Promise.reject("Need poll to getOwnBallot!")
+    return axios.get('/polls/'+poll.id+'/ballot/my', { params : {
       voterToken: voterToken
     }})
     .then(res => { return res.data })

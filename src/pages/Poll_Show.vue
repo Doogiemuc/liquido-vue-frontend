@@ -16,10 +16,9 @@
 	    <div class="panel-body"">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	      <router-link :to="{ path: '/polls/'+poll.id+'/sortBallot' }" id="goToCastVoteButton" role="button" class="btn btn-primary btn-lg pull-right">
-					Cast vote <i class="fas fa-angle-double-right"></i>
-				</router-link>
-				<p>If you already voted in this poll, then you can <a href="#" @click="getOwnBallot">check your ballot.</a></p>
+	      <button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
+				  Cast vote <i class="fas fa-angle-double-right"></i>
+				</button>
 	    </div>
 	  </div>
 
@@ -27,6 +26,21 @@
 	    <div class="panel-body"">
 	      <p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+	    </div>
+	  </div>
+
+ 		<div v-if="ownBallot" class="panel panel-default">
+ 			<div class="panel-heading">
+ 				<h4>Your ballot in this poll</h4>
+ 			</div>
+	    <div class="panel-body"">
+	    	<p v-if="ownBallot.level == 0">This ballot was casted by yourself.</p>
+	    	<p v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy.</p>
+	    	<p v-if="ownBallot.level > 1">This ballot was casted for you by a proxy.</p>
+	      <ol>
+          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+        </ol>
+        <p v-if="poll.status == 'VOTING'">This poll is still in its voting phase. You may still change the voteOrder in your ballot.</p>
 	    </div>
 	  </div>
 
@@ -152,6 +166,7 @@ export default {
       poll: { _embedded: { proposals: [] }},
       delegations: undefined,
       voterToken: undefined,
+      ownBallot: undefined,
       userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
       searchVal: "",
       selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
@@ -176,8 +191,9 @@ export default {
       ]
 		},
 
-		delCount()              { return this.delegations.delegationCountRec },
-		delReq()                { return this.delegations.delegationRequests.length },
+		delCount()  { return this.delegations.delegationCount },
+		delReq()    { return this.delegations.delegationRequests.length },
+		voteOrder() { return this.ownBallot ? this.ownBallot.voteOrder : undefined },
 
 		canJoinPoll() {
 			var alreadyJoined = false  //TODO: Can a user join a poll with more than one of its own proposals?  Maybe not?
@@ -201,7 +217,9 @@ export default {
 	},
 
 	created() {
-		this.loadPoll().then(this.loadDelegations)
+		this.loadPoll()
+			.then(this.loadOwnBallot)
+			.then(this.loadDelegations)
 		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
 			this.userProposals = proposals
 		})
@@ -229,7 +247,7 @@ export default {
 	    })
     },
 
-    /* lazily fetchc the user's voterToken and cache it locally */
+    /* lazily fetch the user's voterToken and cache it locally */
     fetchVoterToken() {
     	if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
     	return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
@@ -238,11 +256,14 @@ export default {
     	})
     },
 
-  	getOwnBallot() {
-  		var that = this
+    /**
+     * load voter's own ballot, if he has voted already.
+     * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
+     */
+  	loadOwnBallot() {
   		return this.fetchVoterToken().then(voterToken => {
-  			this.$root.api.getOwnBallot(that.poll.id, voterToken).then(ballot => {
-  				console.log("getOwnBallot", ballot)
+  			this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
+  				this.ownBallot = ballot  // may be undefined!
 	  		})
   		})
   	},
@@ -253,6 +274,10 @@ export default {
   			return this.$root.api.becomePublicProxy(this.poll.area, voterToken).then(res => {
   				log.info("User is now a public proxy")
   				this.loadDelegations()
+  				iziToast.success({
+            title: 'Success',
+            message: "Your are now a public proxy in<br/>"+this.poll.area.title,
+          })
   			})
   		})
   	},
@@ -263,8 +288,19 @@ export default {
   			this.$root.api.acceptDelegationRequests(this.poll.area, voterToken).then(res => {
   				log.info("Accepted delgation requests")
   				this.loadDelegations()
+  				iziToast.success({
+            title: 'Success',
+            message: "Delegation requests accepted."
+          })
   			})
   		})
+  	},
+
+  	gotoSortBallot() {
+  		this.$router.push({name: 'sortBallot', params: {
+  			pollId: this.poll.id+'',    // MUST convert to String, so that the prop validation in Poll_CastVote accepts it
+  			voteOrder: this.voteOrder   // if user already voted
+  		}})
   	},
 
   	/* jump to the edit proxy page */
@@ -272,7 +308,7 @@ export default {
   		this.$router.push({name: "editProxy", params: {
   			categoryId: this.poll.area.id,
   			category:   this.poll.area,
-  			//we do not have the assigned proxy.  Proxy_edit.vue will load it02
+  			//we do not have the currently assigned proxy.  Proxy_edit.vue will load it
   		}})
   	},
 

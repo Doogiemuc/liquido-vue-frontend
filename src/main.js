@@ -74,6 +74,12 @@ const routes = [
     },
     props: true
   },
+  { path: '/ideas/:ideaId/edit',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
+    component: function(resolve) {
+      require(['./pages/Idea_Edit.vue'], resolve)
+    },
+    props: true
+  },
   // ======================= Proposals =======================
   { path: '/proposals',
     component: function(resolve) {
@@ -120,19 +126,20 @@ const routes = [
     }
   },
 	{ path: '/polls/:pollId',
+    name: 'showPoll',
     component: function(resolve) {
       require(['./pages/Poll_Show.vue'], resolve)
     },
 		props: true  // pass URL parameter to prop in component
   },
   { path: '/polls/:pollId/sortBallot',
+    name: 'sortBallot',
     component: function(resolve) {
       require(['./pages/Poll_SortBallot.vue'], resolve)
     },
     props: true
   },
-  { // this named route also uses the param  "voteOrder": []
-    path: '/polls/:pollId/castVote',
+  { path: '/polls/:pollId/castVote',    // can only be called as named route.
     name: 'castVote',
     component: function(resolve) {
       require(['./pages/Poll_CastVote.vue'], resolve)
