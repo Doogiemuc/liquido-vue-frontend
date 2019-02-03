@@ -24,6 +24,7 @@
     :row-data="ideas"
     :columns="ideaColumns"
 		:rowsPerPage="rowsPerPage"
+    :fixedRowHeight="80"
     :primary-key-for-row="ideaKey"
     :message="ideasTableMessage"
     :show-add-button="false"
@@ -64,16 +65,13 @@ export default {
     return {
       // Data for DoogieTable.vue
       ideaColumns: [
-        { title: "Title", path: "title", editable: false, vueFilter: 'titleLink', rawHTML: true },
-
-        //TODO: Description contains HTML.   Show a small exerpt? Or Remove HTML tags?
-        { title: "Description", path: "description", editable: false },
-
+        { title: "Title", path: "title", editable: false, vueFilter: 'titleLink', rawHTML: false },
+        { title: "Description", path: "description", editable: false, rawHTML: true },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true, comparator: createdByComparator },
         { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
 				  path: "numSupporters",
-					editComponent: TableSupportButton,
-					editCompProps: {
+					cellComponent: TableSupportButton,       // this cell has its own Vue component that is interactive
+					cellComponentProps: {
             supporterAdded: this.supporterAdded
           }
 				},
@@ -286,7 +284,8 @@ export default {
 
     fromNowSmall(dateVal) {
       return '<small>'+moment(dateVal).fromNow()+'</small>'
-    }
+    },
+
   },
 
 }

@@ -561,11 +561,16 @@ module.exports = {
   getReachedQuorumSince(since) {
     log.debug("getReachedQuorumSince("+since+")")
     return axios.get('/laws/search/reachedQuorumSince?since='+since)
-    .then(res => { return res.data._embedded.laws })
-    .catch(err => {
-      log.error("ERROR in apiClient: ", JSON.stringify(err))
-      return Promise.reject("LiquidoApiClient: Cannot getReachedQuorumSince(since="+since+")")
-    })
+      .then(res => { return res.data._embedded.laws })
+      .catch(err => {
+        log.error("ERROR in apiClient: ", JSON.stringify(err))
+        return Promise.reject("LiquidoApiClient: Cannot getReachedQuorumSince(since="+since+")")
+      })
+  },
+
+  /** get proposals with recent comments */
+  getRecentlyDiscussed() {
+    return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded.laws)
   },
 
   /**

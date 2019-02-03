@@ -42,6 +42,7 @@
    * rawHTML: (Optional) wether the value shall be shown as rawHTML. HTML tags won't be escaped. This way you can for example show images or buttons in cells.
    * vueFilter: (Optional) name of custom vue filter that converts the raw value from row object to the HTML representation that is shown in the cell.
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
+   * cellComponent: (Optional) a Vue component that is responsible for showing a cells content. The Vue contonent can also be interactive and editable.
 
   ### Roadmap
 
@@ -79,19 +80,20 @@
             {{page*rowsPerPage + index + 1}}
           </th>
           <td v-for="col in columns" v-bind:class="{'selectedRow':highlightRow(row)}"  @click="cellClicked(row, col, $event)">
-            <editable-cell
-              v-if="col.editable"
-              :pk="getPath(row, primaryKeyForRow)"
-              :column="col"
-              :value="getDisplayValue(row, col)"
-              v-on:saveNewValue="saveNewValue">
-            </editable-cell>
-						<component v-else-if="col.renderComponent" :is="col.renderComponent" :row="row" :col="col"></component>
-            <component v-else-if="col.editComponent"   :is="col.editComponent"   :row="row" :col="col" :index="index" v-bind="col.editCompProps"></component>
-						<span v-else-if="col.rawHTML" v-html="getDisplayValue(row, col)"></span>
-						<span v-else>
-              {{ getDisplayValue(row, col) }}
-            </span>
+            <div :style="fixedRowHeightStyle">
+              <editable-cell
+                v-if="col.editable"
+                :pk="getPath(row, primaryKeyForRow)"
+                :column="col"
+                :value="getDisplayValue(row, col)"
+                v-on:saveNewValue="saveNewValue">
+              </editable-cell>
+              <component v-else-if="col.cellComponent"   :is="col.cellComponent"   :row="row" :col="col" :index="index" v-bind="col.cellComponentProps"></component>
+  						<span v-else-if="col.rawHTML" v-html="getDisplayValue(row, col)"></span>
+  						<span v-else>
+                {{ getDisplayValue(row, col) }}
+              </span>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -170,14 +172,19 @@ export default {
     // how many rows per page shall be shown in the table?
     rowsPerPage:    { type: Number, required: false, default: 10 },
 
+    // show rowNumbers (of filtered result) in first column
+    showRowNumbers: { type: Boolean, required: false, default: true },
+
+    // make all rows the same hight. Larger content will be hidden
+    fixedRowHeight: { type: Number, required: false, default: -1 },
+
 		// A message that is shown in the first row, e.g "loading" or can be used for error messages
 		message: { type: String, required: false, default: "" },
 
     // pager width: number of li elements to left and right of the current page index (plus first/last page)
-    adjacentPages:  { type: Number, required: false, default:  2 },
+    adjacentPages:  { type: Number, required: false, default:  5 },
 
-    // show rowNumbers (of filtered result) in first column
-    showRowNumbers: { type: Boolean, required: false, default: true },
+
 
     // button for adding a new row. Will fire the 'addButtonClicked' event
     showAddButton: { type: Boolean, required: false, default: false },
@@ -251,7 +258,18 @@ export default {
       // slice out data for current page only
       result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
       return result
-    }
+    },
+
+    fixedRowHeightStyle() {
+      if (this.fixedRowHeight > 0) {
+        return "height: "+this.fixedRowHeight+"px; "+
+               "min-height: "+this.fixedRowHeight+"px; "+
+               "max-height: "+this.fixedRowHeight+"px; "+
+               "overflow: hidden"
+      } else {
+        return ""
+      }
+    },
 
   },
 

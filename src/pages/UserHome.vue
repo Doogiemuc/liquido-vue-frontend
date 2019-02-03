@@ -4,11 +4,11 @@
 
       <!-- left column: public and general things -->
       <div class="col-sm-6">
-        <h2 id="pollsOpenForVotingHeader">Polls currently open for voting</h2>
+        <h2>Polls and recent proposals</h2>
 
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
-				<h2>Alternative to pollPanel</h2>
+				<!-- h2>Alternative to pollPanel</h2>
         <p>This manually created HTML also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
@@ -46,21 +46,16 @@
               </tr>
             </tbody>
           </table>
-        </div>
+        </div -->
 
-
-        <h2 v-if="recentIdeas">Recently created ideas</h2>
-        <p>Demo for law-panel</p>
-        <law-panel v-for="idea in recentIdeas"
-          :law="idea"
-          :showTimeline="false">
-        </law-panel>
+        <law-list :laws="recentlyDiscussed" lawListTitle="Recently discussed"></law-list>
 
       </div>
 
       <!-- right column: voters personal stuff -->
       <div class="col-sm-6">
-        <h2>Your ideas and proposals</h2>
+
+        <h2>Your activity</h2>
 
         <div class="panel panel-default">
           <div class="panel-heading">
@@ -71,12 +66,8 @@
               <i class="far fa-lightbulb "></i>
               Your idea
               <router-link :to="{ path: '/proposals/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum.
-              <!--
-              You can now
-              <router-link :to="{ path: '/createNewPoll', query: {proposalId: proposal.id} }">start a new poll</router-link> or
-              <router-link :to="{ path: '/joinPoll', query: {proposalId: proposal.id} }">join an existing poll.</router-link>
-              //-->
             </li>
+            <!--
             <li class="list-group-item item-condensed">
               ----
             </li>
@@ -85,18 +76,15 @@
               <p style="overflow: hidden">"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</p>
             </li>
             <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-balance-scale pull-left"></i>
-              <p style="overflow: hidden">"Some other proposal" currently is in voting phase until March 23rd (25 days left). 232 votes casted.</p>
-            </li>
-            <li class="list-group-item item-condensed">
               <i class="fa fa-fw fa-university pull-left"></i>
               <p style="overflow: hidden">"Best proposal" became a law</p>
             </li>
+            -->
           </ul>
         </div>
 
 
-        <div class="panel panel-default">
+        <!-- div class="panel panel-default">
           <div class="panel-heading">
              <h4>Some other messages - v2</h4>
           </div>
@@ -143,19 +131,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </div -->
 
 
-
-
-        <br/><br/>
-
-
-
-        <h2>Ideas and proposals supported by you</h2>
-    		<p>Demo for condensed LawList</p>
-
-    		<law-list :laws="supportedIdeasAndProps"></law-list>
+    		<law-list :laws="supportedIdeasAndProps" lawListTitle="Supported by you"></law-list>
 
 	   </div>
     </div>
@@ -186,24 +165,17 @@ export default {
       reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
 	    supportedIdeasAndProps: [], // ideas and proposals that this user liked
-      areas: [],
-      areaDataMap: {},
+      recentlyDiscussed: [],      // recently discussed proposals
     }
   },
 
   computed: {
-    numDelReq(areaId) {
-      if (areaData[areaId] !== undefined &&
-          areaData[areaId].delegationRequests !== undefined) {
-            return areaData[areaId].delegationRequests.length
-          } else {
-            return 0
-          }
-    }
   },
 
   created () {
+    // here we load quite a lot of stuff. But all in parallel.
     this.loadRecentIdeas()
+
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.reachedQuorum = proposals.slice(0,10)
     })
@@ -212,6 +184,9 @@ export default {
     })
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.openForVotingPolls = votingPolls
+    })
+    this.$root.api.getRecentlyDiscussed().then(recentlyDiscussed => {
+      this.recentlyDiscussed = recentlyDiscussed
     })
     this.$root.api.getAllCategories().then(areas => this.areas = areas)
   },

@@ -2,14 +2,17 @@
 	<div class="panel panel-default">
 
     <div v-if="lawListTitle" class="panel-heading">
-      <h4 class="lawListTitle">{{title}}</h4>
+      <h4 class="lawListTitle">{{lawListTitle}}</h4>
     </div>
     <table class="table lawListCondensedTable">
       <tbody>
         <tr v-for="law in laws">
           <td>
             <div class="maxHeightPreviewWrapper">
-              <h4 class="lawTitle">{{law.title}}</h4>
+              <h4 class="lawTitle">
+                <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>
+                {{law.title}}
+              </h4>
               <div class="maxHeightPreview" :style="previewHeightStyle">{{law.description}}</div>
             </div>
           </td>
@@ -20,7 +23,7 @@
               <li><span class="fa-li"><i class="far fa-user"></i></span>{{law.createdBy.profile.name}}</li>
               <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(law.createdAt)}}</li>
               <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{law.area.title}}</li>
-              <li v-if="law.poll !== null""><span class="fa-li"><i class="fa-balance-scale"></i></span>
+              <li v-if="law.poll !== null""><span class="fa-li"><i class="fas fa-poll"></i></span>
                 <router-link :to="'/polls/'+law.poll.id">Poll</router-link>
               </li>
             </ul>
@@ -54,15 +57,19 @@ export default {
 
   computed: {
     previewHeightStyle: function() { return "height: "+this.previewHeight }
+
+    // dynamically set icon depending on law.status
+
+
   },
 
   methods: {
     // dynamically set icon depending on law.status
-    getIconFor: function(law) {
-      return {
-        "fa-lightbulb-o": law.status == "IDEA",
-        "fa-file-text-o": law.status == "PROPOSAL",
-        "fa-university":  law.status == "LAW"
+    getIconFor(law) {
+      switch(law.status) {
+        case "IDEA":    return { "far": true, "fa-lightbulb": true }
+        case "LAW":     return { "fa-university": true }  // or balance-scale?
+        default:        return { "fa-file-alt": true }    // proposal etc
       }
     },
 
