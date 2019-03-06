@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="LoginPage">
     <div class="row topRow">
 
       <div class="col-md-5">
@@ -43,13 +43,13 @@
                   <input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
                 </div>
                 <p>A login code will be sent your mobile phone via SMS.</p>
-                <button type="submit" id="loginCodeButton" @click.prevent="sendSmsLoginCode()" class="btn btn-primary" :disabled="disableSendSmsCodeButton">Send login code</button>
+                <button type="submit" id="sendSmsLoginCodeButton" @click.prevent="sendSmsLoginCode()" class="btn btn-primary" :disabled="disableSendSmsCodeButton">Send login code</button>
               </fieldset>
             </form>
             <form class="form-inline" v-if="smsCodeSent">
               <div class="form-group">
                 <p>Enter the 6-digit code that you have received via SMS:</p>
-                <div class="digit-group">
+                <div class="digit-group" id="smsCodeInputs">
                   <input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
                   <input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
                   <input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">

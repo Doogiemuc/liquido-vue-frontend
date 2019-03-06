@@ -1,5 +1,5 @@
 <template>
-	<div class="container">
+	<div class="container" id="LiquidoHome">
 		<h1>Liquido</h1>
 		<p class="lead">A modern aproach for interactive, representative and direct democracy.</p>
 		<hr>
@@ -34,8 +34,8 @@
 
 				<p>&nbsp;</p>
 				<p v-if="$root.currentUser === undefined" class="text-center">
-					<router-link to="/login"    role="button" class="btn btn-default loginButton">Login</router-link>
-					<router-link to="/register" role="button" class="btn btn-default">Register</router-link>
+					<router-link to="/login"    role="button" id="HomePageLoginButton" class="btn btn-default loginButton">Login</router-link>
+					<router-link to="/register" role="button" id="RegisterButton" class="btn btn-default">Register</router-link>
 				</p>
 
 			</div>

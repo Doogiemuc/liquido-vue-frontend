@@ -92,7 +92,7 @@ export default {
 
     /* completely overwrite and set a new content into the tinymce editor */
     setContent(newContent) {
-      console.debug("TinyMceComponent.setContent("+newContent+")")
+      console.debug("TinyMceComponent.setContent('"+newContent+"')")
       if (!this.tinyMceReady) {
         console.warn("WARN: TinyMceComponent: cannot setContent, because TinyMCE is not yet ready. "+newContent)
         return      //OR: if (!tinymce.get(this.textareaId).initialized)

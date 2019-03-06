@@ -7,6 +7,7 @@
 			<h4><i class="fas fa-poll"></i> Poll
 				<template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
 				<template v-if="poll.status === 'VOTING'">in voting phase</template>
+				<template v-if="poll.status === 'FINISHED'">(finished)</template>
 			</h4>
 		</div>
 		<div class="panel-body poll-list" :id="pollPanelID">

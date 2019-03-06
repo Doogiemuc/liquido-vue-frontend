@@ -1,8 +1,8 @@
 // Comple voting happy case
 
 
-// https://github.com/html-dnd/html-dnd
-var dragAndDrop = require('html-dnd').codeForSelectors;
+// NOT USED ANYMORE: https://github.com/html-dnd/html-dnd
+// var dragAndDrop = require('html-dnd').codeForSelectors;
 
 /*
 var findPollInVoting = function(browser) {
@@ -21,14 +21,14 @@ var findPollInVoting = function(browser) {
 module.exports = {
 	'@tags': ['regression', 'single'],
 	'Show poll in voting phase': function(browser) {
-		
+
 		// CSS selectors
 		var firstPollPanel = "#pollsOpenForVotingHeader + div.pollPanel > div.panel-heading > a"
 		var goToCastVoteButton = "#goToCastVoteButton"
 		var pollTable = "table.pollTable"
 		var firstProposalHeading = "#leftContainer > div:nth-child(1) > div.panel-heading"
 		var rightContainer = "#rightContainer"
-		
+
 		browser.url(browser.launchUrl)
 		  .login(browser.globals.user1, browser.globals.pass1)
 			.url(browser.launchUrl+"/#/polls")

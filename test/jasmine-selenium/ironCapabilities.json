@@ -1,0 +1,14 @@
+{
+  "browserName": "chrome",
+  "javascriptEnabled": true,
+  "acceptSslCerts": true,
+  "loggingPrefs": {
+    "browser": "ALL"
+  },
+  "chromeOptions": {
+    "args": [
+      "--window-size=1024,768"
+    ],
+    "binary": "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe"
+  }
+}

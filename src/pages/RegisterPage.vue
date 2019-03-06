@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="RegisterPage">
 
     <p>&nbsp;</p>
 
@@ -51,9 +51,9 @@
               </div>
               <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
-                  <p><button v-if="!registerSuccess" type="submit" id="registerButton" @click.prevent="register()" class="btn btn-primary" :disabled="disableRegisterButton ">Register</button></p>
+                  <p><button v-if="!registerSuccess" type="submit" id="RegisterButton" @click.prevent="register()" class="btn btn-primary" :disabled="disableRegisterButton ">Register</button></p>
                   <p v-if="!registerSuccess"><small>You do not need a password for Liquido. You will login through your mobile phone. (2-factor-authentication)</small></p>
-                  <div v-if="registerSuccess" class="alert alert-success">
+                  <div v-if="registerSuccess" id="registerSuccess" class="alert alert-success">
                     <p>You have been registerd successfully. You may now login via email or SMS.</p>
                   </div>
                   <router-link v-if="registerSuccess" :to="{ name: 'login', params: { initEmail: email, initMobilePhone: mobilephone }}" role="button" class="btn btn-default">Login &raquo;</router-link>

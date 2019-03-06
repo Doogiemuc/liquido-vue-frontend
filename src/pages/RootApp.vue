@@ -38,7 +38,7 @@
 							  <li><router-link to="/userHome">User Home</router-link></li>
                 <li><router-link to="/proxies">Proxies</router-link></li>
                 <li><router-link to="/account">My Account</router-link></li>
-                <li><router-link to="/ideas/add">Add new Idea</router-link></li>
+                <li><router-link id="addIdeaMenuItem" to="/ideas/add">Add new Idea</router-link></li>
                 <!-- li><router-link to="/messages">Messages</router-link></li -->
                 <li class="divider"></li>
                 <li><router-link to="/logout">Logout via URL</router-link></li>
@@ -47,7 +47,7 @@
             </li>
           </ul>
 
-          <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" class="btn btn-default navbar-btn navbar-right">Login</router-link>
+          <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" id="NavLoginButton" class="btn btn-default navbar-btn navbar-right">Login</router-link>
 
           <div v-if="showDevLogin" id="devLoginButton" class="btn-group navbar-btn navbar-right">
             <!-- Development login -->

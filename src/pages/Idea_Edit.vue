@@ -28,7 +28,7 @@
         <div class="form-group">
           <label for="ideaCategory" class="col-sm-1 control-label">Category</label>
           <div class="col-sm-5">
-            <select v-model="areaURI" name="ideaArea" class="form-control">
+            <select v-model="areaURI" name="ideaArea" id="ideaAreaSelect" class="form-control">
               <option v-for="category in categories" v-bind:value="category._links.self.href">{{category.title}}</option>
             </select>
           </div>
@@ -99,13 +99,13 @@ export default {
 
   },
 
-  /*
+  /*  // very usefull for debugging ...
   watch: {
     'title': function(newTitle) {
       console.log("EdidtIdea: title changed to "+newTitle)
     },
-    'description' : function(newDec) {
-      console.log("EditIdea: description has changed to", newDec)
+    'description' : function(newDesc) {
+      console.log("EditIdea: description has changed to", newDesc)
     },
     'areaURI': function(newAreaURI) {
       console.log("AreaURI has been set to "+newAreaURI)

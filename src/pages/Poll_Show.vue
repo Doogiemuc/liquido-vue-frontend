@@ -5,7 +5,7 @@
 -->
 
 <template>
-  <div class="container">
+  <div class="container" id="PollShow">
 		<h1><i class="fas fa-poll"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
@@ -29,20 +29,20 @@
 	    </div>
 	  </div>
 
- 		<div v-if="ownBallot" class="panel panel-default">
- 			<div class="panel-heading">
- 				<h4>Your ballot in this poll</h4>
- 			</div>
-	    <div class="panel-body"">
-	    	<p v-if="ownBallot.level == 0">This ballot was casted by yourself.</p>
-	    	<p v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy.</p>
-	    	<p v-if="ownBallot.level > 1">This ballot was casted for you by a proxy.</p>
-	      <ol>
-          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
-        </ol>
-        <p v-if="poll.status == 'VOTING'">This poll is still in its voting phase. You may still change the voteOrder in your ballot.</p>
-	    </div>
-	  </div>
+	  <div v-if="ownBallot">
+		  <h3>Your sorted ballot in this poll</h3>
+	  	<p v-if="ownBallot.level == 0">This ballot was casted by yourself.</p>
+	  	<p v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy.</p>
+	  	<p v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy.</p>
+	    <p v-if="poll.status == 'VOTING'">This poll is still in its voting phase. You may still update the voteOrder in your ballot by clicking on the cast vote button again.</p>
+	 		<div v-if="ownBallot" class="panel panel-default">
+		    <div class="panel-body"">
+		      <ol>
+	          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+	        </ol>
+		    </div>
+		  </div>
+		</div>
 
 		<div class="row" v-if="poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
@@ -68,26 +68,24 @@
 				:readOnly="true">
 			</law-panel>
 
-			<h3>Poll results</h3>
-			<h4>Duel Matrix</h4>
-			<p>This matrix shows the comparison between each pair of proposals in this poll. The numbers in each cell show how many voters
-			sorted the proposal of that <em>row</em> higher than the proposal in that <em>col</em> in their ballot.</p>
+			<h3>Poll result - DuelMatrix</h3>
+			<p>This matrix shows the comparison between each pair of proposals. The numbers show how many voters
+			preferred the proposal of that <em>row</em> over the proposal in the <em>col header</em>. These voters sorted the proposal in that row higher in their ballot.
+			The winning proposal has the most green cells in its row.</p>
 
 			<table class="table table-bordered">
-			  <thead>
-					<tr>
-						<th>&nbsp;</th>
-						<th>Prop1</th>
-						<th>Prop2</th>
-						<th>Prop3</th>
-					</tr>
+				<thead>
+					<th></th>
+					<th v-for="colVal,colIndex in poll.duelMatrix.rawData[0]">
+						#{{colIndex+1}}
+					</th>
 				</thead>
 				<tbody>
-					<tr>
-						<th>Prop1</th>
-						<td>23</td>
-						<td>17</td>
-						<td>12</td>
+					<tr v-for="row,rowIndex in poll.duelMatrix.rawData">
+						<th>#{{rowIndex+1}}: {{poll._embedded.proposals[rowIndex].title}}</th>
+						<td v-for="colVal,colIndex in row" :class="getDuelMatrixCellClass(rowIndex,colIndex)">
+							{{colIndex == rowIndex ? "" : colVal }}
+						</td>
 					</tr>
 				</tbody>
 			</table>
@@ -124,27 +122,22 @@
 	    </div>
 		</div>
 
-		<div class="panel panel-default" v-if="this.delegations">
-	  	<div class="panel-heading">
-	  		<h4>You as a proxy in this area</h4>
-	  	</div>
-	  	<div class="panel-body"">
-	  		<ul>
-	  			<li v-if="delCount == 1">You are the proxy for one voter who delegated his right to vote to you.</li>
-	  			<li v-if="delCount >  1">You are the proxy for {{delCount}} voters who delegated their right to vote to you.</li>
-	  			<li v-if="delReq == 1">A voter would like to delegate his right to vote to you as his proxy. Do you want
-	  				to <a href="#" @click="acceptDelegations">accept this request?</a> Then your ballot will also be casted for this delegee. This voter will thus be able to see how you voted.
-	  			</li>
-	  			<li v-if="delReq > 1">{{delReq}} voters would like to delegate their vote to you as their proxy. Do you want
-	  				to <a href="#" @click="acceptDelegations">accept these request?</a>
-	  			</li>
-	  			<li v-if="delegations.isPublicProxy">You are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
-	  			<li v-else="delegations.isPublicProxy">You are not yet a public proxy in this area. Furhter voters can not yet immideately delegate their vote to you. Do you want to
-	  				<a href="#" @click="becomePublicProxy">become a public proxy?</a>
-	  			</li>
-	  		</ul>
-	    </div>
-	  </div>
+		<h3>You as a proxy in this area</h3>
+		<ul v-if="delegations">
+			<li v-if="delCount == 1">You are the proxy for one voter who delegated his right to vote to you.</li>
+			<li v-if="delCount >  1">You are the proxy for {{delCount}} voters who delegated their right to vote to you.</li>
+			<li v-if="delReq == 1">A voter would like to delegate his right to vote to you as his proxy. Do you want
+				to <a href="#" @click="acceptDelegations">accept this request?</a> Then your ballot will also be casted for this delegee. This voter will thus be able to see how you voted.
+			</li>
+			<li v-if="delReq > 1">{{delReq}} voters would like to delegate their vote to you as their proxy. Do you want
+				to <a href="#" @click="acceptDelegations">accept these request?</a>
+			</li>
+			<li v-if="delegations.isPublicProxy">You are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
+			<li v-else="delegations.isPublicProxy">You are not yet a public proxy in this area. Furhter voters can not yet immideately delegate their vote to you. Do you want to
+				<a href="#" @click="becomePublicProxy">become a public proxy?</a>
+			</li>
+		</ul>
+
 
 	</div>
 </template>
@@ -348,6 +341,14 @@ export default {
       return moment(dateVal).fromNow();
     },
 
+    getDuelMatrixCellClass(row, col) {
+    	var a = this.poll.duelMatrix.rawData[row][col]
+    	var b = this.poll.duelMatrix.rawData[col][row]
+    	if (a > b) return "winner"
+    	if (a < b) return "looser"
+    	return "tie"
+    },
+
   }
 }
 </script>
@@ -376,6 +377,15 @@ export default {
   	overflow: hidden;
   	padding: 5px;
   	margin: 0;
+  }
+  .winner {
+  	background: #DFD;
+  }
+  .looser {
+  	background: #FDD;
+  }
+  .tie {
+  	background: #EEE;
   }
 </style>
 

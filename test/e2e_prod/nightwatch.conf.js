@@ -29,8 +29,9 @@ module.exports = {
       "selenium_host": "localhost",
       "silent": true,   // selenium can output quite some log
       "globals" : {
-        "user1"   : "testuser1@liquido.de",
-        "pass1"   : "dummyPasswordHash",
+        "waitForConditionTimeout": 4000,  // by default wait 4 secs until an element becomes visible
+        "user1_email"   : "testuser1@liquido.de",
+        "user1_mobile"  : "+49 123451",
         "appendToLog" : {
           "log2File" : "test/e2e_prod/logs/chrome_console.log",
           "log2Console" : true,
@@ -76,7 +77,7 @@ module.exports = {
             "--window-size=1024,768",
 						"--disable-extensions",
 						//"auto-open-devtools-for-tabs"
-						
+
           ],
         }
       }

@@ -226,7 +226,7 @@ var checkDevelopmentMode = function() {
 
 var startApp = function(props) {
   //console.log("Properties", props)
-  const rootVue = new Vue({
+  window.liquidoVueRootApp = new Vue({
     el: '#app',
     router,
     data: {
@@ -247,6 +247,6 @@ isBackendAlive()
   .then(startApp)
   .catch(err => {
     console.error("Fatal rrror during LIQUIDO startup", err)
-    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR while loading Liquido App. Please try again later.</p>')
+    $('#loadingCircle').replaceWith('<p class="bg-danger" id="backendNotAlive">ERROR while loading Liquido App. Please try again later.</p>')
   })
 

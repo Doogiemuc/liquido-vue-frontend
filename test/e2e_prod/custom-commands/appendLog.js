@@ -45,23 +45,17 @@ AppendLog.prototype.command = function(logFile, callback) {
   var self = this;
   this.api.globals.appendToLog = this.api.globals.appendToLog || {}
   var logFile = logFile || this.api.globals.appendToLog.log2File
-  //console.log("   AppendLog to "+logFile+ "test name = "+self.api.currentTest.name)
+  console.log("\x1b[32m √\x1b[0m AppendLog to '"+logFile+ "'' for test '"+self.api.currentTest.name+"'")
   if (!logFile) {
     console.log("WARN: need logFile to AppendLog")
     return
   }
 
-	
-	console.log("===========", self.api)
-	
-	
   self.api.getLog('browser', logEntries => {
-		
-		console.log("got logEntries"+JSON.stringify(logEntries))
-		
+		//console.log("got logEntries"+JSON.stringify(logEntries))
     var logStream = fs.createWriteStream(logFile, {'flags': 'a'}); // use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
     logEntries.forEach(log => {
-      var parsedMsg = log.message.match(/.*"(.*)"/)   // every log.message contains the script file name as prefix. We parse out only the console message only between the quotation marks
+      var parsedMsg = log.message.match(/.*"(.*)"/) || log.message  // every normal log.message contains the script file name as prefix. We parse out only the console message only between the quotation marks
       var msgStr = '   [' + log.level + '] ' + log.timestamp + ' : ' + parsedMsg[1]
       if (self.api.globals.appendToLog.log2Console) { console.log(msgStr) }
       if (self.api.globals.appendToLog.logTestNames) {

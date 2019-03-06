@@ -29,8 +29,8 @@ jasmine.onComplete(function(passed) {
 
 // Merge environment variables from test.env.js into process.env
 var config = new Config();
-config.env();         // Add all existing environment variables into configuration 
-//config.argv();      // Add all command-line arguments into merged configuration 
+config.env();         // Add all existing environment variables into configuration
+//config.argv();      // Add all command-line arguments into merged configuration
 config.merge(require('../../config/test.env.js'));    // Merge test specific env variables
 process.env = config.get();
 
@@ -43,7 +43,7 @@ var reporter = new JasmineConsoleReporter({
     colors: 1,           // (0|false)|(1|true)|2
     cleanStack: 1,       // (0|false)|(1|true)|2|3
     verbosity: 4,        // (0|false)|1|2|(3|true)|4
-    activity: false
+    activity: false,
     listStyle: 'indent', // "flat"|"indent"
 });
 jasmine.addReporter(reporter);

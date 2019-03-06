@@ -5,6 +5,10 @@
         <h2>Polls in elaboration phase</h2>
         <p>The proposals in these polls can be discussed and improved.</p>
 				<poll-panel v-for="poll in pollsInElaboration" :poll="poll"></poll-panel>
+
+        <h2>Recently finished polls</h2>
+        <p>Polls that have a winning proposal.</p>
+        <poll-panel v-for="poll in finishedPolls" :poll="poll"></poll-panel>
       </div>
       <div class="col-sm-6" id="pollsInVoting">
         <h2>Polls currently open for voting</h2>
@@ -31,6 +35,7 @@ export default {
     return {
       pollsInElaboration: [],
       pollsInVotingPhase: [],
+      finishedPolls: [],
     }
   },
 
@@ -40,6 +45,9 @@ export default {
     })
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.pollsInVotingPhase = votingPolls
+    })
+    this.$root.api.findPollsByStatus('FINISHED').then(finishedPolls => {
+      this.finishedPolls = finishedPolls
     })
   },
 

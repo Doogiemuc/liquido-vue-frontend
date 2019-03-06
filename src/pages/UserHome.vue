@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="UserHomePage">
     <div class="row">
 
       <!-- left column: public and general things -->
