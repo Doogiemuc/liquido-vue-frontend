@@ -10,7 +10,9 @@
           <td>
             <div class="maxHeightPreviewWrapper">
               <h4 class="lawTitle">
-                <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>
+                <router-link v-if="!readOnly" :to="getLinkToLaw(law)">
+                  <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>
+                </router-link>
                 {{law.title}}
               </h4>
               <div class="maxHeightPreview" :style="previewHeightStyle">{{law.description}}</div>
@@ -56,10 +58,7 @@ export default {
   },
 
   computed: {
-    previewHeightStyle: function() { return "height: "+this.previewHeight }
-
-    // dynamically set icon depending on law.status
-
+    previewHeightStyle: function() { return "height: "+this.previewHeight },
 
   },
 
@@ -85,9 +84,15 @@ export default {
       return moment(dateVal).fromNow();
     },
 
-    getLawURI() {
-      return this.$root.api.getURI(this.law)
-    }
+    /** get the link for the title of the idea, proposal or law */
+    getLinkToLaw(law) {
+      //TODO: Should I manage these frontend URL in a central place? MAYBE in confg/dev.env.js
+      switch(law.status) {
+        case 'IDEA':     return '/ideas/'+law.id
+        case 'LAW':      return '/laws/'+law.id
+        default:         return '/proposals/'+law.id   // PROPOSAL, ELABORATION
+      }
+    },
   }
 }
 </script>

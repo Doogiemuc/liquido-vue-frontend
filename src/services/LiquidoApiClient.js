@@ -410,12 +410,30 @@ module.exports = {
   },
 
   /**
-   * Get all ideas, propsals or laws (paged)
+   * find ideas, proposals or laws by search criteria
+   * @return the full page object, with the actual result list under _embedded.laws
+   *         and additional paging information under the top level "page" attribute
+   */
+  findByQuery(query) {
+    log.debug("findByQuery()", query)
+    return axios({
+      method: 'POST',
+      url: '/laws/search/findByQuery',
+      headers: { 'Content-Type' : 'application/json' },
+      data: query
+    })
+    .then(res => { return res.data })
+    .catch(err => { return Promise.reject("LiquidoApiClient: Cannot findByQuery()", err) })
+  },
+
+  /**
+   * Lookup ideas, propsals or laws. (status of a LawModle)
+   * Result is paged. By default the first 20 entries are returned.
    * @param {string} status IDEA|PROPOSAL|LAW
 	 * @param {number} page number of page to load
 	 * @param {size}   size length of one page
 	 * @param {string} sort <name of attribute>[,asc|desc]
-   * @return paged list of ideas, proposals or laws
+   * @return paged list of ideas, proposals or laws. The list contains projected LawModels (with detail information already included).
    */
   findByStatus(status, page, size, sort) {
     log.debug("findByStatus(status="+status+")")

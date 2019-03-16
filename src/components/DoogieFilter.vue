@@ -4,42 +4,42 @@
 
       <div v-if="filter.type === 'search'">
         <!-- Free text (google like)  search -->
-        <input type="text" class="searchInput" :id="filter.name" :name="filter.name" :placeholder="filter.displayName" v-model="currentFilters[filter.id].value"/>
+        <input type="text" class="searchInput" :id="filter.id" :name="filter.id" :placeholder="filter.name" v-model="currentFilters[filter.id].value"/>
       </div>
 
       <div v-else-if="filter.type === 'dateRange'" class="btn-group">
         <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
+          {{filter.name}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
           <li><a v-on:click="setDateRangeToPastDays(filter, 0)">Today</a></li>
           <li><a v-on:click="setDateRangeToPastDays(filter, 7)">Last 7 days</a></li>
           <li><a v-on:click="setDateRangeToPastDays(filter, 14)">Last 14 days</a></li>
           <li role="separator" class="selectDivider"></li>
-          <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter, 'Anytime', undefined)">Clear</button></li>
+          <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter.id, 'Anytime', undefined)">Clear</button></li>
         </ul>
        </div>
 
       <div v-else-if="filter.type === 'select'" class="btn-group">
         <!-- Select for exactly one value -->
         <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
+          {{filter.name}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li v-for="option in filter.options"><a class="selectItem" v-on:click="setFilterValue(filter, option.displayValue, option.value)">{{option.displayValue}}</a></li>
+          <li v-for="option in filter.options"><a class="selectItem" v-on:click="setFilterValue(filter.id, option.displayValue, option.value)">{{option.displayValue}}</a></li>
           <li role="separator" class="selectDivider"></li>
-					<li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter, 'Any', undefined)">Clear</button></li>
+					<li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="setFilterValue(filter.id, 'Any', undefined)">Clear</button></li>
         </ul>
       </div>
 
       <div v-else-if="filter.type === 'multi'" class="btn-group">
         <!-- select for multiple values. With checkboxes -->
         <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass(filter.id)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          {{filter.displayName}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
+          {{filter.name}}: {{currentFilters[filter.id].displayValue}} <span class="caret"></span>
         </button>
         <div class="dropdown-menu">
           <ul class="selectList">
-            <li v-for="option in filter.options"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes[filter.id]"/>&nbsp;{{option.displayValue}}</li>
+            <li v-for="option in filter.options"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes[filter.id]"/>&nbsp;{{option.displayValue || option.value}}</li>
           </ul>
           <div role="separator" class="selectDivider"></div>
           <button type="button" class="btn btn-primary btn-xs applyButton" v-on:click="applyMultiSelect(filter, selectedCheckboxes[filter.id])">Apply</button>
@@ -50,13 +50,13 @@
 			<doogie-filter-select v-else-if="filter.type === 'selectWithSearch'"
 			  :id="filter.id"
         :ref="filter.id"
-				:displayName="filter.displayName"
+				:name="filter.name"
 				:options="filter.options"
 				v-model="currentFilters[filter.id].value"
 			/>
 
-      <div v-else-if="filter.type === 'quickFilter'">
-        <button type="button" class="btn btn-xs btn-default" :class="getActiveClass(filter.id)" @click="toggleQuickFilter(filter)">{{filter.displayName}}</button>
+      <div v-else-if="filter.type === 'toggle'">
+        <button type="button" class="btn btn-xs btn-default" :class="getActiveClass(filter.id)" @click="toggle(filter)">{{filter.name}}</button>
       </div>
 
     </div>
@@ -86,35 +86,48 @@ export default {
         {
           type: "search",
           id: "searchID",
-          displayName: "Free text search"
+          name: "Free text search"
         },
         {
           type: "dateRange",
           id: "updatedAtID",
-          displayName: "Updated"
+          name: "Updated"
         },
         {
           type: "select",
           id: "categoryID",
-          displayName: "Category",
+          name: "Category",
           options: allCategories
+        },
+        {                       // TODO: for DoogieFilter.vue: buttonGroup where one or multiple buttons can be selected
+          type: "multi",
+          id: "statusID",
+          name: "Status",
+          options: [
+            { displayValue: "Idea", value: "IDEA"},
+            { displayValue: "Proposal", value: "PROPOSAL"},
+            { displayValue: "Elaboration", value: "ELABORATION"},
+            { displayValue: "Voting", value: "VOTING"},
+            { displayValue: "Law", value: "LAW"},
+          ]
         },
         {
           type: "selectWithSearch",
           id: "createdByID",
-          displayName: "Created by",
+          name: "Created by",
           options: allUsers
         },
-        // A QuickFilter is just an ON/OFF toggle button. It's a quick way to filter the table by in a pre defined way.
+        // A toggle is just an ON/OFF toggle button. It's a quick way to filter the table in a pre defined way.
+        // A toggle might also be a preset for some of the other filters
         {
-          type: "quickFilter",
+          type: "toggle",
           id: "myIdeas",
-          displayName: "My Ideas",
+          name: "My Ideas",
           onToggle: function(filter, active) {
             if (active) {
               var currentUser = this.$root.currentUser
               //"this" is the DoogieFilter.vue component here
-              //But I cannot just simply call this.setFilterValue({id:'createdByID'}, currentUser.profile.name, currentUser.id)
+              //But I cannot just simply call this.setFilterValue('createdByID', currentUser.profile.name, currentUser.id)
               this.$refs.createdByID[0].setFilterValue(currentUser.profile.name, currentUser.id)
 
             } else {
@@ -131,15 +144,15 @@ export default {
   },
 
   /**
-   * currenetFilters will be built from filtersConfig in initFilters()
+   * currentFilters will be built from filtersConfig in initFilters()
    * For each filter it contains
-   * - displaValue: the text to show to the user, e.g. "Any".  Do not confuse this with the filterConfig.displayName!
+   * - displaValue: the text to show to the user, e.g. "Any".  Do not confuse this with the filterConfig.name!
    * - value: the internal value of the filter, e.g. false, a string or a date
    */
   data () {
     return {
       currentFilters: {},       // current values of all applied filters.
-			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" select
+			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" selects
     }
   },
 
@@ -162,14 +175,14 @@ export default {
   methods: {
     /**
      * set the value of one filter
-     * @param {Object} filter One element from filtersConfig array
+     * @param {String} filterID of one element from your filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
      * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
-    setFilterValue(filter, newDisplayValue, newValue) {
-      this.currentFilters[filter.id].displayValue = newDisplayValue
-      this.currentFilters[filter.id].value = newValue
-      console.log("setFilterValue", filter.id, newDisplayValue, newValue)
+    setFilterValue(filterId, newDisplayValue, newValue) {
+      this.currentFilters[filterId].displayValue = newDisplayValue
+      this.currentFilters[filterId].value = newValue
+      //console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
     },
 
     // "Points in time in the universe and our names for them. I'll never understand why we humans have such great problems with the concept of time." (R.Rackl 2018)
@@ -188,10 +201,10 @@ export default {
       var end = new Date()
       end.setHours(23,59,59,999)
       newValue.end = end
-      this.setFilterValue(filter, newDisplayValue, newValue)
+      this.setFilterValue(filter.id, newDisplayValue, newValue)
     },
 
-    //TODO: datePicker for date ranges. But as a component euqal to DoogieFilterSelect
+    //TODO: datePicker for date ranges. But as a component equal to DoogieFilterSelect
 
 		/**
 		 * @param {object|string|number} date Can be passed as JS Date object, ISO date string or number of milliseconds
@@ -206,13 +219,31 @@ export default {
 
     /**
      * Set the value of a multi select.
-     * newValue will be an array with the ids of all selected checkboxes
-     * @param {Object} filter One element from filtersConfig array
-     * @param {array} selectedCheckboxes array with ids to all selected checkboxes
+     * @param {Object} filter The filter object from your filtersConfig array
+     * @param {array} values array with 'option.values' of all selected checkboxes
      */
-    applyMultiSelect(filter) {
-      var displayValue = this.selectedCheckboxes[filter.id].length == filter.options.length ? 'All' : this.selectedCheckboxes[filter.id].length+'/'+filter.options.length+' selected'
-      this.setFilterValue(filter, displayValue, this.selectedCheckboxes[filter.id])
+    applyMultiSelect(filter, values) {
+      if (!Array.isArray(values)) throw new Error("Need array of values in applyMultiSelect!")
+      var displayValue = ""
+      // non selected: show "Any"
+      // all selected: show "All"
+      // one selected: show its display name
+      // two selected: show their two display values  (if they have displayValues)
+      // more selected: show e.g. "2/5"
+      if (values.length == filter.options.length) {
+        displayValue = 'All'
+      } else if (values.length == 1) {
+        var selectedOption = filter.options.find((option) => option.value == values[0])
+        displayValue = selectedOption ? selectedOption.displayValue : "1/"+filter.options.length
+      } else if (values.length == 2) {
+        var selectedOption1 = filter.options.find((option) => option.value == values[0])
+        var selectedOption2 = filter.options.find((option) => option.value == values[1])
+        displayValue = selectedOption1 && selectedOption2 ? (selectedOption1.displayValue+","+selectedOption2.displayValue) : "2/"+filter.options.length
+      } else {
+        displayValue = values.length  +'/'+filter.options.length
+      }
+      this.setFilterValue(filter.id, displayValue, values)
+      this.selectedCheckboxes[filter.id] = values  // when called from outside, also update selected checkboxes with new values
     },
 
     /**
@@ -221,13 +252,14 @@ export default {
      */
     clearMultiSelect(filter) {
       this.selectedCheckboxes[filter.id] = []
-      this.setFilterValue(filter, 'Any', [])
+      this.setFilterValue(filter.id, 'Any', [])
     },
 
-    toggleQuickFilter(filter) {
+    /** Switch a toggle on and off */
+    toggle(filter) {
       var that = this
       var newValue = !this.currentFilters[filter.id].value
-      this.setFilterValue(filter, newValue, newValue)
+      this.setFilterValue(filter.id, newValue, newValue)
       if (typeof filter.onToggle === "function") {
         filter.onToggle.call(that, filter, newValue)
       }
@@ -256,18 +288,16 @@ export default {
             this.$set(this.currentFilters[filter.id], 'value', undefined)
             break;
           case "selectWithSearch":
-            //this.$set(this.currentFilters[filter.id], 'displayValue', "")
-            //this.$set(this.currentFilters[filter.id], 'value', undefined)
-            if (this.$refs[filter.id])                  // Vue ref are not yet filled during initial render
+            if (this.$refs[filter.id])                        // Vue ref are not yet filled during initial render
               this.$refs[filter.id][0].clearSelectFilter()    // $refs returns an array when used inside for loop.
             break;
           case "multi":
             this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-            this.$set(this.currentFilters[filter.id], 'value', [])    // Array is needed for Vue's handling of checkboxes
+            this.$set(this.currentFilters[filter.id], 'value', [])    // The 'value' of a multi is an Array of currently selected option.values
             this.selectedCheckboxes[filter.id] = []
             break;
-          case "quickFilter":
-            this.$set(this.currentFilters[filter.id], 'value', false)  // quickFilters are true/false
+          case "toggle":
+            this.$set(this.currentFilters[filter.id], 'value', false)
             break;
         }
       })
@@ -279,7 +309,7 @@ export default {
 
     /** When a filter is active, then style it accordingly */
     getActiveClass(filterId) {
-      var filterCleared = this.currentFilters[filterId].value === undefined || this.currentFilters[filterId].value === "" || this.currentFilters[filterId].value === [] || this.currentFilters[filterId].value === false
+      var filterCleared = this.currentFilters[filterId].value === undefined || this.currentFilters[filterId].value === "" || this.currentFilters[filterId].value === false || this.currentFilters[filterId].value.length == 0
       return {
         'btn-default': filterCleared,
         'btn-primary': !filterCleared

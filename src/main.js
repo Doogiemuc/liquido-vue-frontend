@@ -62,6 +62,11 @@ const routes = [
       require(['./pages/Ideas_List.vue'], resolve)
     }
   },
+  { path: '/search',
+    component: function(resolve) {
+      require(['./pages/Search.vue'], resolve)
+    }
+  },
   { path: '/ideas/add',
     component: function(resolve) {
       require(['./pages/Idea_Edit.vue'], resolve)
@@ -153,6 +158,12 @@ const routes = [
     }
   },
   */
+  // ======================= Laws =======================
+  { path: '/laws',
+    component: function(resolve) {
+      require(['./pages/Laws_List.vue'], resolve)
+    }
+  },
 
   // Show error page for all invalid pathes
   { path: '/pageNotFound', component: PageNotFound, meta: { requiresAuth: false } }

@@ -7,7 +7,6 @@
     - Each row is represented by one object. Any attribute of this object can be the primary key for each row.
     - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
     - The table is sortable by each column. The sorting is local aware and correct for number with leading zeros.
-    - Intelligent pager
     - Localisation support
 
   ### Usage
@@ -31,8 +30,6 @@
   * rowData: array of row objects
   * columns: configuration of columns, see below
   * primary-key-for-row: name of (or path to) attribute that is the primary key for each row. Values must be unique!
-  * rows-per-page: How many rows shall be shown on each page. If there is more data, then a pager will allow the user to navigate to other pages.
-  * adjacent-pages: How many page numbers shall be shown in the middle of the pager. Default is 2.
   * show-add-button: (Optional) should an add button be shown at the bottom right of the table.
   * updateHandler: (Function) will be called when cell was edited.
 
@@ -66,18 +63,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="message">
-          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
-        </tr>
-				<tr v-else-if="rowData === undefined || rowData.length === 0">
+				<tr v-if="rowData === undefined || rowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.emptyData}}</td>
         </tr>
         <tr v-else-if="getFilteredRowData.length === 0">
           <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
         </tr>
-        <tr v-for="(row, index) in getRowDataForCurrentPage" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
+        <tr v-for="(row, index) in getFilteredRowData" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
-            {{page*rowsPerPage + index + 1}}
+            {{index + 1}}
           </th>
           <td v-for="col in columns" v-bind:class="{'selectedRow':highlightRow(row)}"  @click="cellClicked(row, col, $event)">
             <div :style="fixedRowHeightStyle">
@@ -96,33 +90,12 @@
             </div>
           </td>
         </tr>
+        <tr v-if="message">
+          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
+        </tr>
       </tbody>
     </table>
     <div class="row">
-      <!-- pager for doogie table -->
-      <div class="col-sm-8 text-center">
-        <nav v-if="lastPageIndex() > 0">
-          <ul class="pagination">
-            <li v-bind:class="isActivePage(0)?'active':''">
-              <a href="#" @click.prevent="page = 0">1</a>
-            </li>
-            <li class="disabled" v-if="page-adjacentPages > 1">
-              <a href="#" @click.prevent class="narrowEllipsis">...</a>
-            </li>
-            <li
-              v-for="pageIndex in currentPages"
-              v-bind:class="isActivePage(pageIndex)?'active':''">
-              <a href="#" @click.prevent="page = pageIndex">{{pageIndex+1}}</a>
-            </li>
-            <li class="disabled" v-if="page+adjacentPages < lastPageIndex()-1">
-              <a href="#" @click.prevent class="narrowEllipsis">...</a>
-            </li>
-            <li v-bind:class="isActivePage(lastPageIndex())?'active':''">
-              <a href="#" @click.prevent="page = lastPageIndex()">{{lastPageIndex()+1}}</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
       <div v-if="showAddButton" class="col-sm-2 text-right">
         <span>showAddButton = {{showAddButton}}</span>
         <button type="button" class="btn btn-primary btn-sm" @click="addRow()">
@@ -147,8 +120,14 @@ export default {
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
     columns: { type: Array, required: true },   //TODO: add validator function for columns object
 
-    // raw rowData, that will then be filtered and sorted
+    // raw rowData in the table. Each element of the array may be any kind of object
+    // Your columns configuration then creates visible cells for each column from this data
     rowData: { type: Array, required: true, default: function() { return [] } },
+
+    // Dynamically load additional data, when the bottom of the table becomes visible.
+    // Initial rowData data may be given, but does not have to.
+    // This implies of course: No paging controls at the bottom of the table.
+    dynamicLoadFunc: { type: Function, required: false, default: undefined },
 
     // this callback will be called, when a cell value has been edited.
     updateHandler: { type: Function, required: false },
@@ -169,22 +148,14 @@ export default {
       }
     },
 
-    // how many rows per page shall be shown in the table?
-    rowsPerPage:    { type: Number, required: false, default: 10 },
-
     // show rowNumbers (of filtered result) in first column
     showRowNumbers: { type: Boolean, required: false, default: true },
 
     // make all rows the same hight. Larger content will be hidden
     fixedRowHeight: { type: Number, required: false, default: -1 },
 
-		// A message that is shown in the first row, e.g "loading" or can be used for error messages
+		// A message that is shown below the last row, e.g "loading" or can be used for error messages
 		message: { type: String, required: false, default: "" },
-
-    // pager width: number of li elements to left and right of the current page index (plus first/last page)
-    adjacentPages:  { type: Number, required: false, default:  5 },
-
-
 
     // button for adding a new row. Will fire the 'addButtonClicked' event
     showAddButton: { type: Boolean, required: false, default: false },
@@ -192,8 +163,9 @@ export default {
     // show selected row with blue background
     highlightSelectedRow: { type: Boolean, required: false, default: false },
 
-		// client side filtering of tableData. When rowFilterFunc(row) returns false, that row will not be shown.
+		// client side filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
 		rowFilterFunc: { type: Function, required: false },
+
 
   },
 
@@ -201,7 +173,6 @@ export default {
     return {
       sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
       sortOrder: 1,										 // initial sort order is ascending
-      page: 0,                         // currently shown page. 0 is first page!
       selectedRow: null								 // currently selected row
     }
   },
@@ -212,21 +183,6 @@ export default {
 
   //These computed properties are cached. See https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
-    /**
-		 * Array of current page indexes that are shown in the middle of the pagination component
-     * (A field with first and last page is always shown at the very left and right of my pager.)
-		 * @return {array} Array of page indexes
-		 */
-    currentPages() {
-      var firstIndexInPager = Math.max(1, this.page - this.adjacentPages)
-      var lastIndexInPager  = Math.min(this.lastPageIndex()-1, this.page + this.adjacentPages)
-      var len = lastIndexInPager - firstIndexInPager + 1
-      var result = new Array()
-      for (var i = len-1; i >= 0; i--) {
-        result[i] = firstIndexInPager + i
-      }
-      return result
-    },
 
     /**
      Get rows that match a given filter 'this.rowFilterFunc'
@@ -239,25 +195,6 @@ export default {
       if (this.rowData === undefined) return []
 			if (typeof this.rowFilterFunc !== "function") return this.rowData
       return this.rowData.filter(row => this.rowFilterFunc(row))
-    },
-
-    /**
-     Get filtered and sorted row data for current page only.
-     Here this.sortOrder is used when sorting.
-		 @return the subarray of this.rowData with the elements for the current page only.
-    */
-    getRowDataForCurrentPage() {
-      var result = this.getFilteredRowData  // first apply filter
-      if (this.sortByCol) {									// then sort
-        var compFunc = this.sortByCol.comparator || this.localAwareComparator;
-        var compFuncWithOrder = (row1, row2) => {
-          return compFunc(row1, row2) * this.sortOrder
-        }
-        result = result.slice().sort(compFuncWithOrder)   // need to make a copy of the array!
-      }
-      // slice out data for current page only
-      result = result.slice(this.page*this.rowsPerPage, this.page*this.rowsPerPage + this.rowsPerPage)
-      return result
     },
 
     fixedRowHeightStyle() {
@@ -273,30 +210,17 @@ export default {
 
   },
 
-	watch: {
-		/**
-		 * When the filtered number of rows changes, because the filter settings changed, then
-		 * it might be that we have to jump to a smaller last page index.
-		 */
-		getFilteredRowData: function(newValue) {
-			var lastIdx = this.lastPageIndex()
-			if (this.page > lastIdx ) { this.page = lastIdx }
-		}
-	},
-
   methods: {
     /**
-		 * Visually sort the rows in the table by this column.  (this.rowData will not be changed by this action.)
+		 * Triggers the sorting of rows. Will emit a "sortingChanged" event.
 		 * @param {object} col one element from columns array
+     * @param {integer} +1 or -1
 		 */
-    setSortCol(col) {
+    setSort(col, sortOrder) {
       if (typeof col == "number") col=this.columns[col]
       this.sortByCol = col
-    },
-
-    /** invert the sort order of the current column sort (ascending/descending) */
-    invertSortOrder() {
-      this.sortOrder = this.sortOrder * -1
+      this.sortOrder = sortOrder
+      this.$emit("sortingChanged", this.sortByCol, this.sortOrder)
     },
 
     /**
@@ -321,16 +245,13 @@ export default {
       }
     },
 
-    /** Called when a header is clicked: Will sort by this column and invert sort order on subsequent clicks */
+    /** Called when a header is clicked: Will sort by that column and invert sort order on subsequent clicks */
     clickHeader(col) {
-      this.setSortCol(col)
-      this.invertSortOrder()
-    },
-
-    /** @return index of last page (after applying filter) */
-    lastPageIndex() {
-      var filteredRowData = this.getFilteredRowData
-      return Math.max(0, Math.ceil(filteredRowData.length / this.rowsPerPage) - 1)
+      if (col == this.sortByCol) {
+        this.sortOrder = this.sortOrder * -1
+        console.log("invert sort order")
+      }
+      this.setSort(col, this.sortOrder)
     },
 
     /**
@@ -368,11 +289,6 @@ export default {
 
     // pick the lodash utility function 'get path in object' and make it available in our template
     getPath: _.get,
-
-    /** Will highlights current page in pagination */
-    isActivePage(index) {
-      return index == this.page
-    },
 
     /** @return {boolean} true when this column is selected (has been clicked on) */
     isSelected(row) {

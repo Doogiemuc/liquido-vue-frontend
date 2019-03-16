@@ -2,7 +2,7 @@
   <div :id="id" class="btn-group">
     <!-- Select for one value out of a very long list. With an inner search input field. -->
     <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass()" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      {{displayName}}: {{displayValue}} <span class="caret"></span>
+      {{name}}: {{displayValue}} <span class="caret"></span>
     </button>
     <div class="dropdown-menu">
       <input type="text" class="selectSearchInput" :id="id + 'Search'" placeholder="Search" v-model="searchText"/>
@@ -20,12 +20,16 @@
 </template>
 
 <script>
-
+/**
+ Fiter componente for DoogieTable. This is a select box with a drop down and a quick search field for options in the drop down.
+ This is especially userfull, when there a lot of possible options in the select.
+ Each option has a name and an internal value.
+ */
 export default {
   props: {
     id: { type: String, required: true },								// id of this filter
-		displayName: { type: String, required: true },			// filter name to display to the user. Will be concatenated with displayValue
-		options: { type: Array, required: true },						// (possibly long) list of possible options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
+		name: { type: String, required: true },			// filter name to display to the user. Will be concatenated with displayValue
+		options: { type: Array, required: true },						// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
   },
 
   data () {
@@ -33,7 +37,7 @@ export default {
       searchText: "",           // search input field
       displayValue: "Any",      // text displayed to the user for the currently selected option  (==option[i].displayValue)
       value: undefined,         // intenal value of currently selection option  (== options[i].value)
-                                //   OR null when nothing is selcted. When option contains objects, then this is an object!
+                                //   OR null when nothing is selcted. When the options array contains objects, then this is one of those objects!
     }
   },
 
@@ -46,7 +50,7 @@ export default {
 
   computed: {
     /**
-     * Filter a list of options by their displayName or by their value. Compares case-insensitive.
+     * Filter a list of options by their name or by their value. Compares case-insensitive.
      * The result of this computed propery is cached. Will be updated, everytime when this.searchText changes
      * @returns filtered sublist of this.options
      */

@@ -24,6 +24,7 @@
             <li><a href="#">Polls</a></li>
             <li><a href="#">Laws</a></li>
           </ul>
+          <router-link v-if="currentUser" active-class="active" to="/search">Search</router-link>
 
           <ul id="userMenu" class="nav navbar-nav navbar-right" v-if="currentUser">
             <!-- button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">

@@ -1,9 +1,13 @@
 <template>
-  <div v-if="proposal === null" class="container">
-    <span v-html="loadingMessage"></span>
-  </div>
-  <div v-else class="container">
+  <div v-if="!this.proposal" class="container">
+		<h1>Proposal</h1>
+	  <div v-if="proposal === null" class="container">
+	    <span v-html="loadingMessage"></span>
+	  </div>
+	</div>
+	<div v-else class="container">
   	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
+  	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
 		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
   	<h1 v-else-if="proposal.status === 'VOTING'">Proposal in voting phase</h1>
   	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
@@ -154,6 +158,7 @@
     </div>
 
 	</div>
+</div>
 </template>
 
 <script>
