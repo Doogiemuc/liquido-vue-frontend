@@ -23,6 +23,7 @@
     "url": "https://github.com/Doogiemuc/liquido-vue-frontend.git"
   },
   "dependencies": {
+    "appear": "^1.0.1",
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
     "bcrypt-nodejs": "^0.0.3",

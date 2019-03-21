@@ -17,15 +17,15 @@
 	</div>
 
   <doogie-table
-    :row-data="ideas"
+    :initialRowData="ideas"
     :columns="ideaColumns"
     :fixedRowHeight="80"
     :primary-key-for-row="ideaKey"
     :message="tableMessage"
     :show-add-button="false"
-		:rowFilterFunc="undefined"
     v-on:saveNewValue="saveNewValue"
     v-on:sortingChanged="sortingChanged"
+    v-on:appendData="appendData"
     v-on:cellClicked="cellClicked"
     ref="ideatable"
     id="ideatable"
@@ -53,7 +53,7 @@ export default {
     return {
       // Data for DoogieTable.vue
       ideaColumns: [
-        { title: "Title", path: "title", editable: false, vueFilter: 'titleLink', rawHTML: false },
+        { title: "Title", path: "title", editable: false, rawHTML: false },
         { title: "Description", path: "description", editable: false, rawHTML: true },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true },
         { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
@@ -71,7 +71,7 @@ export default {
       tableMessage: "loading ...",
 
       ideas: [],
-      totalElements: 0,   // total number of rows as returned by backend
+      totalElements: 0,   // total overall number of available rows from backend
       sortByCol: undefined,
       sortOrder: undefined,
 
@@ -120,11 +120,7 @@ export default {
             if (active) {
               var currentUser = this.$root.currentUser
               // When "My Ideas" is clicked, then also set the value of the other CreatedBy filter
-              //"this" is the DoogieFilter.vue component here
-              //But I cannot just simply call this.setFilterValue({id:'createdByID'}, currentUser.profile.name, currentUser.id)
-              //TODO: BUGFIX. I think I misses the first parameter hier. this.setFilter({id: "createdById"}, currentUser.profile.name, currentUser.id)  should work.
-              console.log(this)
-              this.$refs.createdByID[0].setFilterValue(currentUser.profile.name, currentUser.id)
+              this.setFilterValue('createdByID', currentUser.profile.name, currentUser.email)
             } else {
               this.$refs.createdByID[0].clearSelectFilter()
             }
@@ -146,11 +142,14 @@ export default {
 
   methods: {
     // Compute the filter query for the backend from the tableFilter component
-    getSearchQuery() {
+    getSearchQuery(offset) {
       var query = { }
       if (!this.$refs || !this.$refs.tableFilter || !this.$refs.tableFilter.currentFilters) return query
 
       var f = this.$refs.tableFilter.currentFilters
+      if (f.searchID.value) {
+        query.searchText = f.searchID.value
+      }
       if (f.statusID.value && f.statusID.value.length >= 1) {
         query.statusList = f.statusID.value  // array of status
       }
@@ -165,8 +164,12 @@ export default {
         query.updatedBefore = f.updatedAtID.value.end
       }
       if (f.supportedByCurrentUser.value) {
-        query.supportedByEMail = currentUser.profile.email
+        query.supportedByEMail = currentUser.email
       }
+
+      //offset and limit
+      query.offset = offset || 0
+      query.limit  = 22
 
       //sorting
       if (this.sortByCol) {
@@ -194,7 +197,7 @@ export default {
     },
 
 		/**
-     * Called when the advanced filters above the table changed.
+     * Called when the advanced filters above the table have changed. Then we reload all the data from the backend.
      * @param {object} newFilters the new filter configuration
      */
 		filtersChanged(newFilters) {
@@ -215,22 +218,11 @@ export default {
 		 */
 		supporterAdded(idea) {
       this.$root.api.addSupporterToIdea(idea, this.$root.currentUser).then(res => {
-        //update local values by hand
-        //var index = this.$refs.ideatable.getIndexOf(idea)
-        //this.ideas[index].numSupporters   has already been incremented by SupportButton
-        //this.ideas[index].supportedByCurrentUser = true
-
-        //OLD: reload idea completely from server
-        //this.$root.api.getIdea(idea, true).then(reloadedIdea => {
-        //  this.$set(this.ideas, index, reloadedIdea)  // Important: Must use Vue's reactive $setter when replacing an array element
-        //})
-
         iziToast.success({
             title: 'Liked',
             message: 'Thank you for supporting this idea.',
         });
       })
-
 		},
 
     /** When user clicks on the title of an idea, then open that idea */
@@ -241,45 +233,37 @@ export default {
     },
 
     /**
-     * Fast client side filtering of table rows
-     * This reactive function will automatically be called, when currentFilters changes.
-     * @param {Object} row  one row from tableData
-     * @return true when this row shall be shown according to the currentFilters
-     */
-		rowFilterFunc(row) {
-			var currentFilters = this.$refs.tableFilter.currentFilters
-      console.log(this.$refs.tableFilter.currentFilters)
-      var searchRegex = new RegExp(currentFilters.searchID.value, "i")
-   		var dateRange   = currentFilters.updatedAtID.value  	// dateRange == {start: ..., end: ... }
-			var categoryID  = currentFilters.categoryID.value
-			var createdByID = currentFilters.createdByID.value
-      var supported   = currentFilters.supportedByCurrentUser.value
-			//console.log("rowFilterFunc", dateRange === undefined? "undefined" : this.$refs.tableFilter.isInDateRange(row.updatedAt, dateRange))
-			return (!currentFilters.searchID.value || (
-          searchRegex.test(row.title) ||
-          searchRegex.test(row.description) ||
-          searchRegex.test(row.createdBy.email) ||
-          searchRegex.test(row.createdBy.profile.name)
-        )) &&
-				(dateRange === undefined || this.$refs.tableFilter.isInDateRange(row.updatedAt, dateRange)) &&   // row.updatedAt is a string!! ISO date format
-				(categoryID === undefined || row.area.id == categoryID) &&
-				(createdByID === undefined || row.createdBy.id == createdByID) &&
-        (supported === false || row.supportedByCurrentUser === true)
-		},
-
-    /**
      * Reload (filtered) tabledata from the server.
      */
 		reloadFromServer() {
       this.tableMessage = "loading ..."
-      var query = this.getSearchQuery()
+      var query = this.getSearchQuery(0)
       this.$root.api.findByQuery(query).then(result => {
 				this.ideas = result._embedded.laws
-        this.totalElements = result.page.totalElements
-				this.tableMessage = undefined
+        this.totalElements = result.totalElements
+				this.tableMessage = this.ideas.length < this.totalElements ? "ready to load more rows ..." : undefined
+        this.$refs.ideatable.setRowData(this.ideas)
 			})
-			.catch(err => { console.log("ERROR loading data for ideasPage: ", err) })
+			.catch(err => { console.log("ERROR loading search result: ", err) })
 		},
+
+    appendData(rowData) {
+      if (rowData && rowData.length >= this.totalElements) {
+        this.tableMessage = undefined
+        return;      // all data is already loaded
+      }
+      console.log("loading additional table data")
+      this.tableMessage = "loading additional data ..."
+      var query = this.getSearchQuery(rowData.length)
+      this.$root.api.findByQuery(query).then(result => {
+        var newIdeas = result._embedded.laws
+        this.totalElements = result.totalElements
+        this.tableMessage = "ready to load more rows ..."
+        this.$refs.ideatable.appendRowData(newIdeas)
+      })
+      .catch(err => { console.log("ERROR appending to search result: ", err) })
+
+    }
 
   },
 
@@ -287,12 +271,12 @@ export default {
    * Initially load users and categories for selects.
    * Filter for ideas by default. Load first set of ideas.
    */
-  mounted () {
+  mounted() {
     this.$root.api.getAllCategories().then(categories => {
       this.filtersConfig[3].options = categories.map(cat => { return { value: cat.id, displayValue: cat.title } } )
     })
     this.$root.api.getAllUsers().then(users => {
-      this.filtersConfig[4].options = users.map(user => { return { value: user.profile.email, displayValue: user.profile.name } } )
+      this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
     })
     this.$refs.tableFilter.applyMultiSelect(this.filtersConfig[1], ["IDEA"])
 		//this.reloadFromServer()   no need to reload. Changing the filter will automatically trigger a reload

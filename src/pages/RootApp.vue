@@ -12,19 +12,25 @@
           <router-link to="/" class="navbar-brand"><i class="fa fa-university"></i> Liquido</router-link>
         </div>
         <div class="collapse navbar-collapse">
-          <ul id="navArrows" class="nav navbar-nav nav-arrows" v-if="currentUser">
+          <ul v-if="currentUser" id="navArrows" class="nav navbar-nav nav-arrows" >
             <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
             <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
             <li><router-link active-class="active" to="/polls">Polls</router-link></li>
             <li><router-link active-class="active" to="/laws">Laws</router-link></li>
           </ul>
-          <ul id="navArrows" class="nav navbar-nav nav-arrows disabled" v-else>
+          <ul v-if="currentUser" class="nav navbar-nav nav-search-icon">
+            <li>
+              <router-link v-if="currentUser" active-class="active" to="/search">
+                <i class="fas fa-search"></i>
+              </router-link>
+            </li>
+          </ul>
+          <ul v-else id="navArrows" class="nav navbar-nav nav-arrows disabled" >
             <li><a href="#">Ideas</a></li>
             <li><a href="#">Proposals</a></li>
             <li><a href="#">Polls</a></li>
             <li><a href="#">Laws</a></li>
           </ul>
-          <router-link v-if="currentUser" active-class="active" to="/search">Search</router-link>
 
           <ul id="userMenu" class="nav navbar-nav navbar-right" v-if="currentUser">
             <!-- button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">
@@ -269,6 +275,10 @@ export default {
   /* disabled arrows when not yet logged in */
   #navArrows.disabled a {
     cursor: default;
+  }
+
+  .nav-search-icon {
+    font-size: 20px;
   }
 
   footer {

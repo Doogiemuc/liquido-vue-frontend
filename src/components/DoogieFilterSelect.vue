@@ -36,8 +36,8 @@ export default {
     return {
       searchText: "",           // search input field
       displayValue: "Any",      // text displayed to the user for the currently selected option  (==option[i].displayValue)
-      value: undefined,         // intenal value of currently selection option  (== options[i].value)
-                                //   OR null when nothing is selcted. When the options array contains objects, then this is one of those objects!
+      value: undefined,         // intenal value of currently selection option
+                                // This is undefined when nothing is selcted or the the options[i].value from the options array.
     }
   },
 

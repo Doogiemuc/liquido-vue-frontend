@@ -80,7 +80,10 @@ import DoogieFilterSelect from '../components/DoogieFilterSelect'
 export default {
   props: {
     /*
-      Array of configoration info for each filter, eg.
+      Array of configoration info for each filter.
+      Filtes will be shown in this order.
+
+      Example:
 
       filtersConfig: [
         {
@@ -111,6 +114,7 @@ export default {
             { displayValue: "Law", value: "LAW"},
           ]
         },
+        // A select drop down with a (possibly very long) list of values and a search input field for those values
         {
           type: "selectWithSearch",
           id: "createdByID",
@@ -151,6 +155,7 @@ export default {
    */
   data () {
     return {
+      filterConfigsById: {},    // the filtersConfig array as an object with filter.ids as keys
       currentFilters: {},       // current values of all applied filters.
 			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" selects
     }
@@ -175,14 +180,20 @@ export default {
   methods: {
     /**
      * set the value of one filter
-     * @param {String} filterID of one element from your filtersConfig array
+     * @param {String} filterId of one element from your filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
      * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
     setFilterValue(filterId, newDisplayValue, newValue) {
+      if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id"+filterId)
+      //console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
       this.currentFilters[filterId].displayValue = newDisplayValue
       this.currentFilters[filterId].value = newValue
-      //console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
+      // If filterId is a child component (as with DoogieFilterSelect) then call its setFilterValue method
+      if (this.$refs[filterId]) {
+        console.log("Setting value in ", this.$refs[filterId][0])           // this v-ref is an array, because its used inside a v-for
+        this.$refs[filterId][0].setFilterValue(newDisplayValue, newValue)
+      }
     },
 
     // "Points in time in the universe and our names for them. I'll never understand why we humans have such great problems with the concept of time." (R.Rackl 2018)
@@ -273,6 +284,7 @@ export default {
     initFilters() {
       this.currentFilters = {}
       this.filtersConfig.forEach(filter => {
+        this.filterConfigsById[filter.id] = filter
         this.$set(this.currentFilters, filter.id, {})
         switch (filter.type) {
           case "search":

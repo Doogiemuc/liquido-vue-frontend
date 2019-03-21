@@ -48,8 +48,8 @@
  */
 
 <template>
-  <div id="DoogieTableWrapper">
-    <table class="table table-condensed table-bordered table-hover doogie-table">
+  <div>
+    <table :id="tableId" class="table table-condensed table-bordered table-hover doogie-table">
       <thead>
         <tr>
           <th v-if="showRowNumbers">&nbsp;</th>
@@ -64,10 +64,12 @@
       </thead>
       <tbody>
 				<tr v-if="rowData === undefined || rowData.length === 0">
-          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.emptyData}}</td>
+          <th v-if="showRowNumbers">&nbsp;</th>
+          <td v-bind:colspan="columns.length">{{localizedTexts.emptyData}}</td>
         </tr>
         <tr v-else-if="getFilteredRowData.length === 0">
-          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{localizedTexts.filterdResultEmpty}}</td>
+          <th v-if="showRowNumbers">&nbsp;</th>
+          <td v-bind:colspan="columns.length">{{localizedTexts.filterdResultEmpty}}</td>
         </tr>
         <tr v-for="(row, index) in getFilteredRowData" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
@@ -91,18 +93,12 @@
           </td>
         </tr>
         <tr v-if="message">
-          <td v-bind:colspan="columns.length + (showRowNumbers ? 1 : 0)">{{message}}</td>
+          <th v-if="showRowNumbers">&nbsp;</th>
+          <td v-bind:colspan="columns.length">{{message}}</td>
         </tr>
       </tbody>
     </table>
-    <div class="row">
-      <div v-if="showAddButton" class="col-sm-2 text-right">
-        <span>showAddButton = {{showAddButton}}</span>
-        <button type="button" class="btn btn-primary btn-sm" @click="addRow()">
-          <i class="fa fa-plus-square" aria-hidden="true"></i> {{localizedTexts.addButton}}
-        </button>
-      </div>
-    </div>
+    <span id="bottomOfTable"></span>
   </div>
 
 </template>
@@ -113,20 +109,21 @@ import _ from 'lodash'
 import Vue from 'vue'
 import moment from 'moment'
 
-
 export default {
   props: {
+    tableId: { type: String, required: false },
 
     //  Array of columns, eg. [ { title: "Col Title", path: "path.in.rest.response", filter: 'fromNow' }, { ... } ]
     columns: { type: Array, required: true },   //TODO: add validator function for columns object
 
     // raw rowData in the table. Each element of the array may be any kind of object
     // Your columns configuration then creates visible cells for each column from this data
-    rowData: { type: Array, required: true, default: function() { return [] } },
+    initialRowData: { type: Array, required: false, default: function() { return [] } },
 
     // Dynamically load additional data, when the bottom of the table becomes visible.
     // Initial rowData data may be given, but does not have to.
     // This implies of course: No paging controls at the bottom of the table.
+    // Alternatively you can listen to the 'appendData' event and then call appendRowData(additionalData) on your own.
     dynamicLoadFunc: { type: Function, required: false, default: undefined },
 
     // this callback will be called, when a cell value has been edited.
@@ -142,7 +139,6 @@ export default {
       default: function() {    //TODO: merge with what has been passed
         return {
           emptyData: 'Empty data',
-          addButton: 'Add',
           filterdResultEmpty: 'Filtered result is empty. Choose less strict filters.',
         }
       }
@@ -157,23 +153,20 @@ export default {
 		// A message that is shown below the last row, e.g "loading" or can be used for error messages
 		message: { type: String, required: false, default: "" },
 
-    // button for adding a new row. Will fire the 'addButtonClicked' event
-    showAddButton: { type: Boolean, required: false, default: false },
-
     // show selected row with blue background
     highlightSelectedRow: { type: Boolean, required: false, default: false },
 
 		// client side filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
 		rowFilterFunc: { type: Function, required: false },
 
-
   },
 
   data () {
     return {
-      sortByCol: this.columns[0],      // by default sort by first col (thers must be a first col!)
-      sortOrder: 1,										 // initial sort order is ascending
-      selectedRow: null								 // currently selected row
+      rowData: this.initialRowData || [],  // data for rows in table
+      sortByCol: this.columns[0],          // by default sort by first col (thers must be a first col!)
+      sortOrder: 1,										     // initial sort order is ascending
+      selectedRow: null								     // currently selected row
     }
   },
 
@@ -210,7 +203,47 @@ export default {
 
   },
 
+  mounted() {
+    var that = this
+    // Once the whole table is rendered and mounted into the DOM, start appear lib.
+    this.$nextTick(function () {
+      console.log("starting appear")
+      appear({
+        elements: function elements(){
+          return $("#bottomOfTable")
+        },
+        appear: function appear(el){
+          //console.log('===== Vissible', el);
+          if (this.dynamicLoadFunc === "function") { this.dynamicLoadFunc(this.rowData) }
+          that.$emit("appendData", that.rowData)
+        },
+        disappear: function disappear(el){
+          //console.log('===== no longer visible', el);
+        },
+        bounds: 0,
+        reappear: true
+      })
+    })
+  },
+
   methods: {
+    setRowData(newRowData) {
+      this.rowData = newRowData
+    },
+
+    //TODO: replaceAllRowData(newRowData)
+    //TODO: insertRowData(rowData, offset)
+    //TODO: deleteRowData(from, to)
+
+    appendRowData(additionalRowData) {
+      if (!additionalRowData || additionalRowData.length == 0) return
+      //this.rowData.push(additionalRowData)  //BUGFIX: this adds the ARRAY as the last element.  AAAARRRGGG.  JS I hate you!
+      additionalRowData.forEach((newRow) => {
+        //TODO: handle the edge case when newRow already exists with that primary key.
+        this.rowData.push(newRow)
+      })
+    },
+
     /**
 		 * Triggers the sorting of rows. Will emit a "sortingChanged" event.
 		 * @param {object} col one element from columns array
@@ -348,11 +381,6 @@ export default {
 
     cellClicked(row, col, event) {
       this.$emit('cellClicked', row, col)
-    },
-
-    /** emit an event so that the parent component can for example show a popup where the new entry can be created. */
-    addRow() {
-      this.$emit('addButtonClicked')
     },
 
   },
