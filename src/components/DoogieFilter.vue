@@ -56,7 +56,7 @@
 			/>
 
       <div v-else-if="filter.type === 'toggle'">
-        <button type="button" class="btn btn-xs btn-default" :class="getActiveClass(filter.id)" @click="toggle(filter)">{{filter.name}}</button>
+        <button type="button" class="btn btn-xs btn-default" :class="getActiveClass(filter.id)" @click="toggle(filter.id)">{{filter.name}}</button>
       </div>
 
     </div>
@@ -165,8 +165,10 @@ export default {
     // This object will contain the currently selected values for each filter.
     // Inactive filters will normally have the value null. But there are exceptions: Unselected multi will have the value []
     currentFilters: {
-      handler: function(newFilters, oldFilters) {
-        //console.log("currentFilters handler", newFilters)
+			//TODO: _.debounce(function() {...}, 500)   // only trigger the event after a min of 500 secs
+      handler: function(newFilters) {
+        console.log("currentFilters change handler")
+				console.log("to", JSON.stringify(newFilters))
 				this.$emit('filtersChanged', newFilters)
       },
       deep: true
@@ -186,14 +188,21 @@ export default {
      */
     setFilterValue(filterId, newDisplayValue, newValue) {
       if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id"+filterId)
-      //console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
-      this.currentFilters[filterId].displayValue = newDisplayValue
+      
+			console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
+      
+			this.currentFilters[filterId].displayValue = newDisplayValue
       this.currentFilters[filterId].value = newValue
-      // If filterId is a child component (as with DoogieFilterSelect) then call its setFilterValue method
+			
+      // If filterId is a child component (as with DoogieFilterSelect) then also call its setFilterValue method
       if (this.$refs[filterId]) {
         console.log("Setting value in ", this.$refs[filterId][0])           // this v-ref is an array, because its used inside a v-for
         this.$refs[filterId][0].setFilterValue(newDisplayValue, newValue)
       }
+			//if filter has an onChange handler, then call it
+			if (typeof this.filterConfigsById[filterId].onChange === "function") {
+				this.filterConfigsById[filterId].onChange.call(this, this.filterConfigsById[filterId], newDisplayValue, newValue)
+			}
     },
 
     // "Points in time in the universe and our names for them. I'll never understand why we humans have such great problems with the concept of time." (R.Rackl 2018)
@@ -267,56 +276,53 @@ export default {
     },
 
     /** Switch a toggle on and off */
-    toggle(filter) {
-      var that = this
-      var newValue = !this.currentFilters[filter.id].value
-      this.setFilterValue(filter.id, newValue, newValue)
-      if (typeof filter.onToggle === "function") {
-        filter.onToggle.call(that, filter, newValue)
-      }
+    toggle(filterId) {
+      var newValue = !this.currentFilters[filterId].value
+      this.setFilterValue(filterId, newValue, newValue)
     },
+		
+		/** Clear the value of one filter */
+		clearFilter(filterId) {
+			if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id="+filterId)
+			switch (this.filterConfigsById[filterId].type) {
+				case "search":
+					this.$set(this.currentFilters[filterId], 'displayValue', "")   // For a search input value == displayValue :-)
+					this.$set(this.currentFilters[filterId], 'value', undefined)
+					break;
+				case "dateRange":
+					this.$set(this.currentFilters[filterId], 'displayValue', "Anytime")
+					this.$set(this.currentFilters[filterId], 'value', undefined)
+					break;
+				case "select":
+					this.$set(this.currentFilters[filterId], 'displayValue', "Any")
+					this.$set(this.currentFilters[filterId], 'value', undefined)
+					break;
+				case "selectWithSearch":
+					if (this.$refs[filterId])                        // Vue ref are not yet filled during initial render
+						this.$refs[filterId][0].clearSelectFilter()    // $refs returns an array when used inside for loop.
+					break;
+				case "multi":
+					this.$set(this.currentFilters[filterId], 'displayValue', "Any")
+					this.$set(this.currentFilters[filterId], 'value', [])    // The 'value' of a multi is an Array of currently selected option.values
+					this.selectedCheckboxes[filterId] = []
+					break;
+				case "toggle":
+					this.$set(this.currentFilters[filterId], 'value', false)
+					break;
+      }
+		},
 
     /**
       Init currentFilters according to filtersConfig. Set default values.
       This needs to be done through Vue's $set() method, so that deep changes in the object can be detected by Vue. And the {{templates}} in our view will be updated.
       See https://vuejs.org/v2/guide/reactivity.html#ad
     */
-    initFilters() {
-      this.currentFilters = {}
+    clearAllFilters() {
       this.filtersConfig.forEach(filter => {
         this.filterConfigsById[filter.id] = filter
         this.$set(this.currentFilters, filter.id, {})
-        switch (filter.type) {
-          case "search":
-            //this.$set(this.currentFilters[filter.id], 'displayValue', "")    For a search input value == displayValue :-)
-            this.$set(this.currentFilters[filter.id], 'value', "")
-            break;
-          case "dateRange":
-            this.$set(this.currentFilters[filter.id], 'displayValue', "Anytime")
-            this.$set(this.currentFilters[filter.id], 'value', undefined)
-            break;
-          case "select":
-            this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-            this.$set(this.currentFilters[filter.id], 'value', undefined)
-            break;
-          case "selectWithSearch":
-            if (this.$refs[filter.id])                        // Vue ref are not yet filled during initial render
-              this.$refs[filter.id][0].clearSelectFilter()    // $refs returns an array when used inside for loop.
-            break;
-          case "multi":
-            this.$set(this.currentFilters[filter.id], 'displayValue', "Any")
-            this.$set(this.currentFilters[filter.id], 'value', [])    // The 'value' of a multi is an Array of currently selected option.values
-            this.selectedCheckboxes[filter.id] = []
-            break;
-          case "toggle":
-            this.$set(this.currentFilters[filter.id], 'value', false)
-            break;
-        }
+				this.clearFilter(filter.id)
       })
-    },
-
-    clearAllFilters() {
-      this.initFilters()
     },
 
     /** When a filter is active, then style it accordingly */
@@ -331,7 +337,8 @@ export default {
   },
 
   created () {
-    this.initFilters()
+		this.currentFilters = {}
+    this.clearAllFilters()
   }
 }
 </script>

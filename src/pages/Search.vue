@@ -1,10 +1,10 @@
 <template>
-<div class="container-fluid">
+<div id="#SearchPage" class="container-fluid">
   <h1>Search for Ideas, Proposals and Laws</h1>
 
 	<div>
     <div class="pull-right">
-      {{ideas.length}}&nbsp;of&nbsp;{{totalElements}}&nbsp;
+      {{laws.length}}&nbsp;of&nbsp;{{totalElements}}&nbsp;
       <span v-on:click="reloadFromServer" class="reloadIcon">
         <i class="fa fa-sync-alt" title="Reload table data from server" ></i>
       </span>
@@ -17,18 +17,18 @@
 	</div>
 
   <doogie-table
-    :initialRowData="ideas"
-    :columns="ideaColumns"
-    :fixedRowHeight="80"
-    :primary-key-for-row="ideaKey"
+    :initialRowData="laws"
+    :columns="tableColumns"
+    :fixedRowHeight="63"
+    :primary-key-for-row="lawKey"
     :message="tableMessage"
     :show-add-button="false"
     v-on:saveNewValue="saveNewValue"
     v-on:sortingChanged="sortingChanged"
     v-on:appendData="appendData"
     v-on:cellClicked="cellClicked"
-    ref="ideatable"
-    id="ideatable"
+    ref="searchTable"
+    id="searchTable"
   />
 </div>
 
@@ -52,7 +52,7 @@ export default {
     var that = this
     return {
       // Data for DoogieTable.vue
-      ideaColumns: [
+      tableColumns: [
         { title: "Title", path: "title", editable: false, rawHTML: false },
         { title: "Description", path: "description", editable: false, rawHTML: true },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true },
@@ -67,10 +67,10 @@ export default {
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
       ],
-      ideaKey: "_links.self.href",
+      lawKey: "_links.self.href",
       tableMessage: "loading ...",
 
-      ideas: [],
+      laws: [],
       totalElements: 0,   // total overall number of available rows from backend
       sortByCol: undefined,
       sortOrder: undefined,
@@ -110,19 +110,29 @@ export default {
           type: "selectWithSearch",
           id: "createdByID",
           name: "Created by",
-          options: []
+          options: [],
+					onChange: function(filter, newDisplayValue, newValue) {
+						console.log("selectWithSearch onChange")
+						var currentUser = this.$root.currentUser
+						if (currentUser.email !== newValue) {
+							console.log("clearFilter(createdByYouId)")
+							this.clearFilter("createdByYouID")   // this is a DoogieFilter instance
+						}
+					}
         },
         {
           type: "toggle",
-          id: "myIdeas",
-          name: "My Ideas",
-          onToggle: function(filter, active) {
+          id: "createdByYouID",
+          name: "Created by you",
+          onChange: function(filter, active) {
             if (active) {
               var currentUser = this.$root.currentUser
               // When "My Ideas" is clicked, then also set the value of the other CreatedBy filter
-              this.setFilterValue('createdByID', currentUser.profile.name, currentUser.email)
+              console.log("toggle active")
+							this.setFilterValue('createdByID', currentUser.profile.name, currentUser.email)
             } else {
-              this.$refs.createdByID[0].clearSelectFilter()
+              console.log("toggle DEactive - clearFilter createdById")
+							this.clearFilter('createdByID')
             }
           },
         },
@@ -156,15 +166,19 @@ export default {
       if (f.categoryID.value) {
         query.areaId = f.categoryID.value
       }
-      if (f.createdByID.value) {
+			
+      if (f.createdByYouID.value) {
+				query.createdByEmail = this.$root.currentUser.email
+			} else if (f.createdByID.value) {
         query.createdByEmail = f.createdByID.value
       }
+			
       if (f.updatedAtID.value) {
         query.updatedAfter = f.updatedAtID.value.start
         query.updatedBefore = f.updatedAtID.value.end
       }
       if (f.supportedByCurrentUser.value) {
-        query.supportedByEMail = currentUser.email
+        query.supportedByEMail = this.$root.currentUser.email
       }
 
       //offset and limit
@@ -185,7 +199,7 @@ export default {
     /**
      * save an updated value of an Idea
      * This is called when the EditableCell component fires the "saveNewValue" event
-     * @param {String} ideaURI the full ideaURI which shall be updated (which is the rowId in IdeaTable!)
+     * @param {String} ideaURI the full ideaURI which shall be updated (which is the rowId in SearchTable!)
      * @param {Object} column Which column has been edited.
      * @param {Any} value The new value that the user has entered or chosen. As returned by the EditableCell component.
      */
@@ -201,12 +215,12 @@ export default {
      * @param {object} newFilters the new filter configuration
      */
 		filtersChanged(newFilters) {
-			//console.log("Search.filtersChanged", newFilters)
+			console.log("Search.filtersChanged", newFilters)
       this.reloadFromServer()
 		},
 
     sortingChanged(sortByCol, sortOrder) {
-      //console.log("ideaTable.sortingChanged", sortByCol, sortOrder)
+      //console.log("searchTable.sortingChanged", sortByCol, sortOrder)
       this.sortByCol = sortByCol
       this.sortOrder = sortOrder
       this.reloadFromServer()
@@ -239,10 +253,10 @@ export default {
       this.tableMessage = "loading ..."
       var query = this.getSearchQuery(0)
       this.$root.api.findByQuery(query).then(result => {
-				this.ideas = result._embedded.laws
+				this.laws = result._embedded.laws || []
         this.totalElements = result.totalElements
-				this.tableMessage = this.ideas.length < this.totalElements ? "ready to load more rows ..." : undefined
-        this.$refs.ideatable.setRowData(this.ideas)
+				this.tableMessage = this.laws.length < this.totalElements ? "ready to load more rows ..." : undefined
+        this.$refs.searchTable.setRowData(this.laws)
 			})
 			.catch(err => { console.log("ERROR loading search result: ", err) })
 		},
@@ -256,10 +270,10 @@ export default {
       this.tableMessage = "loading additional data ..."
       var query = this.getSearchQuery(rowData.length)
       this.$root.api.findByQuery(query).then(result => {
-        var newIdeas = result._embedded.laws
+        var newLaws = result._embedded.laws
         this.totalElements = result.totalElements
         this.tableMessage = "ready to load more rows ..."
-        this.$refs.ideatable.appendRowData(newIdeas)
+        this.$refs.searchTable.appendRowData(newLaws)
       })
       .catch(err => { console.log("ERROR appending to search result: ", err) })
 
@@ -310,7 +324,7 @@ export default {
     cursor: pointer;
   }
   /* Clickable title col */
-  #ideatable tbody tr td:nth-child(2) {
+  #searchTable tbody tr td:nth-child(2) {
     cursor: pointer;
   }
 </style>

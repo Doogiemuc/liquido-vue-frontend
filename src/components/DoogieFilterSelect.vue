@@ -78,7 +78,6 @@ export default {
      */
     clearSelectFilter() {
       this.searchText = ""
-      //this.filteredOptions = this.options
       this.setFilterValue('Any', undefined)
     },
 
