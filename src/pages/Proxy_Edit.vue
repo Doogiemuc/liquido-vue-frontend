@@ -71,14 +71,12 @@
 
 import _ from 'lodash'
 import DoogieTable from '../components/DoogieTable'
-import DoogieFilter from '../components/DoogieFilter'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('ProxyEdit.vue');
 
 export default {
   components: {
     DoogieTable,
-    DoogieFilter
   },
 
   // caller MUST pass the category. We assume that all callers already have loaded this info
@@ -94,7 +92,7 @@ export default {
       selectedProxy: undefined,         // currently selected row in the table
       transitive: true,                 // assign transitive proxy
       userList: [],                     // list of available users that could be assigned as proxies
-      usersColumns: [                   // DoogieTable with filter
+      usersColumns: [
         { title: "Avatar", path: "profile.picture", vueFilter: 'userPicture', rawHTML: true },
         { title: "Name", path: "profile.name" },
         { title: "Email", path: "email" },

@@ -74,7 +74,7 @@ export default {
 
     likeToDiscuss(law) {
       console.log("User "+this.$root.currentUser.email+", likes to discuss '"+law.title+"'")
-      this.$root.api.addSupporter(law, this.$root.currentUser).then(res => {
+      this.$root.api.addSupporterToIdea(law, this.$root.currentUser).then(res => {
         //BUGFIX:  cannot simply update this.law, becasue Vue properties should not be updated. So we fire an event to parent instead:
         this.$emit("reloadLaw", law)  // notify parent to reload this law
       })

@@ -63,6 +63,7 @@ const routes = [
     }
   },
   { path: '/search',
+    name: 'search',
     component: function(resolve) {
       require(['./pages/Search.vue'], resolve)
     }
@@ -181,8 +182,6 @@ var requiresAuth = function(to) {
 
 /**
  * If route matches nothing => PageNotFound
-
-
  * If matched page requiresAuth and not logged in => /login
  * Otherwise next()
  */

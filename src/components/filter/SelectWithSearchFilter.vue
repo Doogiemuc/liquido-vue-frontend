@@ -14,7 +14,7 @@
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
-      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearSelectFilter">Clear</button>
+      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter">Clear</button>
     </div>
   </div>
 </template>
@@ -27,9 +27,9 @@
  */
 export default {
   props: {
-    id: { type: String, required: true },								// id of this filter
-		name: { type: String, required: true },			// filter name to display to the user. Will be concatenated with displayValue
-		options: { type: Array, required: true },						// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
+    id: { type: String, required: true },						// id of this filter
+		name: { type: String, required: true },			    // filter name to display to the user. Will be concatenated with displayValue
+		options: { type: Array, required: true },				// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
   },
 
   data () {
@@ -76,7 +76,7 @@ export default {
     /**
      * Reset filter. Will also clear search field. All options will be shown.
      */
-    clearSelectFilter() {
+    clearFilter() {
       this.searchText = ""
       this.setFilterValue('Any', undefined)
     },

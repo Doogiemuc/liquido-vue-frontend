@@ -47,13 +47,21 @@
         </div>
       </div>
 
-			<doogie-filter-select v-else-if="filter.type === 'selectWithSearch'"
+      <component v-else-if="filter.type === 'selectWithSearch'"
+        :is="filter.type"
+        :id="filter.id"
+        :name="filter.name"
+        :options="filter.options"
+        v-model="currentFilters[filter.id]"
+        ></component>
+
+			<!-- doogie-filter-select v-else-if="filter.type === 'selectWithSearch'"
 			  :id="filter.id"
         :ref="filter.id"
 				:name="filter.name"
 				:options="filter.options"
 				v-model="currentFilters[filter.id].value"
-			/>
+			/ -->
 
       <div v-else-if="filter.type === 'toggle'">
         <button type="button" class="btn btn-xs btn-default" :class="getActiveClass(filter.id)" @click="toggle(filter.id)">{{filter.name}}</button>
@@ -68,7 +76,7 @@
 
 <script>
 
-import DoogieFilterSelect from '../components/DoogieFilterSelect'
+import selectWithSearch from '../components/filter/SelectWithSearchFilter'
 
 /**
  * Filter functionality for rows in DoogieTable.
@@ -127,7 +135,7 @@ export default {
           type: "toggle",
           id: "myIdeas",
           name: "My Ideas",
-          onToggle: function(filter, active) {
+          onChange: function(filter, active) {
             if (active) {
               var currentUser = this.$root.currentUser
               //"this" is the DoogieFilter.vue component here
@@ -135,7 +143,7 @@ export default {
               this.$refs.createdByID[0].setFilterValue(currentUser.profile.name, currentUser.id)
 
             } else {
-              this.$refs.createdByID[0].clearSelectFilter()
+              this.$refs.createdByID[0].clearFilter()
             }
           },
       }
@@ -144,7 +152,7 @@ export default {
   },
 
   components: {
-    DoogieFilterSelect
+    selectWithSearch
   },
 
   /**
@@ -186,21 +194,21 @@ export default {
      * @param {String} newDisplayValue how the new value shall be shown to the user
      * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
-    setFilterValue(filterId, newDisplayValue, newValue) {
+    setFilterValue(filterId, newDisplayValue, newValue, preventOnChangeEvent) {
       if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id"+filterId)
-      
+
 			console.log("setFilterValue(filter.id="+filterId+", newDisplayValue='"+newDisplayValue+"', newValue=", newValue)
-      
+
 			this.currentFilters[filterId].displayValue = newDisplayValue
       this.currentFilters[filterId].value = newValue
-			
+
       // If filterId is a child component (as with DoogieFilterSelect) then also call its setFilterValue method
       if (this.$refs[filterId]) {
         console.log("Setting value in ", this.$refs[filterId][0])           // this v-ref is an array, because its used inside a v-for
         this.$refs[filterId][0].setFilterValue(newDisplayValue, newValue)
       }
 			//if filter has an onChange handler, then call it
-			if (typeof this.filterConfigsById[filterId].onChange === "function") {
+			if (typeof this.filterConfigsById[filterId].onChange === "function" && !preventOnChangeEvent) {
 				this.filterConfigsById[filterId].onChange.call(this, this.filterConfigsById[filterId], newDisplayValue, newValue)
 			}
     },
@@ -280,7 +288,7 @@ export default {
       var newValue = !this.currentFilters[filterId].value
       this.setFilterValue(filterId, newValue, newValue)
     },
-		
+
 		/** Clear the value of one filter */
 		clearFilter(filterId) {
 			if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id="+filterId)
@@ -299,7 +307,7 @@ export default {
 					break;
 				case "selectWithSearch":
 					if (this.$refs[filterId])                        // Vue ref are not yet filled during initial render
-						this.$refs[filterId][0].clearSelectFilter()    // $refs returns an array when used inside for loop.
+						this.$refs[filterId][0].clearFilter()          // $refs returns an array when used inside for loop.
 					break;
 				case "multi":
 					this.$set(this.currentFilters[filterId], 'displayValue', "Any")

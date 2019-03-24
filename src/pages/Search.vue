@@ -1,5 +1,5 @@
 <template>
-<div id="#SearchPage" class="container-fluid">
+<div id="SearchPage" class="container-fluid">
   <h1>Search for Ideas, Proposals and Laws</h1>
 
 	<div>
@@ -9,7 +9,7 @@
         <i class="fa fa-sync-alt" title="Reload table data from server" ></i>
       </span>
     </div>
-  	<doogie-filter
+  	<doogie-table-filters
 			:filtersConfig="filtersConfig"
 			ref="tableFilter"
 			v-on:filtersChanged="filtersChanged"
@@ -27,8 +27,8 @@
     v-on:sortingChanged="sortingChanged"
     v-on:appendData="appendData"
     v-on:cellClicked="cellClicked"
-    ref="searchTable"
-    id="searchTable"
+    ref="SearchTable"
+    id="SearchTable"
   />
 </div>
 
@@ -36,15 +36,20 @@
 
 <script>
 import DoogieTable from '../components/DoogieTable'
-import DoogieFilter from '../components/DoogieFilter'
+import DoogieTableFilters from '../components/DoogieTableFilters'
 import TableSupportButton from  '../components/TableSupportButton'
 import moment from 'moment'
+
+/** compare user names of createdBy */
+var createdByComparator = function(val1, val2) {
+  return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
+}
 
 
 export default {
   components: {
     DoogieTable,
-    DoogieFilter,
+    DoogieTableFilters,
     TableSupportButton,
   },
 
@@ -166,13 +171,13 @@ export default {
       if (f.categoryID.value) {
         query.areaId = f.categoryID.value
       }
-			
+
       if (f.createdByYouID.value) {
 				query.createdByEmail = this.$root.currentUser.email
 			} else if (f.createdByID.value) {
         query.createdByEmail = f.createdByID.value
       }
-			
+
       if (f.updatedAtID.value) {
         query.updatedAfter = f.updatedAtID.value.start
         query.updatedBefore = f.updatedAtID.value.end
@@ -256,7 +261,7 @@ export default {
 				this.laws = result._embedded.laws || []
         this.totalElements = result.totalElements
 				this.tableMessage = this.laws.length < this.totalElements ? "ready to load more rows ..." : undefined
-        this.$refs.searchTable.setRowData(this.laws)
+        this.$refs.SearchTable.setRowData(this.laws)
 			})
 			.catch(err => { console.log("ERROR loading search result: ", err) })
 		},
@@ -273,7 +278,7 @@ export default {
         var newLaws = result._embedded.laws
         this.totalElements = result.totalElements
         this.tableMessage = "ready to load more rows ..."
-        this.$refs.searchTable.appendRowData(newLaws)
+        this.$refs.SearchTable.appendRowData(newLaws)
       })
       .catch(err => { console.log("ERROR appending to search result: ", err) })
 
@@ -324,7 +329,7 @@ export default {
     cursor: pointer;
   }
   /* Clickable title col */
-  #searchTable tbody tr td:nth-child(2) {
+  #SearchTable tbody tr td:nth-child(2) {
     cursor: pointer;
   }
 </style>

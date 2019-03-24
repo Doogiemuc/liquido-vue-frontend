@@ -20,7 +20,7 @@
           </ul>
           <ul v-if="currentUser" class="nav navbar-nav nav-search-icon">
             <li>
-              <router-link v-if="currentUser" active-class="active" to="/search">
+              <router-link v-if="currentUser" id="SearchButton" active-class="active" to="/search">
                 <i class="fas fa-search"></i>
               </router-link>
             </li>
@@ -56,9 +56,9 @@
 
           <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" id="NavLoginButton" class="btn btn-default navbar-btn navbar-right">Login</router-link>
 
-          <div v-if="showDevLogin" id="devLoginButton" class="btn-group navbar-btn navbar-right">
+          <div v-if="showDevLogin" class="btn-group navbar-btn navbar-right">
             <!-- Development login -->
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button type="button" id="DevLoginButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               DevLogin <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
