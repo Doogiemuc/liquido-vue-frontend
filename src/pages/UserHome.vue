@@ -4,11 +4,16 @@
 
       <!-- left column: public and general things -->
       <div class="col-sm-6">
-        <h2>Polls and recent proposals</h2>
+        <h2>Welcome {{currentUser.name}}!</h2>
 
+        Welcome on your userhomepage!
+
+
+        <h2>Polls and recent proposals</h2>
 				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
-				<!-- h2>Alternative to pollPanel</h2>
+        <!--
+				<h2>Alternative to pollPanel</h2>
         <p>This manually created HTML also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
         <div v-for="poll in openForVotingPolls" class="panel panel-default">
           <div class="panel-heading">
@@ -134,7 +139,7 @@
         </div -->
 
 
-    		<law-list :laws="supportedIdeasAndProps" lawListTitle="Supported by you"></law-list>
+    		<!-- law-list :laws="supportedIdeasAndProps" lawListTitle="Supported by you"></law-list -->
 
 	   </div>
     </div>
@@ -170,10 +175,12 @@ export default {
   },
 
   computed: {
+    currentUser: function() { return this.$root.currentUser },
   },
 
   created () {
     // here we load quite a lot of stuff. But all in parallel.
+    /*
     this.loadRecentIdeas()
 
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
@@ -188,6 +195,7 @@ export default {
     this.$root.api.getRecentlyDiscussed().then(recentlyDiscussed => {
       this.recentlyDiscussed = recentlyDiscussed
     })
+    */
     this.$root.api.getAllCategories().then(areas => this.areas = areas)
   },
 

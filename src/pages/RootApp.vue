@@ -116,7 +116,7 @@ export default {
     /** Quickly login a default user for development */
     loginViaSms(mobilephone, smsCode) {
       var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-      log.info("Login via SMS for "+cleanMobilePhone)
+      //log.debug("Login via SMS for "+cleanMobilePhone)
       return apiClient.loginWithSmsCode(cleanMobilePhone, smsCode)
         .then(jwt =>  { this.loginWithJWT(jwt) })
         .catch(err => { log.error("Cannot login dev user", err) })
@@ -124,11 +124,10 @@ export default {
 
     /** When user logged in and we got a JWT, then store it globally and fetch user details */
     loginWithJWT(jwt, forwardTo) {
-      log.info("User login")
       apiClient.setJsonWebToken(jwt)
       return apiClient.getMyUser()
         .then(user => {
-          log.info(user)
+          log.info("User logged in successfully.", user)
           this.$root.currentUser = user
           this.$router.push(forwardTo ? forwardTo : '/userHome')
           iziToast.success({
@@ -154,6 +153,7 @@ export default {
 
     /** Quick login for development */
     devLogin(userNo) {
+      console.log("Development login of mobile phone "+process.env.devLoginMobilePhones[userNo])
       this.loginViaSms(process.env.devLoginMobilePhones[userNo], process.env.devLoginDummySmsCode)
     },
 

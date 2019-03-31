@@ -128,7 +128,7 @@ module.exports = {
     return axios.get('/auth/loginWithSmsCode', { params: { mobile: mobile, code: code} } )
       .then(res => {
         jsonWebToken = res.data
-        log.info("Received JWT: "+jsonWebToken)
+        //log.debug("Received JWT: "+jsonWebToken)
         return jsonWebToken
       })
   },

@@ -1,21 +1,13 @@
 <template>
   <div :id="id" class="btn-group">
-    <!-- Select for one value out of a very long list. With an inner search input field. -->
     <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass()" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{name}}: {{displayValue}} <span class="caret"></span>
     </button>
-    <div class="dropdown-menu">
-      <input type="text" class="selectSearchInput" :id="id + 'Search'" placeholder="Search" v-model="searchText"/>
-      <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
-      <div role="separator" class="selectDivider"></div>
-      <div class="selectListWrapper">
-      <ul class="selectList">
-        <li v-for="option in getFilteredOptions" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
-      </ul>
-      </div>
-      <div role="separator" class="selectDivider"></div>
-      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter">Clear</button>
-    </div>
+    <ul class="dropdown-menu">
+      <li v-for="option in options"><a class="selectItem" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</a></li>
+      <li role="separator" class="selectDivider"></li>
+      <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter()">Clear</button></li>
+    </ul>
   </div>
 </template>
 
@@ -35,7 +27,6 @@ export default {
 
   data () {
     return {
-      searchText: "",           // search input field
       displayValue: "Any",      // text displayed to the user for the currently selected option  (==options[i].displayValue)
       value: undefined,         // internal value of the currently selection option              (==options[i].value)
                                 // This is undefined when nothing is selcted.
@@ -45,23 +36,9 @@ export default {
 	watch: {
     // See  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 		value: function(newValue, oldValue) {
-      console.log("SelectWithSearchFilter.value changed to ", newValue)
 			this.$emit('input', newValue)
 		},
 	},
-
-  computed: {
-    /**
-     * Filter a list of options by their name or by their value. Compares case-insensitive.
-     * The result of this computed propery is cached. Will be updated, everytime when this.searchText changes
-     * @returns filtered sublist of this.options
-     */
-    getFilteredOptions() {
-      var searchRegex = new RegExp(this.searchText || "", "i")
-      return this.options.filter(opt => searchRegex.test(opt.displayValue))
-    },
-
-  },
 
   methods: {
     /**
@@ -75,11 +52,14 @@ export default {
       this.value = newValue
     },
 
+    setSelectedOption(idx) {
+      this.setFilterValue(this.options[idx].displayValue, this.options[idx].value)
+    },
+
     /**
      * Reset filter. Will also clear search field. All options will be shown.
      */
     clearFilter() {
-      this.searchText = ""
       this.setFilterValue('Any', undefined)
     },
 
@@ -93,38 +73,9 @@ export default {
 </script>
 
 <style scoped>
-
-  .selectSearchInput {
-    border: none;
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-bottom: 0px;
-  }
-  .selectDivider {
-    height: 1px;
-    margin: 5px 0;
-    overflow: hidden;
-    background-color: #e5e5e5;
-  }
-  .selectListWrapper {
-    max-height: 400px;
-    overflow-y: scroll;
-  }
-  .selectList {
-    list-style: none;
-    -webkit-padding-start: 06px;
-  }
-  .selectList li:hover {
-    background-color: #f5f5f5;
-    cursor: pointer;
-  }
-  .applyButton {
-    margin-left: 5px;
-  }
   .clearButton {
     float: right;
     margin-right: 5px;
   }
-
 </style>
 

@@ -84,13 +84,13 @@ export default {
 
 			filtersConfig: [
         {
-          type: "search",
-          id: "searchID",
-          name: "Free text search"
+          type: "textSearch",
+          id: "textSearch",
+          placeholder: "Free text search"
         },
         {
-          type: "multi",
-          id: "statusID",
+          type: "multiSelect",
+          id: "status",
           name: "Status",
           options: [
             { displayValue: "Idea", value: "IDEA"},
@@ -102,20 +102,21 @@ export default {
         },
         {
           type: "dateRange",
-          id: "updatedAtID",
+          id: "updatedAtRange",
           name: "Updated"
         },
         {                     // MUST be array element index == 3, so that we cann fill options array later
-          type: "select",
-          id: "categoryID",
+          type: "singleSelect",
+          id: "category",
           name: "Category",
           options: []
         },
         {                     // MUST be array element index == 4
           type: "selectWithSearch",
-          id: "createdByID",
+          id: "createdByEmail",
           name: "Created by",
           options: [],
+          /*
 					onChange: function(filter, newDisplayValue, newValue) {
 						console.log("selectWithSearch onChange")
 						var currentUser = this.$root.currentUser
@@ -124,11 +125,13 @@ export default {
 							this.clearFilter("createdByYouID")   // this is a DoogieFilter instance
 						}
 					}
+          */
         },
         {
-          type: "toggle",
-          id: "createdByYouID",
+          type: "toggleButton",
+          id: "createdByYou",
           name: "Created by you",
+          /*
           onChange: function(filter, active) {
             if (active) {
               var currentUser = this.$root.currentUser
@@ -140,13 +143,13 @@ export default {
 							this.clearFilter('createdByID')
             }
           },
+          */
         },
         {
-          type: "toggle",
-          id: "supportedByCurrentUser",
+          type: "toggleButton",
+          id: "supportedByYou",
           name: "Supported by you",
         }
-
       ],
     }
   },
@@ -162,27 +165,29 @@ export default {
       if (!this.$refs || !this.$refs.tableFilter || !this.$refs.tableFilter.currentFilters) return query
 
       var f = this.$refs.tableFilter.currentFilters
-      if (f.searchID.value) {
-        query.searchText = f.searchID.value
+      console.log("Search.getSearchQuery", JSON.stringify(f))
+
+      if (f.textSearch) {
+        query.searchText = f.textSearch
       }
-      if (f.statusID.value && f.statusID.value.length >= 1) {
-        query.statusList = f.statusID.value  // array of status
+      if (f.status && f.status.length >= 1) {
+        query.statusList = f.status             // array of status
       }
-      if (f.categoryID.value) {
-        query.areaId = f.categoryID.value
+      if (f.category) {
+        query.areaId = f.category
       }
 
-      if (f.createdByYouID.value) {
+      if (f.createdByYou) {
 				query.createdByEmail = this.$root.currentUser.email
-			} else if (f.createdByID.value) {
-        query.createdByEmail = f.createdByID.value
+			} else if (f.createdByID) {
+        query.createdByEmail = f.createdByEmail
       }
 
-      if (f.updatedAtID.value) {
-        query.updatedAfter = f.updatedAtID.value.start
-        query.updatedBefore = f.updatedAtID.value.end
+      if (f.updatedAtRange) {
+        query.updatedAfter = f.updatedAtRange.start
+        query.updatedBefore = f.updatedAtRange.end
       }
-      if (f.supportedByCurrentUser.value) {
+      if (f.supportedByYou) {
         query.supportedByEMail = this.$root.currentUser.email
       }
 
@@ -286,18 +291,22 @@ export default {
 
   },
 
+
   /**
    * Initially load users and categories for selects.
    * Filter for ideas by default. Load first set of ideas.
    */
-  mounted() {
+  created() {
     this.$root.api.getAllCategories().then(categories => {
       this.filtersConfig[3].options = categories.map(cat => { return { value: cat.id, displayValue: cat.title } } )
     })
     this.$root.api.getAllUsers().then(users => {
       this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
     })
-    this.$refs.tableFilter.applyMultiSelect(this.filtersConfig[1], ["IDEA"])
+  },
+
+  mounted() {
+    this.$refs.tableFilter.$refs.category[0].setSelectedOption(0)   // Vue refs inside v-for are arrays!!!
 		//this.reloadFromServer()   no need to reload. Changing the filter will automatically trigger a reload
   },
 

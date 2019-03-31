@@ -234,6 +234,13 @@ var checkDevelopmentMode = function() {
   return Promise.resolve()
 }
 
+var autoLoginDevUser = function(rootApp) {
+  if (process.env.NODE_ENV == "development" && process.env.devAutoLoginUserIdx !== undefined) {
+    rootApp.devLogin(process.env.devAutoLoginUserIdx)
+  }
+  return Promise.resolve()
+}
+
 var startApp = function(props) {
   //console.log("Properties", props)
   window.liquidoVueRootApp = new Vue({
@@ -246,8 +253,8 @@ var startApp = function(props) {
     },
     ...RootApp
   }).$mount()
-
   log.info("===== LIQUIDO web app has started.")
+  return window.liquidoVueRootApp
 }
 
 //Here comes JS Promises at its best :-)
@@ -255,6 +262,7 @@ isBackendAlive()
   .then(checkDevelopmentMode)
   .then(apiClient.getGlobalProperties)
   .then(startApp)
+  .then(autoLoginDevUser)
   .catch(err => {
     console.error("Fatal rrror during LIQUIDO startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger" id="backendNotAlive">ERROR while loading Liquido App. Please try again later.</p>')
