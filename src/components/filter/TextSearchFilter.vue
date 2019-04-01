@@ -29,7 +29,7 @@ export default {
 
   methods: {
     /**
-     * set the value of this filter
+     * Set the value of this text search input. (The value of an input IS its displayValue.)
      * @param {String} newValue the new value that will be saved in this.value
      */
     setFilterValue(newValue) {

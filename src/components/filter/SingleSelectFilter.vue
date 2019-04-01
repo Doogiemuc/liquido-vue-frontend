@@ -53,6 +53,7 @@ export default {
     },
 
     setSelectedOption(idx) {
+      console.log("setSelectedOption", this.options)
       this.setFilterValue(this.options[idx].displayValue, this.options[idx].value)
     },
 

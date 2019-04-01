@@ -39,12 +39,12 @@ import DoogieTable from '../components/DoogieTable'
 import DoogieTableFilters from '../components/DoogieTableFilters'
 import TableSupportButton from  '../components/TableSupportButton'
 import moment from 'moment'
+import _ from 'underscore'
 
 /** compare user names of createdBy */
 var createdByComparator = function(val1, val2) {
   return val1.createdBy.profile.name.localeCompare(val2.createdBy.profile.name, 'lookup', { numeric: true } );
 }
-
 
 export default {
   components: {
@@ -79,6 +79,7 @@ export default {
       totalElements: 0,   // total overall number of available rows from backend
       sortByCol: undefined,
       sortOrder: undefined,
+      debouncedReload: function() {},
 
 			//===== data for DoogieFilter.vue
 
@@ -165,8 +166,6 @@ export default {
       if (!this.$refs || !this.$refs.tableFilter || !this.$refs.tableFilter.currentFilters) return query
 
       var f = this.$refs.tableFilter.currentFilters
-      console.log("Search.getSearchQuery", JSON.stringify(f))
-
       if (f.textSearch) {
         query.searchText = f.textSearch
       }
@@ -179,7 +178,7 @@ export default {
 
       if (f.createdByYou) {
 				query.createdByEmail = this.$root.currentUser.email
-			} else if (f.createdByID) {
+			} else if (f.createdByEmail) {
         query.createdByEmail = f.createdByEmail
       }
 
@@ -225,8 +224,8 @@ export default {
      * @param {object} newFilters the new filter configuration
      */
 		filtersChanged(newFilters) {
-			console.log("Search.filtersChanged", newFilters)
-      this.reloadFromServer()
+      console.log("Search.filtersChanged")
+      this.debouncedReload()
 		},
 
     sortingChanged(sortByCol, sortOrder) {
@@ -300,13 +299,15 @@ export default {
     this.$root.api.getAllCategories().then(categories => {
       this.filtersConfig[3].options = categories.map(cat => { return { value: cat.id, displayValue: cat.title } } )
     })
+
     this.$root.api.getAllUsers().then(users => {
       this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
     })
+    this.debouncedReload = _.debounce(this.reloadFromServer, 1000)
   },
 
   mounted() {
-    this.$refs.tableFilter.$refs.category[0].setSelectedOption(0)   // Vue refs inside v-for are arrays!!!
+    this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])          // Vue refs inside v-for are arrays!!!
 		//this.reloadFromServer()   no need to reload. Changing the filter will automatically trigger a reload
   },
 

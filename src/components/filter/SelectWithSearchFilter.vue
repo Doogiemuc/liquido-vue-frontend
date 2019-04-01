@@ -71,6 +71,7 @@ export default {
      * @param {any} newValue the new value that will be saved in this.value
      */
     setFilterValue(newDisplayValue, newValue) {
+      this.searchText = ""
       this.displayValue = newDisplayValue
       this.value = newValue
     },

@@ -3,13 +3,13 @@
     <button type="button" class="btn btn-xs dropdown-toggle" :class="getActiveClass()" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{name}}: {{displayValue}} <span class="caret"></span>
     </button>
-    <div class="dropdown-menu">
+    <div class="dropdown-menu" @click="clickDropdown">
       <ul class="selectList">
-        <li v-for="option in options"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes"/>&nbsp;{{option.displayValue || option.value}}</li>
+        <li v-for="option in options" @click="toggleOption"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes"/>&nbsp;{{option.displayValue || option.value}}</li>
       </ul>
       <div role="separator" class="selectDivider"></div>
-      <button type="button" class="btn btn-primary btn-xs applyButton" v-on:click="applySelectedCheckboxes()">Apply</button>
-      <button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter()">Clear</button>
+      <button type="button" class="btn btn-primary btn-xs applyButton" @click="applyCheckboxes">Apply</button>
+      <button type="button" class="btn btn-default btn-xs clearButton" @click="clearFilter">Clear</button>
     </div>
   </div>
 </template>
@@ -51,16 +51,20 @@ export default {
      * @param {Array} newValue array of selected option.values
      */
     setFilterValue(newDisplayValue, newValue) {
-      this.displayValue = newDisplayValue
       this.value = newValue
+      this.selectedCheckboxes = newValue
+      this.displayValue = newDisplayValue || this.calcDisplayValue()
+    },
+
+    // select or deselect an option when clicking anywhere in that row.
+    toggleOption(evt) {
+      $(evt.target).children("input:checkbox").click()
     },
 
     /**
-     * Set the value of a multi select.
-     * @param {Object} filter The filter object from your filtersConfig array
-     * @param {array} values array with 'option.values' of all selected checkboxes
+     * Create a meaningful display value from the currently selected checkboxes
      */
-    applySelectedCheckboxes() {
+    calcDisplayValue() {
       var displayValue = ""
       // non selected: show "Any"
       // all selected: show "All"
@@ -79,10 +83,19 @@ export default {
       } else {
         displayValue = this.selectedCheckboxes.length  +'/'+this.options.length
       }
-      this.setFilterValue(displayValue, this.selectedCheckboxes)
+      return displayValue
     },
 
+    applyCheckboxes() {
+      $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
+      var newDisplayValue = this.calcDisplayValue()
+      var newValue = this.selectedCheckboxes
+      this.setFilterValue(newDisplayValue, newValue)
+    },
+
+    /** deselect all options */
     clearFilter() {
+      $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
       this.selectedCheckboxes = []
       this.setFilterValue('Any', [])
     },
@@ -90,6 +103,11 @@ export default {
     /** When a filter is active, then style it accordingly */
     getActiveClass() {
       return this.value === undefined || this.value.length === 0  ? { 'btn-default' : true } : { 'btn-primary' : true }
+    },
+
+    /** prevent automatic closing of bootstrap dropdown */
+    clickDropdown(evt) {
+      evt.stopPropagation();
     }
   },
 
@@ -97,9 +115,16 @@ export default {
 </script>
 
 <style scoped>
+  .selectList {
+    list-style: none;
+    padding-inline-start: 5px;
+    cursor: pointer;
+  }
+  .selectList li:hover {
+    background: #f8f8f8;
+  }
   .clearButton {
-    float: left;
-    margin-left: 5px;
+    margin-left: 5px !important;
   }
   .applyButton {
     float: right;
