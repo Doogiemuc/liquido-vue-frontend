@@ -38,7 +38,7 @@ export default {
     filtersConfig: { type: Array, required: true, validator: function(arr) {
       return arr.every(elem => {
         var valid = ['textSearch', 'singleSelect', 'multiSelect', 'selectWithSearch', 'dateRange', 'toggleButton'].indexOf(elem.type) !== -1
-        if (!valid) console.warn("Unknown filter.type '"+elem.type+"'")
+        if (!valid) console.error("Unknown filter.type '"+elem.type+"'")
         return valid
       })
     }},
@@ -53,26 +53,21 @@ export default {
     toggleButton,
   },
 
-  /**
-   * currentFilters will be built from filtersConfig in initFilters()
-   * For each filter it contains
-   * - displaValue: the text to show to the user, e.g. "Any".  Do not confuse this with the filterConfig.name!
-   * - value: the internal value of the filter, e.g. false, a string or a date
-   */
   data () {
     return {
-      filterConfigsById: {},    // the filtersConfig array as an object with filter.ids as keys
-      currentFilters: {},       // current values of all applied filters.
-			selectedCheckboxes: {}		// temp storage for selected checkboxes of "multi" selects
+      filterConfigsById: {},    // the filtersConfig array mapped to an object with filter.ids as keys
+      currentFilters: {},       // { filterID: value, ... } for all active filters. Contains only IDs and values. Not andy displayNames.
     }
   },
 
   watch: {
-    // This object will contain the currently selected values for each filter.
-    // Inactive filters will normally have the value undefined. But there are exceptions: Unselected multi will have the value []
+    /**
+      When any filter changes then emit an 'tableFiltersChanged' event. There are also 'filterChanged' events for each individual filter.
+      You might want to listen to this and then (debounced) reload your table data.
+     */
     currentFilters: {
       handler: function(newFilters) {
-				this.$emit('filtersChanged', newFilters)
+				this.$emit('tableFiltersChanged', newFilters)
       },
       deep: true
     }
@@ -80,41 +75,55 @@ export default {
 
   methods: {
     /**
-     * set the value of one filter
+     * Set the value of one filter. This will fire the filterChanged event.
      * @param {String} filterId of one element from your filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
      * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
     setFilterValue(filterId, newDisplayValue, newValue) {
-      if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id"+filterId)
+      if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id="+filterId)
       if (!this.$refs[filterId]) throw new Error("Can't find ref to filter with id="+filterId)
       this.$refs[filterId][0].setFilterValue(newDisplayValue, newValue)
-
-			/*if filter has an onChange handler, then call it
-			if (typeof this.filterConfigsById[filterId].onChange === "function" && !preventOnChangeEvent) {
-				this.filterConfigsById[filterId].onChange.call(this, this.filterConfigsById[filterId], newDisplayValue, newValue)
-			}
-      */
     },
 
+    /** Clear the value of one filter */
     clearFilter(filterId) {
       this.$refs[filterId][0].clearFilter()
     },
 
-    /**
-      Clear all filters
-    */
+    /** Reset all filters */
     clearAllFilters() {
       this.filtersConfig.forEach(filter => this.clearFilter(filter.id))
     },
 
   },
 
-  created () {
+  created() {
     this.filtersConfig.forEach(filter => {
       this.filterConfigsById[filter.id] = filter
     })
   },
+
+  /**
+   Add one watcher for every filter. When the value of a filter changes then emit an "filterChanged" event.
+   This is one event per filter. There is also the global tableFitlersChanged event.
+   */
+  mounted() {
+    this.filtersConfig.forEach(filter => {
+      this.$watch(
+        function() {
+          return this.currentFilters[filter.id]
+        },
+        function(newValue, oldValue) {
+          this.$emit("filterChanged", filter, newValue, oldValue)
+          if (typeof this.filterConfigsById[filter.id].onChange === "function") {
+            // set scope of 'this' to DoogieTableFilters component
+            this.filterConfigsById[filter.id].onChange.apply(this, [filter, newValue, oldValue])
+          }
+        }
+      )
+    })
+  }
 
 }
 </script>

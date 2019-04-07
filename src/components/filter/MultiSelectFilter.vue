@@ -31,7 +31,7 @@ export default {
   data () {
     return {
       displayValue: "Any",      // text displayed to the user for the currently selected option  (==options[i].displayValue)
-      value: [],                // Array of selected values (from options array)
+      value: undefined,         // Array of selected values (from options array)
       selectedCheckboxes: [],   // v-model for HTML checkboxes
     }
   },
@@ -52,11 +52,11 @@ export default {
      */
     setFilterValue(newDisplayValue, newValue) {
       this.value = newValue
-      this.selectedCheckboxes = newValue
+      this.selectedCheckboxes = newValue || []
       this.displayValue = newDisplayValue || this.calcDisplayValue()
     },
 
-    // select or deselect an option when clicking anywhere in that row.
+    /* select or deselect an option when clicking anywhere in that row. */
     toggleOption(evt) {
       $(evt.target).children("input:checkbox").click()
     },
@@ -70,8 +70,10 @@ export default {
       // all selected: show "All"
       // one selected: show its display name
       // two selected: show their two display values  (if they have displayValues)
-      // more selected: show e.g. "2/5"
-      if (this.selectedCheckboxes.length == this.options.length) {
+      // more selected: show e.g. "3/9"
+      if (this.selectedCheckboxes === undefined || this.selectedCheckboxes.length === 0) {
+        displayValue = 'Any'
+      } else if (this.selectedCheckboxes.length == this.options.length) {
         displayValue = 'All'
       } else if (this.selectedCheckboxes.length == 1) {
         var selectedOption = this.options.find((option) => option.value == this.selectedCheckboxes[0])
@@ -86,10 +88,11 @@ export default {
       return displayValue
     },
 
+    /** Apply users selection to our internval value. */
     applyCheckboxes() {
       $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
       var newDisplayValue = this.calcDisplayValue()
-      var newValue = this.selectedCheckboxes
+      var newValue = this.selectedCheckboxes.length === 0 ? undefined : this.selectedCheckboxes
       this.setFilterValue(newDisplayValue, newValue)
     },
 
@@ -97,7 +100,7 @@ export default {
     clearFilter() {
       $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
       this.selectedCheckboxes = []
-      this.setFilterValue('Any', [])
+      this.setFilterValue('Any', undefined)
     },
 
     /** When a filter is active, then style it accordingly */

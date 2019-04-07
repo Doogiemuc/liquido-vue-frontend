@@ -7,6 +7,7 @@
     - Each row is represented by one object. Any attribute of this object can be the primary key for each row.
     - Cell values can be converted/filtered before shown to the user. E.g. date values can be localized or even be converted to something like "a few moments ago".
     - The table is sortable by each column. The sorting is local aware and correct for number with leading zeros.
+    - Additional table rows can be loaded dynamically when user is scrolling down.
     - Localisation support
 
   ### Usage
@@ -41,9 +42,6 @@
    * comparator: (Optional) local aware comparator that compares two rows and shall return -1, 0 or 1
    * cellComponent: (Optional) a Vue component that is responsible for showing a cells content. The Vue contonent can also be interactive and editable.
 
-  ### Roadmap
-
-   * TODO: Implement a scrolling table, that dynamically loads further rows as necessary.
 
  */
 
@@ -63,15 +61,7 @@
         </tr>
       </thead>
       <tbody>
-				<tr v-if="rowData === undefined || rowData.length === 0">
-          <th v-if="showRowNumbers">&nbsp;</th>
-          <td v-bind:colspan="columns.length">{{localizedTexts.emptyData}}</td>
-        </tr>
-        <tr v-else-if="getFilteredRowData.length === 0">
-          <th v-if="showRowNumbers">&nbsp;</th>
-          <td v-bind:colspan="columns.length">{{localizedTexts.filterdResultEmpty}}</td>
-        </tr>
-        <tr v-for="(row, index) in getFilteredRowData" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
+        <tr v-for="(row, index) in filteredRowData" @click="rowClicked(row, $event)" :key="getPath(row, primaryKeyForRow)">
           <th v-if="showRowNumbers">
             {{index + 1}}
           </th>
@@ -138,7 +128,6 @@ export default {
       required: false,
       default: function() {    //TODO: merge with what has been passed
         return {
-          emptyData: 'Empty data',
           filterdResultEmpty: 'Filtered result is empty. Choose less strict filters.',
         }
       }
@@ -156,9 +145,9 @@ export default {
     // show selected row with blue background
     highlightSelectedRow: { type: Boolean, required: false, default: false },
 
-		// client side filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
+		// CLIENT SIDE filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
+    // (Keep in mind that client side filtering can only work correctly when you loaded ALL data from the backend.)
 		rowFilterFunc: { type: Function, required: false },
-
   },
 
   data () {
@@ -184,8 +173,8 @@ export default {
      This is a computed property. Its result is cached by Vue.
      Do not confuse this with Vue's "filter" for converting values to display values!
     */
-    getFilteredRowData() {
-      if (this.rowData === undefined) return []
+    filteredRowData() {
+      if (this.rowData === undefined || this.rowData.length === 0) return []
 			if (typeof this.rowFilterFunc !== "function") return this.rowData
       return this.rowData.filter(row => this.rowFilterFunc(row))
     },
@@ -207,7 +196,6 @@ export default {
     var that = this
     // Once the whole table is rendered and mounted into the DOM, start appear lib.
     this.$nextTick(function () {
-      console.log("starting appear")
       appear({
         elements: function elements(){
           return $("#bottomOfTable")
