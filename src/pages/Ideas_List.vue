@@ -1,5 +1,5 @@
 <template>
-<div class="container-fluid">
+<div class="container">
   <h1>Ideas</h1>
   <p>An idea is a spontaneous suggestions for improvement. Everyone may add an idea at any time. But an idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters, before it becomes a proposal.
     If you want to support an idea, then click its like button.</p>

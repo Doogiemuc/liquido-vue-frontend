@@ -10,47 +10,9 @@
       <!-- left column: public and general things -->
       <div class="col-sm-6">
 
-        <!--
-				<h2>Alternative to pollPanel</h2>
-        <p>This manually created HTML also shows a poll with all its proposals in a compact form. But my new poll panel with expanding is maybe already better.</p>
-        <div v-for="poll in openForVotingPolls" class="panel panel-default">
-          <div class="panel-heading">
-            <div class="pull-right">
-              <router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
-                <i class="fas fa-angle-double-right"></i>
-              </router-link>
-            </div>
-            <h4><i class="fas fa-balance-scale"></i> Poll
-              <template v-if="poll.status === 'ELABORATION'">in elaboration phase</template>
-              <template v-if="poll.status === 'VOTING'">in voting phase</template>
-            </h4>
-            <div style="padding: 10px">
-              <timeline :height="60" :fillTo="new Date()" :events="getTimelineEvents(poll)"></timeline>
-            </div>
-          </div>
-          <table class="table pollTable">
-            <tbody>
-              <tr v-for="proposal in poll._embedded.proposals">
-                <td width="80%">
-                  <img src="/static/img/photos/Avatar_32x32.jpeg" class="userPictureLeft">
-                  <h4 class="proposalTitle">{{proposal.title}}</h4>
-                  <div class="maxHeightPreviewWrapper">
-                    <div class="maxHeightPreview">{{proposal.description}}</div>
-                  </div>
-                </td>
-                <td class="greyDataRight">
-                  <ul class="fa-ul">
-                    <li><span class="fa-li"><i class="far fa-user"></i></span>{{proposal.createdBy.profile.name}}</li>
-                    <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(proposal.createdAt)}}</li>
-                    <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{proposal.area.title}}</li>
-                    <li><span class="fa-li"><i class="far fa-thumbs-up"></i></span>{{proposal.numSupporters}}</li>
-                  </ul>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div -->
+        <poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
+        <law-list :laws="supportedProposals" lawListTitle="Proposals supported by you"></law-list>
 
       </div>
 
@@ -59,34 +21,7 @@
 
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>Newsfeed</h4>
-          </div>
-          <ul class="list-group">
-            <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
-              <i class="far fa-lightbulb "></i>
-              Your idea
-              <router-link :to="{ path: '/proposals/'+proposal.id }">'{{proposal.title}}'</router-link> reached its quorum.
-            </li>
-            <!--
-            <li class="list-group-item item-condensed">
-              ----
-            </li>
-            <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-balance-scale pull-left"></i>
-              <p style="overflow: hidden">"Current propsal in work" is in elaboration phase and currenlty has 4 alternatives. 15 days left until voting will start.</p>
-            </li>
-            <li class="list-group-item item-condensed">
-              <i class="fa fa-fw fa-university pull-left"></i>
-              <p style="overflow: hidden">"Best proposal" became a law</p>
-            </li>
-            -->
-          </ul>
-        </div>
-
-
-        <!-- div class="panel panel-default">
-          <div class="panel-heading">
-             <h4>Some other messages - v2</h4>
+             <h4>Newsfeed</h4>
           </div>
           <div class="panel-body">
             <div class="media">
@@ -95,47 +30,55 @@
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
+                <h4 class="media-heading">Idea reaches 100 likes</h4>
                 <p>
                   Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl
                 </p>
               </div>
             </div>
 
             <div class="media">
               <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
+                <i class="fas fa-poll fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
+                <h4 class="media-heading">Voting for your poll has started</h4>
                 <p>
                   Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj s
                 </p>
               </div>
             </div>
 
             <div class="media">
               <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
+                <i class="far fa-file-alt fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
+                <h4 class="media-heading">New comments on your proposal</h4>
                 <p>
                   Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
+                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöasfd a sklfja sölkfja öksjf lks flkd fl
                 </p>
               </div>
             </div>
           </div>
-        </div -->
+        </div>
 
-        <poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
+        <div v-if="reachedQuorum.length > 0" class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Your ideas that reached their quorum</h4>
+          </div>
+          <ul class="list-group">
+            <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
+              <router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-lightbulb "></i> {{proposal.title}}</router-link>
+            </li>
+          </ul>
+        </div>
 
-    		<!-- law-list :laws="supportedIdeasAndProps" lawListTitle="Supported by you"></law-list -->
 
 	   </div>
     </div>
@@ -162,8 +105,9 @@ export default {
 
   data () {
     return {
-      openForVotingPolls: [],     // polls that are currently in the voting phase
-	    supportedIdeasAndProps: [], // ideas and proposals that this user liked
+      openForVotingPolls: [],     // polls that are currently in their voting phase
+	    supportedProposals: [],     // proposals that this user liked
+      reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
     }
   },
 
@@ -174,13 +118,16 @@ export default {
   created () {
     // here we load quite a lot of stuff. But all in parallel.
 
-    this.loadRecentIdeas()
-
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      this.supportedIdeasAndProps = proposals.slice(0,20)
+      this.supportedProposals = proposals.slice(0,10)
     })
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.openForVotingPolls = votingPolls
+    })
+    var oneWeekAgo = moment().subtract(7, 'days').format("YYYY-MM-DD")
+    var currentUserURI = this.$root.api.getURI(this.$root.currentUser)
+    this.$root.api.reachedQuorumSinceAndCreatedBy(oneWeekAgo, currentUserURI).then(proposals => {
+      this.reachedQuorum = proposals
     })
     //this.$root.api.getAllCategories().then(areas => this.areas = areas)
   },
@@ -188,12 +135,6 @@ export default {
   methods: {
     getFromNow(dateVal) {
       return moment(dateVal).fromNow();
-    },
-
-    loadRecentIdeas() {
-      this.$root.api.getRecentIdeas().then(recentIdeas => {
-        this.recentIdeas = recentIdeas.slice(0,10)
-      })
     },
 
     /** a lot of data calculations for our pretty timeline

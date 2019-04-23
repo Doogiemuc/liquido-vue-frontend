@@ -586,6 +586,16 @@ module.exports = {
       })
   },
 
+  reachedQuorumSinceAndCreatedBy(since, createdByURI) {
+    log.debug("reachedQuorumSinceAndCreatedBy(since="+since+", createdByURI="+createdByURI+")")
+    return axios.get('/laws/search/reachedQuorumSinceAndCreatedBy?since='+since+'&createdBy='+createdByURI)
+      .then(res => { return res.data._embedded.laws })
+      .catch(err => {
+        log.error("ERROR in apiClient: ", JSON.stringify(err))
+        return Promise.reject("LiquidoApiClient: Cannot reachedQuorumSinceAndCreatedBy(since="+since+", createdByURI="+createdByURI+")")
+      })
+  },
+
   /** get proposals with recent comments. Only proposals can be discussed */
   getRecentlyDiscussed() {
     return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded.laws)
@@ -618,7 +628,7 @@ module.exports = {
     */
   upvoteComment(comment, user) {
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
-    var userURI       = this.getURI(user)
+    var userURI     = this.getURI(user)
     log.debug("upvoteComment", upvotersURI, userURI)
     return axios({
       method: 'POST',

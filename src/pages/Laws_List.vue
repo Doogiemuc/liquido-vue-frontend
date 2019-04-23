@@ -1,67 +1,22 @@
 <template>
   <div class="container" id="UserHomePage">
     <div class="row">
+      <div class="col-sm-12">
+        <h2>Laws</h2>
+        <p>When the voting phase of a poll ends, then the winning proposal becomes a law.</p>
+      </div>
+    </div>
+
+    <div class="row">
 
       <!-- left column -->
       <div class="col-sm-6">
-        <h2>Laws</h2>
-        <law-list :laws="recentLaws" lawListTitle="Recent laws"></law-list>
+        <law-list :laws="recentLaws" lawListTitle="Recently new laws"></law-list>
       </div>
 
       <!-- right column -->
       <div class="col-sm-6">
-        <h2>Your laws</h2>
         <law-list :laws="usersLaws" lawListTitle="Laws created by you"></law-list>
-
-        <div class="panel panel-default">
-          <div class="panel-heading">
-             <h4>Some other messages - v2</h4>
-          </div>
-          <div class="panel-body">
-            <div class="media">
-              <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
-                <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
-                </p>
-              </div>
-            </div>
-
-            <div class="media">
-              <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
-                <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
-                </p>
-              </div>
-            </div>
-
-            <div class="media">
-              <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Media heading</h4>
-                <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl fj
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
 	   </div>
     </div>
   </div>
@@ -99,6 +54,7 @@ export default {
     this.$root.api.findByStatus("LAW").then(laws => {
       this.recentLaws = laws
     })
+    //TODO: use findByQuery
     this.$root.api.findByStatus("LAW").then(laws => {
       this.usersLaws = laws
     })
