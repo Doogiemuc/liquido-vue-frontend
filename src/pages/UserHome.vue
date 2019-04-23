@@ -1,16 +1,14 @@
 <template>
   <div class="container" id="UserHomePage">
     <div class="row">
+      <div class="col-sm-12">
+        <h2>Welcome {{username}}!</h2>
+      </div>
+    </div>
+    <div class="row">
 
       <!-- left column: public and general things -->
       <div class="col-sm-6">
-        <h2>Welcome {{currentUser.name}}!</h2>
-
-        Welcome on your userhomepage!
-
-
-        <h2>Polls and recent proposals</h2>
-				<poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
         <!--
 				<h2>Alternative to pollPanel</h2>
@@ -53,14 +51,11 @@
           </table>
         </div -->
 
-        <law-list :laws="recentlyDiscussed" lawListTitle="Recently discussed"></law-list>
 
       </div>
 
       <!-- right column: voters personal stuff -->
       <div class="col-sm-6">
-
-        <h2>Your activity</h2>
 
         <div class="panel panel-default">
           <div class="panel-heading">
@@ -138,6 +133,7 @@
           </div>
         </div -->
 
+        <poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
 
     		<!-- law-list :laws="supportedIdeasAndProps" lawListTitle="Supported by you"></law-list -->
 
@@ -166,37 +162,27 @@ export default {
 
   data () {
     return {
-      recentIdeas: [],            // recently created ideas sorted by date desc
-      reachedQuorum: [],          // ideas of this user that (recently) reached their quorum and became proposals
       openForVotingPolls: [],     // polls that are currently in the voting phase
 	    supportedIdeasAndProps: [], // ideas and proposals that this user liked
-      recentlyDiscussed: [],      // recently discussed proposals
     }
   },
 
   computed: {
-    currentUser: function() { return this.$root.currentUser },
+    username: function() { return this.$root.currentUser ? this.$root.currentUser.profile.name : "" },
   },
 
   created () {
     // here we load quite a lot of stuff. But all in parallel.
-    /*
+
     this.loadRecentIdeas()
 
-    this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
-      this.reachedQuorum = proposals.slice(0,10)
-    })
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.supportedIdeasAndProps = proposals.slice(0,20)
     })
     this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
       this.openForVotingPolls = votingPolls
     })
-    this.$root.api.getRecentlyDiscussed().then(recentlyDiscussed => {
-      this.recentlyDiscussed = recentlyDiscussed
-    })
-    */
-    this.$root.api.getAllCategories().then(areas => this.areas = areas)
+    //this.$root.api.getAllCategories().then(areas => this.areas = areas)
   },
 
   methods: {

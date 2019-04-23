@@ -218,7 +218,7 @@ var isBackendAlive = function() {
   .catch(err => {
     var errorMsg = "FATAL ERROR: Backend is NOT available at "+process.env.backendBaseURL + ": "+err
     console.error(errorMsg)
-    $('#loadingCircle').replaceWith('<p class="bg-danger">ERROR: Backend is not available at '+process.env.backendBaseURL+' !</p><p>Please try again later.</p>')
+    $('#loadingCircle').replaceWith('<div class="alert alert-danger">ERROR: Backend is not available at '+process.env.backendBaseURL+'<br/>Please try again later.</div>')
     return Promise.reject(errorMsg)
   })
 }

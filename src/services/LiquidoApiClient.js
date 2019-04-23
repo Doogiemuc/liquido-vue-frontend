@@ -586,7 +586,7 @@ module.exports = {
       })
   },
 
-  /** get proposals with recent comments */
+  /** get proposals with recent comments. Only proposals can be discussed */
   getRecentlyDiscussed() {
     return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded.laws)
   },
