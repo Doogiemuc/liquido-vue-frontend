@@ -1,6 +1,6 @@
 <template>
 <div class="container">
-  <h1>Proposals</h1>
+  <h1><i class="fa far fa-file-alt"></i> Proposals</h1>
   <p>When an idea reaches its quorum, then it becomes a proposal. A proposal can be further discussed and improved. The creator of a proposal can either start a new poll
     or he can join his proposal into an already existing poll.</p>
   <p>You can search for ideas and proposals on the <router-link to="search">search page.</router-link></p>

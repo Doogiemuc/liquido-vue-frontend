@@ -5,7 +5,7 @@
 
     <div class="panel panel-default">
       <div class="panel-body"">
-        <p>In LIQUIDO you do not just vote for or against one proposal. You sort proposals into your personally preferred order in your ballot. Simply drag some proposals from the left into your ballot on the right. You do not have to drag all the proposals into your ballot. Just pick the ones you want to cast a vote for. And then sort them into your preferred order with the proposal that you like best at the top.</p>
+        <p>In LIQUIDO you do not just vote for or against one proposal. Instead you sort proposals into your personally preferred order in your ballot. Simply drag some proposals from the left into your ballot on the right. You do not have to sort all the proposals into your ballot. You can just pick the ones you want to cast a vote for. Sort the proposals into your preferred order with the proposal that you like best at the top.</p>
 
         <div id="castVoteButtonWrapper" class="pull-right"
           data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
@@ -48,9 +48,21 @@
           </td>
           <td width="49%" id="rightContainer">
             <div v-if="ballotIsEmpty" class="rightWrapper">
-              <div class="rightDropHere">
-                Drop proposals here!
+              <div class="rightInner">
+                <div class="proposalPlaceHolder">
+                  <h3>Slot 1</h3>
+                  <p>Your most preferred proposal</p>
+                </div>
+                <div class="proposalPlaceHolder">
+                  <h3>Slot 2</h3>
+                  <p>Your next preferred proposal</p>
+                </div>
+                <div class="proposalPlaceHolder proposalPlaceHolderLast">
+                  <h3>Slot 3</h3>
+                  <p>Vote for as many proposals as you like.</p>
+                </div>
               </div>
+
             </div>
             <!-- already voted for proposals -->
             <law-panel v-for="proposal in votedForProposals"
@@ -192,6 +204,15 @@ export default {
 }
 </script>
 
+<style>
+  body {
+    overflow-y: scroll;
+  }
+  .lawFooterTable {
+    background-color: transparent;
+  }
+</style>
+
 <style scoped>
   .pollTable td, .pollTable th {
     border: none;
@@ -202,7 +223,7 @@ export default {
   }
   .middleColumn {
     text-align: center;
-    padding-top: 100px;
+    padding-top: 172px;
   }
   .panel-heading h4 {
     margin-top: 0;
@@ -217,7 +238,7 @@ export default {
 
   #leftContainer {
     min-height: 200px;
-    background: #DDD;
+    background: #CCC;
   }
 
   #leftContainer div.panel,
@@ -236,26 +257,54 @@ export default {
   }
 
   #rightContainer {
+    min-height: 200px;
     border: 1px solid #DDD;
-    background-color: rgba(255,255,232, 0.5);
+    background-color: #CCC;
   }
 
   .rightWrapper {
     position: relative;
   }
 
-  .rightDropHere {
-    z-index: -1;      /* in the background */
-    width: 100%;
+  .rightInner {
     position: absolute;
+    width: 100%;
+  }
+
+  .proposalPlaceHolder {
+    background: #f8f8f8;
+    height: 182px;
+    text-align: center;
+    color: #CCC;
+    padding-top: 10px;
+    margin-bottom: 20px;
+    /*border: 2px dashed #DDD;*/
+    border-radius: 8px;
+  }
+
+
+  .rightInner:before {
+    content:'';
+    width:100%;
+    height:100px;
+    position: absolute;
+    left:0;
+    bottom:0;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+100&0+0,1+100 */
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,cccccc+100&0+0,1+100 */
+    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(204,204,204,1) 70%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(204,204,204,1) 70%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(204,204,204,1) 70%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
+  }
+
+  .ellipsis {
+    color: ddd;
     text-align: center;
     color: #DDD;
-    font-size: 2em;
-    margin-top: 70px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border: 4px dashed #DDD;
-    border-radius: 8px;
+    font-weight: bolder;
+    font-size: 20pt;
+    margin-top: 10px;
   }
 
 </style>

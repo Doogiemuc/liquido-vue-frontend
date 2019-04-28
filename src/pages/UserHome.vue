@@ -70,7 +70,7 @@
 
         <div v-if="reachedQuorum.length > 0" class="panel panel-default">
           <div class="panel-heading">
-            <h4>Your ideas that reached their quorum</h4>
+            <h4>Your ideas that recently reached their quorum</h4>
           </div>
           <ul class="list-group">
             <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
@@ -92,7 +92,6 @@ import LawList from '../components/LawList.vue'
 import PollPanel from '../components/PollPanel.vue'
 import Timeline from '../components/Timeline.vue'
 import moment from 'moment'
-
 
 export default {
   components: {

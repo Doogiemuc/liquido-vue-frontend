@@ -21,7 +21,6 @@ var log = loglevel.getLogger('main.js')
 Vue.use(VueRouter)
 
 // ================= Setup Vue-router for navigation =============
-// Some use named routes https://router.vuejs.org/en/essentials/named-routes.html
 const routes = [
   { path: '/',
     component: LiquidoHome,
@@ -43,9 +42,9 @@ const routes = [
     meta: { requiresAuth: false }
   },
 
-  // asyncronously require components for lazy loading, WebPack code split point
+  // =================== Category / Area ================
   { path: '/categories',
-    component: function(resolve) {
+    component: function(resolve) {                // asyncronously require components for lazy loading, WebPack code split point
       require(['./pages/Categories_List.vue'], resolve)
     }
   },
@@ -56,6 +55,7 @@ const routes = [
     }
   }
   */
+
   // ======================= Idea =======================
   { path: '/ideas',
     component: function(resolve) {
@@ -78,7 +78,7 @@ const routes = [
     component: function(resolve) {
       require(['./pages/Proposal_Show.vue'], resolve)
     },
-    props: true
+    props: true                 // make URL parameters available as properties in the component
   },
   { path: '/ideas/:ideaId/edit',  // show one idea. ideaID is the numerical ID of this idea. Can be edited by its creator only.
     component: function(resolve) {
@@ -86,6 +86,7 @@ const routes = [
     },
     props: true
   },
+
   // ======================= Proposals =======================
   { path: '/proposals',
     component: function(resolve) {
@@ -98,14 +99,20 @@ const routes = [
     },
     props: true
   },
+
   // ======================= Laws =======================
-	/*
   { path: '/laws',
     component: function(resolve) {
       require(['./pages/Laws_List.vue'], resolve)
     }
   },
-	*/
+  { path: '/laws/:lawId',
+    component: function(resolve) {
+      require(['./pages/Law_Show.vue'], resolve)
+    },
+    props: true
+  },
+
   // ======================= User Home =======================
   { path: '/userHome',
     component: function(resolve) {
@@ -125,6 +132,7 @@ const routes = [
     },
     props: true
   },
+
   // ======================= Polls =======================
   { path: '/polls',
     component: function(resolve) {
@@ -136,7 +144,7 @@ const routes = [
     component: function(resolve) {
       require(['./pages/Poll_Show.vue'], resolve)
     },
-		props: true  // pass URL parameter to prop in component
+		props: true
   },
   { path: '/polls/:pollId/sortBallot',
     name: 'sortBallot',
@@ -152,20 +160,8 @@ const routes = [
     },
     props: true
   },
-  /*
-  { path: '/createPoll',
-    component: function(resolve) {
-      require(['./pages/createPoll.vue'], resolve)
-    }
-  },
-  */
-  // ======================= Laws =======================
-  { path: '/laws',
-    component: function(resolve) {
-      require(['./pages/Laws_List.vue'], resolve)
-    }
-  },
 
+  // ======================= PageNotFound =======================
   // Show error page for all invalid pathes
   { path: '/pageNotFound', component: PageNotFound, meta: { requiresAuth: false } }
 

@@ -5,7 +5,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4>Your ballot</h4>
+        <h4>Your ballot (with proposals as sorted by you)</h4>
       </div>
       <div class="panel-body ballot-body">
         <ol>
@@ -49,10 +49,8 @@
       <div class="panel-body">
         <ul class="fa-ul">
           <li>
-            <span v-show="step2_status === 'dimmed'"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
-            <span v-show="step2_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
-            <span v-show="step2_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
-            <span v-show="step2_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
+            <span v-show="numDelReq > 0"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
+            <span v-show="numDelReq === 0" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
             <p v-if="numDelReq == 1">
               A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
               Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
@@ -96,7 +94,7 @@
 
 
 
-    <button v-if="step3_status === 'success'" type="button" id="gotoPollButton" class="btn btn-primary" @click="goToPoll">
+    <button v-if="step3_status === 'success'" type="button" id="gotoPollButton" class="btn btn-primary pull-right" @click="goToPoll">
       Go to poll <i class="fas fa-angle-double-right"></i>
     </button>
 

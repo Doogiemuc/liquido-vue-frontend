@@ -1,13 +1,15 @@
 <template>
 	<div v-if="law" class="panel panel-default lawPanel" :data-proposaluri="getProposalURI">
     <div class="panel-heading">
-      <router-link v-if="!readOnly" :to="getLinkToLaw()" role="button" class="btn btn-default btn-xs pull-right">
-        <i class="fas fa-angle-double-right"></i>
-      </router-link>
-			<h4 class="lawTitle">
-          <i class="fa" :class="getIconForLaw" aria-hidden="true"></i>
-          {{law.title}}
+      <h4 class="lawTitle" v-if="readOnly">
+        <i class="fa" :class="iconForLaw" aria-hidden="true"></i>
+        {{law.title}}
       </h4>
+      <router-link v-if="!readOnly" :to="getLinkToLaw()">
+  			<h4 class="lawTitle">
+          <i class="fa" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{law.title}}
+        </h4>
+      </router-link>
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
       <div v-html="law.description"></div>
@@ -24,10 +26,11 @@
 						</td>
 						<td class="userDataSmall">
               <i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
-              <i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;
-              <router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
-              <span v-if="law.poll !== null && readOnly">Poll</span>
+              <i v-if="law.poll !== null && !readOnly" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
 						</td>
+            <td class="userDataSmall">
+              <i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}
+            </td>
 						<td class="likeButtonCell">
 							<support-button :law="law" v-on:like="likeToDiscuss" :readOnly="readOnly || createdByCurrentUser"></support-button>
 						</td>
@@ -67,7 +70,7 @@ export default {
 
     // dynamically set icon depending on law.status
     // BUGFIX: Must be a computed prop. Not a method!
-    getIconForLaw: function() {
+    iconForLaw() {
       switch(this.law.status) {
         case "IDEA":    return { "far": true, "fa-lightbulb": true }
         case "LAW":     return { "fa-university": true }  // or balance-scale?
@@ -75,7 +78,21 @@ export default {
       }
     },
 
-    createdByCurrentUser: function() {
+    statusLoc() {
+      switch(this.law.status) {
+        case "IDEA":        return "Idea"
+        case "PROPOSAL":    return "Proposal"
+        case "ELABORATION": return "Proposal in elaboration"
+        case "VOTING":      return "Proposal in voting"
+        case "LAW":         return "Law"
+        case "DROPPED":     return "Dropped law"
+        case "RETENTION":   return "Law in retention"
+        case "RETRACTED":   return "Rectracted law"
+        return "<unknown>"
+      }
+    },
+
+    createdByCurrentUser() {
       return this.$root.currentUser.id == this.law.createdBy.id
     },
 
@@ -159,6 +176,7 @@ export default {
   .lawFooterTable {
 		margin: 0;
 		padding: 0;
+    background-color: transparent;
   }
   .lawFooterTable td {
     margin: 0;
@@ -169,7 +187,6 @@ export default {
     color: #999;
     font-size: 12px;
     line-height: 1.4;
-    vertical-align: middle;
   }
   .likeButtonCell {
     text-align: right;

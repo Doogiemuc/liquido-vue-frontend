@@ -397,12 +397,6 @@ module.exports = {
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
     return axios.get(lawURI).then(res => res.data)
-      /*  Global error handler handles this fine
-      .catch(err => {
-        if (err.response.status >= 500) log.error("Cannot getLaw("+JSON.stringify(lawURI)+") :", err)
-        return Promise.reject(err)
-      })
-      */
   },
 
   getIdea(ideaIdOrURI, projected) {
@@ -655,11 +649,15 @@ module.exports = {
 
   /**
    * save a new comment (will automatically be createdBy currently logged in user)
-   * @param newCommentText text of new comment
-   * @param parent parent comment
+   * @param newCommentText {String} text of new comment
+   * @param law {Object} the proposal
+   * @param parent {Object} parent comment if this is a reply
    */
-  saveComment(newCommentText, parent) {
-    var newComment = { comment: newCommentText }
+  saveComment(newCommentText, proposal, parent) {
+    var newComment = {
+      comment: newCommentText,
+      proposal: this.getURI(proposal)
+    }
     if (parent) newComment['parent'] = parent._links.self.href
     log.debug("saveComment", newComment)
     return axios({
@@ -680,7 +678,7 @@ module.exports = {
   suggestImprovement(newImprovementText, proposal) {
     if (!proposal) return new Promise.reject({msg: "Need proposal to suggest improvement"})
     log.debug("suggestImprovement for proposal", proposal)
-    return this.saveComment(newImprovementText, null)
+    return this.saveComment(newImprovementText, proposal, null)  // no parent for new root comment
     .then(res => {
       var createdComment = res.data
       var proposalCommentsUrl = this.getHateoasLink(proposal, "comments")  // Need url without {?projection}

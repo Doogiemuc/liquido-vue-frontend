@@ -11,9 +11,8 @@
             <div class="maxHeightPreviewWrapper">
               <h4 class="lawTitle">
                 <router-link v-if="!readOnly" :to="getLinkToLaw(law)">
-                  <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>
+                  <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>&nbsp;{{law.title}}
                 </router-link>
-                {{law.title}}
               </h4>
               <div class="maxHeightPreview" :style="previewHeightStyle">{{law.description}}</div>
             </div>

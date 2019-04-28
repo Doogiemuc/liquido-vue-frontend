@@ -12,7 +12,16 @@
 			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
 		</h1>
 
-		<div v-if="poll.status == 'VOTING'" class="panel panel-default">
+		<div v-if="poll.status === 'ELABORATION'" class="panel panel-default">
+	    <div class="panel-body"">
+	      <p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
+	        Click on the title of each proposal to join the discussion and suggest improvements.</p>
+	      <p>Further alternative proposals may also still be added to this poll.</p>
+	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+	    </div>
+	  </div>
+
+		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
 	    <div class="panel-body"">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
@@ -22,27 +31,29 @@
 	    </div>
 	  </div>
 
-		<div v-if="poll.status == 'FINISHED'" class="panel panel-default">
+		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
 	    <div class="panel-body"">
 	      <p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
 	    </div>
 	  </div>
 
-	  <div v-if="ownBallot">
-		  <h3>Your sorted ballot in this poll</h3>
-	  	<p v-if="ownBallot.level == 0">This ballot was casted by yourself.</p>
-	  	<p v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy.</p>
-	  	<p v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy.</p>
-	    <p v-if="poll.status == 'VOTING'">This poll is still in its voting phase. You may still update the voteOrder in your ballot by clicking on the cast vote button again.</p>
-	 		<div v-if="ownBallot" class="panel panel-default">
-		    <div class="panel-body"">
-		      <ol>
-	          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
-	        </ol>
-		    </div>
-		  </div>
-		</div>
+		<div v-if="ownBallot" class="panel panel-default">
+      <div class="panel-heading">
+        <h4>Your current ballot in this poll</h4>
+      </div>
+      <div class="panel-body ballot-body">
+      	<p>
+	      	<span v-if="ownBallot.level == 0">This ballot was casted by yourself {{ownBallotCreatedAt}}.</span>
+			  	<span v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy {{ownBallotCreatedAt}}.</span>
+			  	<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
+		  	  <span v-if="poll.status == 'VOTING'">Since this poll is in its voting phase, you may still change the voteOrder in your ballot. Simply click on the cast vote button again.</span>
+	  	  </p>
+        <ol>
+          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+        </ol>
+      </div>
+    </div>
 
 		<div class="row" v-if="poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
@@ -92,24 +103,16 @@
 		</div>
 
 		<br/>
-		<div v-if="canJoinPoll" id="joinPollDiv" class="text-right collapse in">
-			<button type="button" id="joinPollButton" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top"
-			  data-content="If the topic of this ballot matches one of your proposals, then you can join your proposal into this poll and put it to the vote."
-			  v-on:click="toggleCollapse">
-			  Join this poll
-			</button>
-		</div>
 
-		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default collapse">
+		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default">
 	    <div class="panel-heading">
-	    	<button type="button" class="close" aria-label="Close" v-on:click="toggleCollapse">&times;</button>
 				<h4 class="panelTitle">Join this poll</h4>
 	    </div>
 	    <div class="panel-body"">
-	      <p>If you think that one of your proposals matches this ballot's topic, then you can <em>join this poll</em> and put your proposal to the vote.</p>
+	      <p>If you think that one of your proposals <b>in this area</b> matches this poll's topic, then you can add your proposal into this poll and put it to the vote.</p>
 	      <div class="form-inline">
 	      	<div class="input-group">
-		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for porposal title" autocomplete="off" data-toggle="dropdown"
+		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
 		      	 class="form-control" style="width: 300px" v-model="searchVal">
 		      	<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
 		      		<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
@@ -121,22 +124,6 @@
 	      </div>
 	    </div>
 		</div>
-
-		<h3>You as a proxy in this area</h3>
-		<ul v-if="delegations">
-			<li v-if="delCount == 1">You are the proxy for one voter who delegated his right to vote to you.</li>
-			<li v-if="delCount >  1">You are the proxy for {{delCount}} voters who delegated their right to vote to you.</li>
-			<li v-if="delReq == 1">A voter would like to delegate his right to vote to you as his proxy. Do you want
-				to <a href="#" @click="acceptDelegations">accept this request?</a> Then your ballot will also be casted for this delegee. This voter will thus be able to see how you voted.
-			</li>
-			<li v-if="delReq > 1">{{delReq}} voters would like to delegate their vote to you as their proxy. Do you want
-				to <a href="#" @click="acceptDelegations">accept these request?</a>
-			</li>
-			<li v-if="delegations.isPublicProxy">You are a public proxy in this area. Voters can immideatly delegate their vote to you.</li>
-			<li v-else="delegations.isPublicProxy">You are not yet a public proxy in this area. Furhter voters can not yet immideately delegate their vote to you. Do you want to
-				<a href="#" @click="becomePublicProxy">become a public proxy?</a>
-			</li>
-		</ul>
 
 
 	</div>
@@ -160,7 +147,7 @@ export default {
       delegations: undefined,
       voterToken: undefined,
       ownBallot: undefined,
-      userProposals: [],  										// all the proposals of the currently logged in user (needed for joining the poll)
+      userProposals: [],  										// all the proposals of the currently logged in user in this area (needed for joining the poll)
       searchVal: "",
       selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 		}
@@ -172,10 +159,12 @@ export default {
 	},
 
 	computed: {
-		pollCreated()    { return moment(this.poll.createdAt).format('L') },
-		votingStart()    { return moment(this.poll.votingStartAt).format('L') },
-		votingEnd()      { return moment(this.poll.votingEndAt).format('L') },
-		untilVotingEnd() { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
+		pollCreated()        { return moment(this.poll.createdAt).format('L') },
+		votingStart()        { return moment(this.poll.votingStartAt).format('L') },
+		votingEnd()          { return moment(this.poll.votingEndAt).format('L') },
+		ownBallotCreatedAt() { return this.ownBallot ? moment(this.ownBallot.createdAt).fromNow() : "" },
+		untilVotingStart()   { return moment().to(this.poll.votingStartAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
+		untilVotingEnd()     { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
 		timelineEvents() {
 		  return [
         { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
@@ -188,20 +177,24 @@ export default {
 		delReq()    { return this.delegations.delegationRequests.length },
 		voteOrder() { return this.ownBallot ? this.ownBallot.voteOrder : undefined },
 
+		/**
+		  A user can join a poll, when the poll is still in elaboration
+		  and he has a proposal in that area
+		  and he did not already join this poll with one of his proposals.
+		 */
 		canJoinPoll() {
-			var alreadyJoined = false  //TODO: Can a user join a poll with more than one of its own proposals?  Maybe not?
+			var alreadyJoined = this.poll._embedded.proposals.some(prop => prop.createdBy.id === this.$root.currentUser.id)
 			return this.poll.status === 'ELABORATION' && this.userProposals.length > 0 && !alreadyJoined
 		},
-		// return a list of user's proposals that match the search string, case insensitive
+
+		/** return a list of user's proposals that match the search string, case INsensitive */
 		matchingProposals() {
 			var val = this.searchVal.toLowerCase().trim()
 			this.selectedUserProposal = undefined			// disable joinProposalButton again
 			if (val == "") {
 				return this.userProposals.slice(0,3)		// remember: slice returns copy of array, whilst splice() only removes array elements
 			}
-			return this.userProposals.filter(prop => {
-				return prop.title.toLowerCase().indexOf(val) != -1
-			})
+			return this.userProposals.filter(prop => prop.title.toLowerCase().indexOf(val) != -1)
 		},
 		//join proposal button is only active, when one of the user's proposal has been selected
 		joinProposalButtonClass() {
@@ -212,10 +205,8 @@ export default {
 	created() {
 		this.loadPoll()
 			.then(this.loadOwnBallot)
-			.then(this.loadDelegations)
-		this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
-			this.userProposals = proposals
-		})
+			.then(this.loadUsersProposalsInArea)
+			//.then(this.loadDelegations)    //MAYBE: Could load delegations since I already have the user's voterToken
 	},
 
 	mounted() {
@@ -225,6 +216,16 @@ export default {
 	methods: {
 		loadPoll() {
 			return this.$root.api.getPoll(this.pollId).then(poll => { this.poll = poll })
+		},
+
+		/**
+		   Load proposals that the currently logged in user has in the area of the poll.
+		   He could join the poll with one of those proposals.
+		 */
+		loadUsersProposalsInArea() {
+			return this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
+				this.userProposals = proposals.filter(prop => prop.area.id === this.poll.area.id)
+			})
 		},
 
     /**
@@ -254,11 +255,13 @@ export default {
      * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
      */
   	loadOwnBallot() {
-  		return this.fetchVoterToken().then(voterToken => {
-  			this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
-  				this.ownBallot = ballot  // may be undefined!
+  		if (this.poll.status === 'VOTING') {
+	  		return this.fetchVoterToken().then(voterToken => {
+	  			this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
+	  				this.ownBallot = ballot  // may be undefined if user did not vote yet!
+		  		})
 	  		})
-  		})
+	  	}
   	},
 
   	becomePublicProxy() {
@@ -323,11 +326,6 @@ export default {
   			}
   		})
   	},
-
-		toggleCollapse() {
-			$('#joinPollDiv').collapse('toggle')
-			$('#joinPollPanel').collapse('toggle')
-		},
 
 		selectUserProposal(proposal) {
 			this.searchVal = proposal.title

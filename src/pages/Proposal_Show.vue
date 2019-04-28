@@ -13,7 +13,7 @@
   	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
 		<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
 
-		<law-panel v-if="proposal" :law="proposal" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
+		<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
 
     <div v-if="createdByCurrentUser" class="panel panel-default">
 	    <div class="panel-heading">
@@ -22,16 +22,14 @@
 	    <div class="panel-body">
 	    	<div v-if="proposal.status === 'IDEA'">
 	    		<p>Your idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then your idea
-	    		will become a proposal that can be discussed.</p>
-	    		<p><button type="button" class="btn sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
+	    		will become a proposal that can be further discussed.</p>
+	    		<p><button type="button" class="btn btn-sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
 	    	</div>
 	      <div v-else-if="proposal.status === 'PROPOSAL'">
-	        <p>Your ideas has reached its quorum. It became a proposal. All members can now discuss your proposal and suggest improvements below.
-	        You should consider and respect these suggestions since they come from your potential voters. Once you are happy with your
-	        proposal, then you can either</p>
+	      	<p>Your idea reached its quorum and now became a proposal that can further be discussed. You should carefully consider and respect the suggestions for improvement discussed below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
 	        <ul class="startJoinList">
-	        	<button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - but then you need alternative suggestions before the voting phase can start</li>
-	        	<li style="margin-top:10px"><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - which must still be in its elaboration phase</li>
+	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - Add your proposal as an alternative suggestion to an existing poll.</li>
+	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
 					</ul>
 	      </div>
 	      <div v-else-if="proposal.status === 'ELABORATION'">
@@ -193,6 +191,9 @@ export default {
 
 
 	computed: {
+		showAsReadOnly() {
+			return this.proposal.status !== 'IDEA'
+		},
 		nameByStatus: function() {
 			if (this.proposal.status === 'IDEA') return "idea"
 			if (this.proposal.status === 'LAW' || this.proposal.status === "DROPPED") return "law"
@@ -299,13 +300,13 @@ export default {
 			if (!this.replyText[comment.id]) return;
 			//console.log("replyToSuggestion: "+this.replyText)
 			//Would also work:  var newReplyText = $('#replyTo'+comment.id).val()
-			this.$root.api.saveComment(this.replyText[comment.id], comment).then(res => {
+			this.$root.api.saveComment(this.replyText[comment.id], this.proposal, comment).then(res => {
 				this.reloadComments()
 				this.replyText = []
 			})
 		},
 
-
+		//TODO: edit own comment
 
   },
 
@@ -339,8 +340,10 @@ export default {
 .startJoinList {
 	list-style: none
 }
-.startJoinList {
+.startJoinList li {
+	margin-bottom: 10px;
 }
+
 .comment:hover {
   background: #F3F3F3;
 }
