@@ -5,7 +5,7 @@
 	    <span v-html="loadingMessage"></span>
 	  </div>
 	</div>
-	<div v-else class="container">
+	<div v-else class="container" id="#ProposalShow">
   	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
   	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
 		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>

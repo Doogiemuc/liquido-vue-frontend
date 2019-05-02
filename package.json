@@ -9,16 +9,16 @@
   "private": false,
   "scripts": {
     "dev": "node build/dev-server.js",
-    "test-server": "cross-env NODE_ENV=testing build/dev-server.js",
-    "cypress:open": "cypress open",
+    "test": "cross-env NODE_ENV=testing PORT=3005 node build/dev-server.js",
+    "cypress": "cypress open",
     "build": "node build/build.js",
     "smoke": "babel-node test/jasmine/runJasmineTestsWithNode.js",
     "unit": "karma start test/unit/karma.conf.js --single-run",
     "test_iron_aws": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_aws",
     "test_chrome_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env chrome_local",
     "test_iron_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
-    "e2e_with_devServer": "node test/e2e/runner.js",
-    "test": "npm run unit && npm run e2e_with_devServer"
+    "test_e2e_with_devServer": "node test/e2e/runner.js",
+    "test_all": "npm run unit && npm run e2e_with_devServer"
   },
   "repository": {
     "type": "git",

@@ -45,9 +45,12 @@
 
 <script>
 export default {
-	data () {
-		return {
-			laws: []
+
+	mounted() {
+		var idx = this.$route.query.devAutoLoginUserIdx
+		if (process.env.NODE_ENV === 'development' && idx !== undefined) {
+			console.log("devLogin for userIdx", idx)
+			this.$root.devLogin(idx, "/")
 		}
 	}
 }

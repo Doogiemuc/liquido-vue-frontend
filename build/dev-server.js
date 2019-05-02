@@ -2,6 +2,7 @@ require('./check-versions')()
 var config = require('../config')
 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
+
 var path = require('path')
 var express = require('express')
 var webpack = require('webpack')
@@ -14,8 +15,8 @@ var webpackConfig = process.env.NODE_ENV === 'testing'
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
 
-console.log("Starting dev-server.js on PORT "+port+" in env '"+process.env.NODE_ENV+"'\n")
-console.log("dev.env = "+JSON.stringify(config.dev.env, null, 2))
+console.log("Starting dev-server.js on PORT "+port+" in NODE_ENV='"+process.env.NODE_ENV+"'\n")
+console.log("build config="+JSON.stringify(config, null, 2))
 
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware

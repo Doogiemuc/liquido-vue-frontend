@@ -13,10 +13,10 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul v-if="currentUser" id="navArrows" class="nav navbar-nav nav-arrows" >
-            <li><router-link active-class="active" to="/ideas">Ideas</router-link></li>
-            <li><router-link active-class="active" to="/proposals">Proposals</router-link></li>
-            <li><router-link active-class="active" to="/polls">Polls</router-link></li>
-            <li><router-link active-class="active" to="/laws">Laws</router-link></li>
+            <li><router-link active-class="active" to="/ideas" id="IdeasArrow">Ideas</router-link></li>
+            <li><router-link active-class="active" to="/proposals" id="ProposalsArrow">Proposals</router-link></li>
+            <li><router-link active-class="active" to="/polls" id="PollsArrow">Polls</router-link></li>
+            <li><router-link active-class="active" to="/laws" id="LawsArrow">Laws</router-link></li>
           </ul>
           <ul v-if="currentUser" class="nav navbar-nav nav-search-icon">
             <li>
@@ -79,7 +79,7 @@
 
     <footer>
       <div class="container text-right">
-        <small>{{liqudioVersion}}</small>&nbsp;
+        <small>{{nodeEnv}} {{liquidoVersion}}</small>&nbsp;
         <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
           <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
         </a>
@@ -101,7 +101,8 @@ import apiClient from '../services/LiquidoApiClient'
 
 export default {
   computed: {
-    liqudioVersion() { return this.$root.props['liquido.version'] },
+    liquidoVersion() { return this.$root.props['liquido.version'] },
+    nodeEnv()        { return process.env.NODE_ENV },
     showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
     userNameShort() {
       if (!this.currentUser) return ""
@@ -113,12 +114,12 @@ export default {
   //The methods of RootApp.vue can be called from all child components as this.$root.method()
   methods: {
 
-    /** Quickly login a default user for development */
-    loginViaSms(mobilephone, smsCode) {
+    /** Login with a SMS code */
+    loginViaSms(mobilephone, smsCode, forwardTo) {
       var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
       //log.debug("Login via SMS for "+cleanMobilePhone)
       return apiClient.loginWithSmsCode(cleanMobilePhone, smsCode)
-        .then(jwt =>  { this.loginWithJWT(jwt) })
+        .then(jwt =>  { this.loginWithJWT(jwt, forwardTo) })
         .catch(err => { log.error("Cannot login dev user", err) })
     },
 
@@ -151,10 +152,10 @@ export default {
       this.$router.push("/")
     },
 
-    /** Quick login for development */
-    devLogin(userNo) {
+    /** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
+    devLogin(userNo, forwardTo) {
       console.log("Development login of mobile phone "+process.env.devLoginMobilePhones[userNo])
-      this.loginViaSms(process.env.devLoginMobilePhones[userNo], process.env.devLoginDummySmsCode)
+      this.loginViaSms(process.env.devLoginMobilePhones[userNo], process.env.devLoginDummySmsCode, forwardTo)
     },
 
 
@@ -173,14 +174,8 @@ export default {
       position: 'topRight',
       transitionIn: 'fadeInLeft',
     })
+  },
 
-    /*
-    if (process.env.autoLoginMobilePhone) {
-      log.info("Automatic DEV login for "+process.env.autoLoginMobilePhone)
-      this.loginViaSms(process.env.autoLoginMobilePhone, process.env.autoLoginSmsCode)
-    }
-    */
-  }
 }
 
 </script>

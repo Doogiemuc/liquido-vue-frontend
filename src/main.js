@@ -22,7 +22,7 @@ Vue.use(VueRouter)
 
 // ================= Setup Vue-router for navigation =============
 const routes = [
-  { path: '/',
+  { path: '/(liquidoHome)?',
     component: LiquidoHome,
     meta: { requiresAuth: false }
   },

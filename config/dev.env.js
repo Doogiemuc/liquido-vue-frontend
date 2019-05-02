@@ -10,7 +10,7 @@ module.exports = merge(prodEnv, {
   devLoginMobilePhones: '["+49 123451", "+49 123452", "+49 123453", "+49 123454", "+49 123455", "+49 123456", "+49 123457"]',
   devLoginDummySmsCode: '"998877"',
   // This devLoginMobilePhone is automatically logged in at startup. Set to undefined to disable auto login
-  devAutoLoginUserIdx: 0,
+  devAutoLoginUserIdx: undefined,
 
   tokenSecret: '"userTokenSecret"'    //TODO: let voter choose tokenSecret. This dummy one is from TestFixtures.java"
 })

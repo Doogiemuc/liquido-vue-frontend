@@ -1,0 +1,12 @@
+{
+  "username_prefix": "CypressUser",
+  "email_suffix": "@liquido.de",
+  "mobilephone_prefix": "+49 12345",
+  "website": "www.liquido.de",
+
+  "area0_title": "Area 0",
+
+  "ideaTitle_prefix": "CypressIdea",
+  "ideaDescription_prefix": "New Idea created from cypress test case "
+
+}

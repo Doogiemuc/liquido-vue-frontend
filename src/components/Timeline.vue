@@ -1,6 +1,6 @@
   /*
-  
-  Horizontal timeline 
+
+  Horizontal timeline
   Inspired by https://codyhouse.co/demo/horizontal-timeline/index.html
 
   This is how you initialize the events along the timeline
@@ -8,8 +8,8 @@
       exampleTimelineData = {
         height: 40,             // height in pixels
         fillTo: new Date(),     // how far the timeline shall be filled
-        events: [ 
-          { date: new Date(...), above: "Proposal", below: "start"},  
+        events: [
+          { date: new Date(...), above: "Proposal", below: "start"},
           { date: new Date(...), above: "Quorum", below: "in between"},
           { date: new Date(...), above: "Voting", below: "starts"},
           { date: new Date(...), above: "Voting", below: "end"}
@@ -24,11 +24,11 @@
   <div class="timeline" :style="{ height: height+'px' }" >
     <div class="timeline_grey"></div>
     <span class="filling_line" v-bind:style="{ width: this.percentFilled+'%' }"></span>
-    <span class="timeline_arrow_right"></span>  
+    <span :class="arrowClass"></span>
     <ol style="list-style: none">
-      <li v-for="event in this.events" 
-          class="timeline_event circle" 
-          v-bind:style="{ left: getPercent(event)+'%'}" 
+      <li v-for="event in this.events"
+          class="timeline_event circle"
+          v-bind:style="{ left: getPercent(event)+'%'}"
           v-bind:class="{ filledCircle: isFilled(event) }" >
         <div class="event_above" v-html="event.above || '&nbsp;'"></div>
         <div class="event_below" v-html="event.below || '&nbsp;'"></div>
@@ -44,22 +44,28 @@
   	props: {
       height: { type: Number, required: false, default: function() { return 40 } },
       fillTo: { type: Date,   required: false, default: function() { return new Date() } },
-  	  events: { type: Array,  required: true, validator: 
+  	  events: { type: Array,  required: true, validator:
         function(events) {
           if (events == null) { return false }
           events.forEach(event => {
             if (event.date === undefined && event.percent === undefined) { return false }
             if (event.date && typeof event.date.getMonth !== 'function') { return false }
           })
-        return true
-        } 
-      }      
+          return true
+        }
+      }
   	},
 
     computed: {
       startDate() { return this.events[0].date },
       endDate() { return this.events[this.events.length-1].date },
-      percentFilled() { return this.date2percent(this.fillTo, this.startDate, this.endDate) }
+      percentFilled() { return this.date2percent(this.fillTo, this.startDate, this.endDate) },
+      arrowClass() {
+        return {
+          timeline_arrow_right: true,
+          timeline_arrow_right_fillled: this.endDate - this.fillTo <= 0    // timeline is fully filled
+        }
+      },
     },
 
     //TODO:  maybe it would be easier to watch: { events : function(newEvents, oldEvents) { ... } }
@@ -76,8 +82,8 @@
         return this.getPercent(event) <= this.percentFilled
       },
 
-      /** 
-       * Utility method to convert a date to a percentage value between start and end date 
+      /**
+       * Utility method to convert a date to a percentage value between start and end date
        * This can be accessed as 'timeline.methods.date2percent' from parent components
        * Needs three Date() objects. Will return 0 otherwise.
        */
@@ -91,7 +97,7 @@
       },
 
       getPercent(event) {
-        if (event.percent !== undefined) { 
+        if (event.percent !== undefined) {
           return event.percent
         } else {
           return this.date2percent(event.date, this.startDate, this.endDate)
@@ -114,7 +120,7 @@
 <style scoped>
 
 .timeline {
-  position:relative; 
+  position:relative;
   /*overflow: hidden;*/
   font-size: 12px;
   width: 95%;
@@ -122,12 +128,12 @@
 }
 
 .timeline .timeline_grey {
-  position: absolute; 
+  position: absolute;
   z-index: 0;
-  left:0; 
-  top: 2em; 
-  width: 99%; 
-  height: 2px; 
+  left:0;
+  top: 2em;
+  width: 99%;
+  height: 2px;
   background: #dfdfdf;
 }
 
@@ -170,7 +176,7 @@
   width: 10px;
   height: 10px;
   background-color: #FFF;
-  border: 2px solid #ddd;
+  border: 2px solid #DDD;
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
@@ -178,7 +184,7 @@
 .timeline .filledCircle:after {
   z-index: 3;
   border: 2px solid #66A;
-  background-color: #66A; 
+  background-color: #66A;
 }
 
 .timeline_arrow_right {
@@ -191,7 +197,11 @@
   height: 0px;
   border-style: solid;
   border-width: 8px 0 8px 15px;
-  border-color: transparent transparent transparent #ddd;
-
+  border-color: transparent transparent transparent #DDD;
 }
+
+.timeline_arrow_right_fillled {
+  border-color: transparent transparent transparent #66A;
+}
+
 </style>
