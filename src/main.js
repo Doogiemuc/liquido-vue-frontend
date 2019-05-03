@@ -14,11 +14,10 @@ import LogoutPage from './pages/LogoutPage'
 import PageNotFound from './pages/PageNotFound'
 
 import apiClient from './services/LiquidoApiClient'
+import auth from './services/auth'
+
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('main.js')
-
-// Vue plugins
-Vue.use(VueRouter)
 
 // ================= Setup Vue-router for navigation =============
 const routes = [
@@ -167,6 +166,8 @@ const routes = [
 
 ]
 
+Vue.config.productionTip = process.env.NODE_ENV !== 'development'  // turn off productionTip in dev env
+Vue.use(VueRouter)
 const router = new VueRouter({routes})
 
 /** check if ANY of the matched routes requires authentication */
@@ -182,18 +183,27 @@ var requiresAuth = function(to) {
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
+  console.log("checking route", auth)
   if (to.matched.length == 0) {
     next({path: '/pageNotFound'})
   } else
-  if (requiresAuth(to) && router.app.$root.currentUser === undefined) {
-    next({
-       path: '/login',
-       query: { redirect: to.fullPath }
-     })
+  if (requiresAuth(to) && !auth.isLoggedIn) {
+    auth.tryLoginFromLocalStorage().then(user => {
+      if (user) {
+        next()
+      } else {
+        next({
+          path: '/login',
+          query: { redirect: to.fullPath }
+        })
+      }
+    })
   } else {
     next()        // make sure to always call next()!
   }
 })
+
+//Nice quick short demo for vue-router and auth: https://codepen.io/takatama/pen/zoNeWP
 
 // ==============================================================================
 // Here we start the frontend app.
@@ -219,8 +229,6 @@ var isBackendAlive = function() {
   })
 }
 
-var currentUser = undefined
-
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV == "development") {
     log.info("LIQUDIO is running in DEVELOPMENT mode!")
@@ -231,31 +239,30 @@ var checkDevelopmentMode = function() {
 }
 
 var autoLoginDevUser = function(rootApp) {
-  if (process.env.NODE_ENV == "development" && process.env.devAutoLoginUserIdx !== undefined) {
-    rootApp.devLogin(process.env.devAutoLoginUserIdx)
+  if (process.env.NODE_ENV == "development" && process.env.autoLoginMobilephone !== undefined) {
+    auth.devLogin(process.env.autoLoginMobilephone)
   }
   return Promise.resolve()
 }
 
 var startApp = function(props) {
-  //console.log("Properties", props)
-  window.liquidoVueRootApp = new Vue({
+  var rootApp = new Vue({
     el: '#app',
     router,
     data: {
       api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
       props: props,                         // application wide properties (read from backend DB)
-      currentUser: currentUser,             // currently logged in user information, available to all VueJS child components as this.$root.currentUser
+      auth: auth,
     },
     ...RootApp
   }).$mount()
   log.info("===== LIQUIDO web app has started.")
-  return window.liquidoVueRootApp
+  return rootApp
 }
 
 //Here comes JS Promises at its best :-)
-isBackendAlive()
-  .then(checkDevelopmentMode)
+checkDevelopmentMode()
+  .then(isBackendAlive)
   .then(apiClient.getGlobalProperties)
   .then(startApp)
   .then(autoLoginDevUser)

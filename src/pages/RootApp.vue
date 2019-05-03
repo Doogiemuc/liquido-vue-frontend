@@ -62,13 +62,7 @@
               DevLogin <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li><a href="#" @click="devLogin(0)">User 1</a></li>
-              <li><a href="#" @click="devLogin(1)">User 2</a></li>
-              <li><a href="#" @click="devLogin(2)">User 3</a></li>
-              <li><a href="#" @click="devLogin(3)">User 4</a></li>
-              <li><a href="#" @click="devLogin(4)">User 5</a></li>
-              <li><a href="#" @click="devLogin(5)">User 6</a></li>
-              <li><a href="#" @click="devLogin(6)">User 7</a></li>
+              <li v-for="devUser in devUsers"><a href="#" @click="devLogin(devUser.mobilephone)">{{devUser.name}} {{devUser.mobilephone}}</a></li>
             </ul>
           </div>
         </div>
@@ -78,6 +72,7 @@
     <router-view></router-view>
 
     <footer>
+
       <div class="container text-right">
         <small>{{nodeEnv}} {{liquidoVersion}}</small>&nbsp;
         <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
@@ -95,15 +90,23 @@
  * Renders the NavBar at the top.
  */
 
-var loglevel = require('loglevel')
+import auth from '../services/auth'
+import loglevel from 'loglevel'
 var log = loglevel.getLogger("RootApp");
-import apiClient from '../services/LiquidoApiClient'
 
 export default {
+  /*
+    This RootApp's data properties are available to all child components via e.g. this.$root.currentUser
+    All data properties are injected in mains.js
+    Also the methods below are available to all components as this.$root.someMethod()
+  */
+
   computed: {
-    liquidoVersion() { return this.$root.props['liquido.version'] },
+    liquidoVersion() { return this.props['liquido.version'] },
     nodeEnv()        { return process.env.NODE_ENV },
-    showDevLogin() { return process.env.NODE_ENV === 'development' && this.$root.currentUser === undefined },
+    currentUser()    { return auth.currentUser },
+    devUsers()       { return process.env.devUsers },
+    showDevLogin()   { return process.env.NODE_ENV === 'development' && this.currentUser === undefined },
     userNameShort() {
       if (!this.currentUser) return ""
       if (this.currentUser.profile.name.length <= 15) return this.currentUser.profile.name;
@@ -111,58 +114,12 @@ export default {
     }
   },
 
-  //The methods of RootApp.vue can be called from all child components as this.$root.method()
   methods: {
 
-    /** Login with a SMS code */
-    loginViaSms(mobilephone, smsCode, forwardTo) {
-      var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-      //log.debug("Login via SMS for "+cleanMobilePhone)
-      return apiClient.loginWithSmsCode(cleanMobilePhone, smsCode)
-        .then(jwt =>  { this.loginWithJWT(jwt, forwardTo) })
-        .catch(err => { log.error("Cannot login dev user", err) })
+    devLogin(mobilephone) {
+      return auth.devLogin(mobilephone)
     },
 
-    /** When user logged in and we got a JWT, then store it globally and fetch user details */
-    loginWithJWT(jwt, forwardTo) {
-      apiClient.setJsonWebToken(jwt)
-      return apiClient.getMyUser()
-        .then(user => {
-          log.info("User logged in successfully.", user)
-          this.$root.currentUser = user
-          this.$router.push(forwardTo ? forwardTo : '/userHome')
-          iziToast.success({
-            title: 'Login',
-            message: 'You are now logged in as '+user.email,
-            position: 'bottomRight',
-          })
-        })
-        .catch(err => {
-          log.error("Cannot find user details with JWT. Invalid JWT?")
-          return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
-        })
-    },
-
-    /** Logout the current user */
-    logout() {
-      console.log("LOGOUT ", this.$root.currentUser)
-      apiClient.logout()
-      this.$root.currentUser = undefined
-      //TODO: Show flash message: "You have been successfully logged out."
-      this.$router.push("/")
-    },
-
-    /** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
-    devLogin(userNo, forwardTo) {
-      console.log("Development login of mobile phone "+process.env.devLoginMobilePhones[userNo])
-      this.loginViaSms(process.env.devLoginMobilePhones[userNo], process.env.devLoginDummySmsCode, forwardTo)
-    },
-
-
-    cleanMobilePhone(mobilephone) {
-      if (mobilephone == undefined) return ""
-      return mobilephone.replace(/[^0-9\+]/g, '')
-    }
   },
 
   created() {
@@ -174,6 +131,7 @@ export default {
       position: 'topRight',
       transitionIn: 'fadeInLeft',
     })
+
   },
 
 }

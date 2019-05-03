@@ -110,7 +110,6 @@ export default {
 
   computed: {
     isDevEnv() { return process.env.NODE_ENV === 'development' },
-    devLoginUser() { return process.env.devLoginUser },
     smsCode() { return this.digits[0]+this.digits[1]+this.digits[2]+this.digits[3] },
     isEmailValid() {
       return validEMailRe.test(this.email)
@@ -170,10 +169,15 @@ export default {
 
     loginWithSmsCode() {
       var smsCode = this.digits.join("")
-      apiClient.loginWithSmsCode(this.cleanMobilePhone, smsCode)
-        .then(jwt => {
+      this.$root.auth.loginViaSms(this.cleanMobilePhone, smsCode)
+        .then(user => {
           this.smsErrorMsg = ""
-          this.$root.loginWithJWT(jwt)
+          iziToast.success({
+            title: 'Login',
+            message: 'You are now logged in as '+user.email,
+            position: 'bottomRight',
+          })
+          this.$router.push('/userHome')
         }).catch(err => {
           this.smsErrorMsg = "SMS code not valid."
           this.smsCodeSent = false

@@ -5,7 +5,7 @@
 	    <span v-html="loadingMessage"></span>
 	  </div>
 	</div>
-	<div v-else class="container" id="#ProposalShow">
+	<div v-else class="container" id="ProposalShow">
   	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
   	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
 		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
@@ -147,7 +147,7 @@
       </div>
       <div class="media-body">
         <div class="input-group col-xs-12 col-md-8">
-				  <input type="text" class="form-control" v-model="suggestionText"
+				  <input type="text" id="suggestImprovementInput" class="form-control" v-model="suggestionText"
 				   v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
 				  <span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
 				</div>
@@ -254,6 +254,7 @@ export default {
 			this.$root.api.downvoteComment(comment, this.$root.currentUser).then(res => {
 				this.reloadComments()
 			})
+			//TODO: comments with more than n downVotes should be deleted  (impl. in the backend)
 		},
 
     /**
@@ -272,7 +273,7 @@ export default {
 		/** reload comments and their replies */
 		reloadComments() {
 			this.$root.api.getComments(this.proposal, true).then(comments => {
-				this.comments = comments.slice(0,10).sort(this.commentComparator)		//sort comments by votes and limit to 10 comments and 20 replies max
+				this.comments = comments.sort(this.commentComparator)		//sort comments by votes and limit to 10 comments and 20 replies max
 				this.replyText = []
 				this.suggestionText = ""
 			})

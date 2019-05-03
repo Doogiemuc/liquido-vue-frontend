@@ -45,14 +45,7 @@
 
 <script>
 export default {
-
-	mounted() {
-		var idx = this.$route.query.devAutoLoginUserIdx
-		if (process.env.NODE_ENV === 'development' && idx !== undefined) {
-			console.log("devLogin for userIdx", idx)
-			this.$root.devLogin(idx, "/")
-		}
-	}
+	// No logic in this simple Vue component
 }
 </script>
 

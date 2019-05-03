@@ -6,13 +6,16 @@
 
 <script>
 
-import apiClient from '../services/LiquidoApiClient'
-
 export default {
   mounted() {
-    this.$root.logout()
+    this.$root.auth.logout()
+    iziToast.success({
+      title: 'Logout',
+      message: 'You have been logged out.',
+      //position: 'bottomRight',
+    })
+    this.$router.push('/')
   }
-
 }
 </script>
 

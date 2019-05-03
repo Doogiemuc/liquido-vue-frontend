@@ -91,6 +91,25 @@ describe('Liquido Happy Case Test', function() {
   		.first().click()
   })
 
+	it.only('add suggestion to a proposal', function() {
+  	//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
+  	cy.visit('/#/liquidoHome?devAutoLoginUserIdx=1')
+  	cy.get('#LiquidoHome').should('exist')
+  	cy.get('#ProposalsArrow').click()
+  	cy.get('#ProposalsList').should('exist')
+  	cy.get('#recentlyNewProposals .lawTitle > a')
+  		.first().click()
+  	cy.get('#ProposalShow').should('exist')
+
+  	cy.wait(1000)  // need to wait a bit until existing comments are loaded
+  	let comment = "Very impressive suggestion from Cypress"+rand(1000,9999)
+  	cy.get('#suggestImprovementInput').type(comment+"{enter}")
+  	cy.wait(1000)
+  	cy.get('div.comment > p').contains(comment)
+  })
+
+
+
 
 })
 
