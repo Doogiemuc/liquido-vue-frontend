@@ -183,26 +183,30 @@ var requiresAuth = function(to) {
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
-  console.log("checking route", auth)
+  console.log("checking route", to.fullPath)
+  // IF no route matched, THEN page was not found
   if (to.matched.length == 0) {
     next({path: '/pageNotFound'})
   } else
-  if (requiresAuth(to) && !auth.isLoggedIn) {
-    auth.tryLoginFromLocalStorage().then(user => {
-      if (user) {
+  // IF to requires authentication and not yet logged in
+  // THEN try to login from local storage
+  // otherwise forward to /login page
+  if (requiresAuth(to)) {
+    auth.fetchCurrentUser()
+      .then(user => {
         next()
-      } else {
+      })
+      .catch(err => {
+        log.debug("Need to login")
         next({
           path: '/login',
           query: { redirect: to.fullPath }
         })
-      }
-    })
+      })
   } else {
     next()        // make sure to always call next()!
   }
 })
-
 //Nice quick short demo for vue-router and auth: https://codepen.io/takatama/pen/zoNeWP
 
 // ==============================================================================

@@ -42,6 +42,7 @@ axios.defaults.baseURL = process.env.backendBaseURL
 /****** Axios REQUEST interceptor that adds the JWT token into the header (if known) *****/
 axios.interceptors.request.use(function (config) {
   if (jsonWebToken) {
+    //Would also work  axios.defaults.headers.common['Authorization'] = "Bearer "+jsonWebToken
     config.headers['Authorization'] = "Bearer "+jsonWebToken
   }
   return config;
@@ -128,7 +129,7 @@ module.exports = {
     return axios.get('/auth/loginWithSmsCode', { params: { mobile: mobile, code: code} } )
       .then(res => {
         jsonWebToken = res.data
-        //log.debug("Received JWT: "+jsonWebToken)
+        log.debug("Received JWT: ", res)
         return jsonWebToken
       })
   },

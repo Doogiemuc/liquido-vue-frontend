@@ -12,17 +12,14 @@ export default {
 	},
 
   /**
-   *Try to login with the JWT that is locally stored in the browser
-   * @return (a Promise that will resolve to) the logged in user or undefined if no JWT is stored locally
+   * Lazy fetch currentUser.
+   * @return cached currentUser or try to login with stored JWT
+   *         otherwiese reject promise
    */
-  tryLoginFromLocalStorage() {
+  fetchCurrentUser() {
+    if (this.currentUser) return Promise.resolve(this.currentUser)
     var jwt = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null :-(  I love JavaScript *sic*
-    if (jwt) {
-    	log.debug("got JWT from local storage", jwt)
-    	return this.loginWithJWT(jwt)
-    } else {
-    	return Promise.resolve(undefined)
-    }
+    return this.loginWithJWT(jwt)
   },
 
   /**
@@ -44,6 +41,7 @@ export default {
 
   /** When we've got a JWT, then store it globally and fetch user details */
   loginWithJWT(jwt) {
+    if (!jwt) return Promise.reject("Need JWT")
     apiClient.setJsonWebToken(jwt)
     localStorage.setItem(JWT_ITEM_KEY, jwt)
     return apiClient.getMyUser()
@@ -53,6 +51,7 @@ export default {
         return user
       })
       .catch(err => {
+        //TODO: refresh JWT if expired
         log.error("Cannot find user details with JWT. Invalid JWT?")
         return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
       })
@@ -61,6 +60,7 @@ export default {
   /** Logout the current user */
   logout() {
     log.info("LOGOUT", this.currentUser)
+    localStorage.removeItem(JWT_ITEM_KEY)
     apiClient.logout()
     this.currentUser = undefined
   },
