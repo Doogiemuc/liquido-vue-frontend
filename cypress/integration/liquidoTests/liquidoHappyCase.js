@@ -4,24 +4,23 @@ function rand(min,max)   // Intervall [min, max[
 }
 
 describe('Liquido Happy Case Test', function() {
-  let fix
 
 	before(function() {
-		cy.fixture('liquidoTestFixtures.json').then(fixtureData => {
-			fix = fixtureData
+		cy.fixture('liquidoTestFixtures.json').then(fix => {
 			let num = rand(1000,9999)
-			fix.username    = fix.username_prefix + num
-			fix.email       = fix.username + fix.email_suffix
-			fix.mobilephone = fix.mobilephone_prefix + num
-			fix.ideaTitle       = fix.ideaTitle_prefix + num
-			fix.ideaDescription = fix.ideaDescription_prefix + num
+			Cypress.env(fix)
+			Cypress.env('username', fix.username_prefix + num)
+			Cypress.env('email', Cypress.env('username') + fix.email_suffix)
+			Cypress.env('mobilephone', fix.mobilephone_prefix + num)
+			Cypress.env('mobilephoneUrlEncoded', encodeURIComponent(Cypress.env('mobilephone')))
+			Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)
+			Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
 
-			//TODO: Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)   // this can be referenced while in this spec file
+			//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
 
-			cy.log("Test fixtures", JSON.stringify(fix))
+			cy.log("Cypress.env", JSON.stringify(Cypress.env()))
 		})
 	})
-
 
   it('open Liquido start page', function() {
     cy.visit('/')
@@ -33,10 +32,10 @@ describe('Liquido Happy Case Test', function() {
   	//MAYBE: This test fails when run against DEV environemnt with autoLoginUser.
 		cy.get('#RegisterButton').click()
     cy.get('#RegisterPage').should('exist')
-    cy.get('#emailInput').type(fix.email)
-    cy.get('#fullnameInput').type(fix.username)
-    cy.get('#mobilephoneInput').type(fix.mobilephone)
-    cy.get('#websiteInput').type(fix.website).blur()
+    cy.get('#emailInput').type(Cypress.env('email'))
+    cy.get('#fullnameInput').type(Cypress.env('username'))
+    cy.get('#mobilephoneInput').type(Cypress.env('mobilephone'))
+    cy.get('#websiteInput').type(Cypress.env('website')).blur()
     cy.get('#RegisterButton').should('be.enabled').click()
     cy.get('#registerSuccess').should('exist')								// will show .alert if user already exists
   })
@@ -44,7 +43,7 @@ describe('Liquido Happy Case Test', function() {
   it('login user', function() {
   	cy.visit('/')
   	cy.get('#NavLoginButton').click()
-  	cy.get('#phoneInput').type(fix.mobilephone)
+  	cy.get('#phoneInput').type(Cypress.env('mobilephone'))
   	cy.get('#sendSmsLoginCodeButton').click()
   	cy.get('#digit0').type('9')
   	cy.get('#digit1').type('9')
@@ -56,20 +55,20 @@ describe('Liquido Happy Case Test', function() {
   })
 
   it('add a new idea', function() {
-  	cy.visit('/#/liquidoHome?devAutoLoginUserIdx=1')
+  	cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
   	cy.get('#LiquidoHome').should('exist')
   	cy.get('#IdeasArrow').click()
   	cy.get('#IdeasList').should('exist')
   	cy.get('#AddIdeaButton').click()
   	cy.get('.mce-branding-powered-by').should('exist')		// wait for TinyMCE to load
-  	cy.get('#ideaTitle').type(fix.ideaTitle)
+  	cy.get('#ideaTitle').type(Cypress.env('ideaTitle'))
 
   	// Type into TinyMCE.  This is the reason why I chose Cypress.
 		cy.window().then(win => {
-		  win.tinyMCE.activeEditor.setContent(fix.ideaDescription)
+		  win.tinyMCE.activeEditor.setContent(Cypress.env('ideaDescription'))
 		  win.tinyMCE.activeEditor.save()   // BUGFIX: Must manually save TinyMCE's content back to the textare to trigger all necessary events. *sic*
 		})
-		cy.get('#ideaAreaSelect').select(fix.area0_title)
+		cy.get('#ideaAreaSelect').select(Cypress.env('area0_title'))
 		cy.get('#saveIdeaButton').click()
 		cy.get('.sa-success').should('exist')			// Sweet Alert
 
@@ -82,7 +81,7 @@ describe('Liquido Happy Case Test', function() {
 
   it('support a proposal', function() {
   	//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-  	cy.visit('/#/liquidoHome?devAutoLoginUserIdx=1')
+  	cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
   	cy.get('#LiquidoHome').should('exist')
   	cy.get('#ProposalsArrow').click()
   	cy.get('#ProposalsList').should('exist')
@@ -91,9 +90,9 @@ describe('Liquido Happy Case Test', function() {
   		.first().click()
   })
 
-	it.only('add suggestion to a proposal', function() {
+	it('add suggestion to a proposal', function() {
   	//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-  	cy.visit('/#/liquidoHome?devAutoLoginUserIdx=1')
+  	cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
   	cy.get('#LiquidoHome').should('exist')
   	cy.get('#ProposalsArrow').click()
   	cy.get('#ProposalsList').should('exist')

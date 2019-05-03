@@ -183,11 +183,17 @@ var requiresAuth = function(to) {
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
-  console.log("checking route", to.fullPath)
+  console.log("checking route", to)
   // IF no route matched, THEN page was not found
   if (to.matched.length == 0) {
     next({path: '/pageNotFound'})
   } else
+
+  if (process.env.NODE_ENV === "development" && to.query.devLoginMobilephone) {
+    log.debug("devLoginMobilephone", to.query.devLoginMobilephone)
+    auth.devLogin(to.query.devLoginMobilephone)
+  }
+
   // IF to requires authentication and not yet logged in
   // THEN try to login from local storage
   // otherwise forward to /login page
@@ -234,7 +240,7 @@ var isBackendAlive = function() {
 }
 
 var checkDevelopmentMode = function() {
-  if (process.env.NODE_ENV == "development") {
+  if (process.env.NODE_ENV === "development") {
     log.info("LIQUDIO is running in DEVELOPMENT mode!")
     loglevel.setLevel("trace")   // trace == log everything
     log.debug("process.env", process.env)
@@ -243,8 +249,8 @@ var checkDevelopmentMode = function() {
 }
 
 var autoLoginDevUser = function(rootApp) {
-  if (process.env.NODE_ENV == "development" && process.env.autoLoginMobilephone !== undefined) {
-    auth.devLogin(process.env.autoLoginMobilephone)
+  if (process.env.NODE_ENV == "development" && process.env.devLoginMobilephone !== undefined) {
+    auth.devLogin(process.env.devLoginMobilephone)
   }
   return Promise.resolve()
 }
