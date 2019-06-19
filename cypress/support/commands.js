@@ -23,3 +23,14 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+import api from '../../src/services/LiquidoApiClient'
+
+Cypress.Commands.add('apiLogin', (mobilephone) => {
+	return api.loginWithSmsCode(mobilephone, '998877')
+		.then(jwt => {
+			console.log("Cypress apiLogin. JWT:",jwt)
+			return jwt
+		})
+})
+

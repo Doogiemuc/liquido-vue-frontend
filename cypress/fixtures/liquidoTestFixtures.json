@@ -1,12 +1,13 @@
 {
   "username_prefix": "CypressUser",
+  "mobilephone_prefix": "+4912345",
   "email_suffix": "@liquido.de",
-  "mobilephone_prefix": "+49 12345",
   "website": "www.liquido.de",
 
   "area0_title": "Area 0",
 
   "ideaTitle_prefix": "CypressIdea",
-  "ideaDescription_prefix": "New Idea created from cypress test case "
+  "ideaDescription_prefix": "New Idea created from cypress test case ",
 
+  "devLoginDummySmsCode": "998877"
 }

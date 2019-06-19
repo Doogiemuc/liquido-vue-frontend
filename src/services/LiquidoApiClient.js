@@ -22,22 +22,25 @@ var template = require('url-template');   // parsing and expanding RFC 6570 URI 
 var loglevel = require('loglevel')
 var log = loglevel.getLogger("LiquidoApiClient")
 
-
 //==================================================================================================================
 // AXIOS http client
 //==================================================================================================================
 
-// Sanity check
-if (!process.env.backendBaseURL) {
-  throw new Error("process.env.backendBaseURL must be defined!")
-}
-
-// Configure Axios HTTP Client
 const axios = require('axios')
 const anonymousClient = axios.create()      // extra client instance for anonymous unauthenticated requests
 var jsonWebToken = undefined
-axios.defaults.baseURL = process.env.backendBaseURL
 
+// Set Base URL
+if (process.env.backendBaseURL) {
+  axios.defaults.baseURL = process.env.backendBaseURL
+} else
+if (window.Cypress) {
+  axios.defaults.baseURL = window.Cypress.config('backendBaseURL')
+} else {
+  throw new Error("LiqudioApiClient: baseURL MUST be defined!")
+}
+
+console.log("LiqudioApiClient "+axios.defaults.baseURL)
 
 /****** Axios REQUEST interceptor that adds the JWT token into the header (if known) *****/
 axios.interceptors.request.use(function (config) {
@@ -177,7 +180,7 @@ module.exports = {
    * @return {URI} an URI that points to a resource on our REST backend
    */
   getURI(model) {
-    var uriRegEx = new RegExp('^'+process.env.backendBaseURL+'[\\w/]*/\\d+$')
+    var uriRegEx = new RegExp('^'+axios.defaults.baseURL+'[\\w/]*/\\d+$')
     if (uriRegEx.test(model)) {
       return model
     } else {
@@ -393,7 +396,7 @@ module.exports = {
 	 */
 	getLaw(lawIdOrURI, projected) {
     var lawURI
-    if (!isNaN(lawIdOrURI)) lawURI = process.env.backendBaseURL+'/laws/'+lawIdOrURI
+    if (!isNaN(lawIdOrURI)) lawURI = axios.defaults.baseURL+'/laws/'+lawIdOrURI
     else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
@@ -719,7 +722,7 @@ module.exports = {
   getPoll(pollIdOrUri) {
     log.debug("getPoll", pollIdOrUri)
     var pollURI
-    if (!isNaN(pollIdOrUri)) pollURI = process.env.backendBaseURL+'/polls/'+pollIdOrUri
+    if (!isNaN(pollIdOrUri)) pollURI = axios.defaults.baseURL+'/polls/'+pollIdOrUri
     else pollURI = this.getURI(pollIdOrUri)
     return axios.get(pollURI)
       .then( res => { return res.data })

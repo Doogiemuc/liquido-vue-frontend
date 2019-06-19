@@ -169,7 +169,7 @@ export default {
 
     loginWithSmsCode() {
       var smsCode = this.digits.join("")
-      this.$root.auth.loginViaSms(this.cleanMobilePhone, smsCode)
+      this.$root.auth.loginWithSmsCode(this.cleanMobilePhone, smsCode)
         .then(user => {
           this.smsErrorMsg = ""
           iziToast.success({

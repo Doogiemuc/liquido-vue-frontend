@@ -109,7 +109,6 @@ Cast you vote, ie. sort proposals into your personally preferred order.
  - Validate my vote by copy&past CSV chechsums.
  - Proxies are able to accept or reject delegations.
 
-
 # Technical Spikes
 
  - Bootstrap [Nav Pills as Arrows](https://benjii.me/2014/03/wizard-style-navigation-tabs-for-bootstrap/)   *DONE*

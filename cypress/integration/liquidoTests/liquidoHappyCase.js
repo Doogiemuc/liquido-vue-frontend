@@ -1,3 +1,10 @@
+/**
+ Start to finish HAPPY CASE for Liquido
+ */
+
+import api from '../../../src/services/LiquidoApiClient'
+
+
 function rand(min,max)   // Intervall [min, max[
 {
   return Math.floor(Math.random()*(max-min)+min);
@@ -6,6 +13,7 @@ function rand(min,max)   // Intervall [min, max[
 describe('Liquido Happy Case Test', function() {
 
 	before(function() {
+		/** Import all fixtures into Cypress.env  and then add some dynamically created values */
 		cy.fixture('liquidoTestFixtures.json').then(fix => {
 			let num = rand(1000,9999)
 			Cypress.env(fix)
@@ -76,7 +84,6 @@ describe('Liquido Happy Case Test', function() {
 		//TODO: join an existing ppoll
 		//TODO: vote in that poll
 
-		//TODO: How to track data while testing    vs.   split into seperate indipendant tests  (with parameters)
   })
 
   it('support a proposal', function() {
@@ -107,7 +114,18 @@ describe('Liquido Happy Case Test', function() {
   	cy.get('div.comment > p').contains(comment)
   })
 
+	it.only('add supportes to idea', function() {
+		api.loginWithSmsCode("+49123452", Cypress.env('devLoginDummySmsCode')).then(jwt => {
 
+		  api.addSupporterToIdea(idea, user)
+
+		  api.getMyUser().then(user => {
+				console.log("User", user)
+
+			})
+    })
+
+	})
 
 
 })

@@ -28,7 +28,7 @@ export default {
    * @param {String} smsCode 6-digit SMS code that was sent to the user's mobile phone
    * @return user info JSON
    */
-  loginViaSms(mobilephone, smsCode) {
+  loginWithSmsCode(mobilephone, smsCode) {
     var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
     log.debug("Login via SMS for "+cleanMobilePhone)
     return apiClient.loginWithSmsCode(cleanMobilePhone, smsCode)
@@ -69,7 +69,7 @@ export default {
   devLogin(mobilephone) {
   	if (process.env.NODE_ENV !== 'development') throw new Error("dev login is only allowed in NODE_ENV='development' !")
     console.log("Development login of mobile phone "+mobilephone)
-    return this.loginViaSms(mobilephone, process.env.devLoginDummySmsCode)
+    return this.loginWithSmsCode(mobilephone, process.env.devLoginDummySmsCode)
   },
 
   /** remove everything except numbers and the plus sign from mobilephone */
