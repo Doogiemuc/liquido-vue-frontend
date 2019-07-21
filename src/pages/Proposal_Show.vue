@@ -72,7 +72,7 @@
 
 		<h4 v-if="showComments">Suggestions for improvement</h4>
 
-    <div v-if="showComments" v-for="comment in comments" class="media">
+    <div v-if="showComments" v-for="comment in comments" :key="comment.id" class="media">
       <div class="media-left">
         <img :src="comment.createdBy.profile.picture" />
       </div>
@@ -141,16 +141,16 @@
       <hr class="commentSeparator" />
     </div>
 
-		<div v-if="showComments && discussionIsOpen" class="media">
+	<div v-if="showComments && discussionIsOpen" class="media">
       <div class="media-left">
         <img :src="currentUser.profile.picture" />
       </div>
       <div class="media-body">
         <div class="input-group col-xs-12 col-md-8">
-				  <input type="text" id="suggestImprovementInput" class="form-control" v-model="suggestionText"
-				   v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
-				  <span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
-				</div>
+			<input type="text" id="suggestImprovementInput" class="form-control" v-model="suggestionText"
+				v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
+				<span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
+			</div>
       </div>
       <hr/>
     </div>

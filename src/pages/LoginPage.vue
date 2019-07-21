@@ -117,10 +117,6 @@ export default {
     disableSendSmsCodeButton() {
       return this.mobilephone.length < 5 || this.smsCodeSent
     },
-    cleanMobilePhone() {
-      if (this.mobilephone == undefined) return ""
-      return this.mobilephone.replace(/[^0-9\+]/g, '')
-    }
   },
 
   methods: {
@@ -139,7 +135,7 @@ export default {
 
     /** send a ling via email */
     sendMagicLink() {
-      apiClient.sendMagicLink(this.email).then(res => {
+      this.$root.auth.requestMagicEmailLink().then(res => {
         this.emailSuccess = true
       }).catch(err => {
         this.emailErrorMsg = "Could not send email."
@@ -151,7 +147,7 @@ export default {
       this.smsCodeSent = true
       this.smsErrorMsg = ''
       this.digits = []
-      apiClient.sendSmsLoginCode(this.cleanMobilePhone).then(res => {
+      this.$root.auth.requestSmsCode(this.mobilephone).then(res => {
         this.smsCodeSent = true
         this.$nextTick(function () {
           $('#digit0').focus()
@@ -169,7 +165,7 @@ export default {
 
     loginWithSmsCode() {
       var smsCode = this.digits.join("")
-      this.$root.auth.loginWithSmsCode(this.cleanMobilePhone, smsCode)
+      this.$root.auth.loginWithSmsCode(this.mobilephone, smsCode)
         .then(user => {
           this.smsErrorMsg = ""
           iziToast.success({

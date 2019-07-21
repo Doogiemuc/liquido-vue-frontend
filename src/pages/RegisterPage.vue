@@ -77,7 +77,6 @@
  */
 <script>
 
-import apiClient from '../services/LiquidoApiClient'
 import AlertPanel from '../components/AlertPanel.vue'
 import { validationMixin } from 'vuelidate'                         // https://monterail.github.io/vuelidate/
 import { required, minLength, email } from 'vuelidate/lib/validators'
@@ -164,7 +163,7 @@ export default {
           mobilephone: this.mobilephone,
         }
       }
-      apiClient.register(newUser).then(res => {
+      this.$root.auth.register(newUser).then(res => {
         this.registerSuccess = true
         this.$refs.alertPanel.clearAlert()
       }).catch(err => {
