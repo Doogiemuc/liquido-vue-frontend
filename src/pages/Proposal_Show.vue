@@ -6,12 +6,12 @@
 	  </div>
 	</div>
 	<div v-else class="container" id="ProposalShow">
-  	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
-  	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
-		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
-  	<h1 v-else-if="proposal.status === 'VOTING'">Proposal in voting phase</h1>
-  	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
-		<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
+  	<h1      v-if="proposal.status === 'IDEA'"><i class="far fa-lightbulb"></i> Idea</h1>
+  	<h1 v-else-if="proposal.status === 'PROPOSAL'"><i class="fas fa-file-alt"></i> Proposal</h1>
+		<h1 v-else-if="proposal.status === 'ELABORATION'"><i class="fas fa-file-alt"></i> Proposal in elaboration</h1>
+  	<h1 v-else-if="proposal.status === 'VOTING'"><i class="fas fa-file-alt"></i> Proposal in voting phase</h1>
+  	<h1 v-else-if="proposal.status === 'LAW'"><i class="fa fa-university"></i> Law</h1>
+		<h1 v-else-if="proposal.status === 'DROPPED'"><i class="fa fa-university"></i> Dropped Law</h1>
 
 		<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
 
@@ -26,10 +26,10 @@
 	    		<p><button type="button" class="btn btn-sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
 	    	</div>
 	      <div v-else-if="proposal.status === 'PROPOSAL'">
-	      	<p>Your idea reached its quorum and now became a proposal that can further be discussed. You should carefully consider and respect the suggestions for improvement discussed below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
-	        <ul class="startJoinList">
-	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - Add your proposal as an alternative suggestion to an existing poll.</li>
-	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
+	      	<p>Your idea reached its quorum and now became a proposal that can further be discussed. You should carefully consider and respect the suggestions for improvement discussed below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens.</p>
+	        <ul v-if="!proposal.poll" class="startJoinList">
+	        	<li><button type="button" @click="joinPoll" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - Add your proposal as an alternative suggestion to an existing poll.</li>
+	        	<li><button type="button" @click="startNewPoll" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
 					</ul>
 	      </div>
 	      <div v-else-if="proposal.status === 'ELABORATION'">
@@ -165,10 +165,6 @@ import LawPanel from '../components/LawPanel'
 import timeline from '../components/Timeline'
 
 
-//
-//TODO:  Very nice RESPONSIVE layout for comments: https://bootsnipp.com/snippets/featured/comment-posts-layout
-//
-
 export default {
 	props: {
 		'proposalId': { type: String, required: true }
@@ -199,23 +195,20 @@ export default {
 			if (this.proposal.status === 'LAW' || this.proposal.status === "DROPPED") return "law"
 			return "proposal"
 		},
-		ideaCreated: function() { return moment(this.proposal.createdAt).format('L') },
-		reachedQuorumAt: function() { return moment(this.proposal.reachedQuorumAt).format('L') },
-		votingStart : function() { return moment(this.proposal.poll.votingStartAt).format('L') },
-		votingEnd   : function() { return moment(this.proposal.poll.votingEndAt).format('L') },
-		timelinePercentFilled: function() {
-			var start = new Date(this.proposal.createdAt)
-			var end   = new Date(this.proposal.poll.votingEndAt)
-			var percent = timeline.methods.date2percent(new Date(), start, end)
-			console.log("=== calculdated percent", start, end, percent)
-			return percent
-		},
+		createdAtLoc:          function() { return moment(this.proposal.createdAt).format('L') },
+		reachedQuorumAtLoc:    function() { return moment(this.proposal.reachedQuorumAt).format('L') },
+		votingStartLoc:        function() { return moment(this.proposal.poll.votingStartAt).format('L') },
+		votingEndLoc:          function() { return moment(this.proposal.poll.votingEndAt).format('L') },
 		timelineEvents: function() {
-		  return [
-        { percent: "5",  above: this.ideaCreated, below: "Idea<br/>created"},  //TODO: make it possible to pass dates instead of percentage values
-        { percent: "50", above: this.reachedQuorumAt, below: "Voting</br>start"},
-        { percent: "95", above: this.votingEnd, below: "Voting<br/>end"},
+		  var events = [
+        { date: this.proposal.createdAt, above: this.createdAtLoc, below: "Idea<br/>created"},
+        { date: this.proposal.reachedQuorumAt, above: this.reachedQuorumAtLoc, below: "Reached<br/>quorum"},
       ]
+      if (proposal.status === "VOTING") {
+        events.push({ date: this.proposal.poll.votingStartAt, above: this.votingStartLoc, below: "Voting<br/>start"})
+        events.push({ date: this.proposal.poll.votingEndAt,   above: this.votingEndLoc, below: "Voting<br/>end"})
+      }
+      return events
 		},
 		currentUser: function() { return this.$root.currentUser },
 		discussionIsOpen: function() {
@@ -242,6 +235,18 @@ export default {
 
     editProposal() {
 			//TODO: this.$router.push('/proposals/'+this.proposal.id+"/edit")
+    },
+    
+    /**
+     * Join the user's proposal into an existing poll in the same area.
+     * @see Poll_Show.vue the other way round: view a poll and join own proposal into that poll.
+     */
+    joinPoll() {
+      
+    },
+    
+    startNewPoll() {
+      //TODO: implement startNewPoll
     },
 
 		upvoteComment(comment) {

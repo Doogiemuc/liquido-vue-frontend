@@ -2,7 +2,7 @@
   <div class="container" id="UserHomePage">
     <div class="row">
       <div class="col-sm-12">
-        <h2>Laws</h2>
+        <h2><i class="fa fa-university"></i> Laws</h2>
         <p>When the voting phase of a poll ends, then the winning proposal becomes a law.</p>
       </div>
     </div>

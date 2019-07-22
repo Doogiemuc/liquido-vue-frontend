@@ -6,12 +6,13 @@
   This is how you initialize the events along the timeline
 
       exampleTimelineData = {
-        height: 40,             // height in pixels
-        fillTo: new Date(),     // how far the timeline shall be filled
+        height: 40,                 // full height of component in pixels.  The absolut positioned texts require to have a fixed height. It is VERY hard to make a DIV as high as some inner absolutely posinnioned child DIVs. Give it a try!
+        fillToDate: new Date(),     // how far the timeline shall be filled
         events: [
-          { date: new Date(...), above: "Proposal", below: "start"},
+          { date: new Date(...), above: "Proposal", below: "start"},      // First and last event MUST have dates!
           { date: new Date(...), above: "Quorum", below: "in between"},
           { date: new Date(...), above: "Voting", below: "starts"},
+          { percent: "50", above: "Middle" },                   // this event is shown in the middle of the timeline.
           { date: new Date(...), above: "Voting", below: "end"}
         ]
       }
@@ -42,9 +43,11 @@
 <script>
   export default {
   	props: {
-      height: { type: Number, required: false, default: function() { return 40 } },
-      fillTo: { type: Date,   required: false, default: function() { return new Date() } },
-  	  events: { type: Array,  required: true, validator:
+      height:     { type: Number, required: false, default: function() { return 40 } },
+      // by default a timeline is filled until today's date
+      fillToDate: { type: Date,   required: false, default: function() { return new Date() } },
+      // list of events in the timeline. Each event can be on a given date or a percentage of the timespan. 
+  	  events:     { type: Array,  required: true, validator:
         function(events) {
           if (events == null) { return false }
           events.forEach(event => {
@@ -59,11 +62,13 @@
     computed: {
       startDate() { return this.events[0].date },
       endDate() { return this.events[this.events.length-1].date },
-      percentFilled() { return this.date2percent(this.fillTo, this.startDate, this.endDate) },
+      percentFilled() {
+        return this.date2percent(this.fillToDate, this.startDate, this.endDate)
+      },
       arrowClass() {
         return {
           timeline_arrow_right: true,
-          timeline_arrow_right_fillled: this.endDate - this.fillTo <= 0    // timeline is fully filled
+          timeline_arrow_right_fillled: this.fillToDate >= this.endDate     // timeline arrow is filled when timeline is is fully filled
         }
       },
     },
@@ -78,8 +83,9 @@
         return val
       },
 
+      /** event circles are filled when they are in the past */
       isFilled(event) {
-        return this.getPercent(event) <= this.percentFilled
+        return event.date <= this.fillToDate
       },
 
       /**
@@ -95,7 +101,7 @@
         var percent = rel / period * 100
         return this.limit(percent, 0, 100)
       },
-
+ 
       getPercent(event) {
         if (event.percent !== undefined) {
           return event.percent
