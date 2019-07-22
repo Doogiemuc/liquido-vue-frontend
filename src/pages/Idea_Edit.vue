@@ -29,7 +29,7 @@
           <label for="ideaCategory" class="col-sm-1 control-label">Category</label>
           <div class="col-sm-5">
             <select v-model="areaURI" name="ideaArea" id="ideaAreaSelect" class="form-control">
-              <option v-for="category in categories" v-bind:value="category._links.self.href">{{category.title}}</option>
+              <option v-for="category in categories" :key="category.id" v-bind:value="category._links.self.href">{{category.title}}</option>
             </select>
           </div>
           <div class="col-sm-6">
@@ -119,11 +119,25 @@ export default {
 
     if (!isNaN(this.ideaId)) {  // if ideaId was passed as a number, then edit that existing idea
       log.debug("Edit idea id="+this.ideaId)
-      this.pageTitle = "Edit idea"
       this.$root.api.getIdea(this.ideaId).then(loadedIdea => {
+		// some sanity checks on status of ideaId
+		switch (loadedIdea.status) {
+			case "IDEA":
+				this.pageTitle = "Edit idea"
+				break;
+			case "PROPOSAL":
+				this.pageTitle = "Edit proposal"
+				break;
+			case "ELABORATION":
+				this.pageTitle = "Edit proposal in elaboration"
+				break;
+			default:
+				this.$refs.alertPanel.showAlert("Proposal id="+this.ideaId+" cannot be edited in status "+loadedIdea.status, err)
+		}
+
         this.idea  = loadedIdea
         this.title = loadedIdea.title
-        this.description = loadedIdea.description
+		this.description = loadedIdea.description
         this.$root.api.follow(loadedIdea, "area").then(area => {
           var selfLink = this.$root.api.getHateoasLink(area, "self")
           this.areaURI = selfLink
@@ -133,7 +147,9 @@ export default {
         if (err.response.status == 404) {
           log.warn("Cannot find idea.id="+this.ideaId)
           this.$refs.alertPanel.showAlert("Cannot find idea id="+this.ideaId, err)
-        }
+        } else {
+
+		}
       })
     }
 

@@ -1,23 +1,17 @@
 /**
  * API client  for the Liquido backend. This class is the central facade for all API methods.
- * Every call to the backend comes through here. LiquidoApiClient handles:
- *  - login and JWT
- *  - caching of requests
- *  - error handling
- * Under the hood REST requests are sent with AXIOS
+ * Every call to the backend comes through here.
  *
- * Error handling
  * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
  * with an error message.
+ *
+ * I know this module is too large for one file. I started to split it up several times. But in the end
+ * I personally had the best coding experience when everything was in one file.
+ * I tried many different node REST client libraries. But axios was the best and most simple to use.
  */
 
-// I know this module is too large for one file. I started to split it up several times. But in the end
-// I personally had the best coding experience when everything was in one file.
-
-// in former verrsions i used many different node REST client libraries. But axios was the best and most simple to use.
-
 var _ = require('lodash')
-var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
+//var qs = require('qs');  // A querystring parsing and stringifying library with some added security.
 var template = require('url-template');   // parsing and expanding RFC 6570 URI Templates
 var loglevel = require('loglevel')
 var log = loglevel.getLogger("LiquidoApiClient")
@@ -26,23 +20,24 @@ var log = loglevel.getLogger("LiquidoApiClient")
 // AXIOS http client
 //==================================================================================================================
 
-const axios = require('axios')
-const anonymousClient = axios.create()      // extra client instance for anonymous unauthenticated requests
-var jsonWebToken = undefined
+const axios = require('axios')              // main HTTP client
+const anonymousClient = axios.create()      // extra HTTP client instance for anonymous unauthenticated requests
 
 // Set Base URL
 if (process.env.backendBaseURL) {
   axios.defaults.baseURL = process.env.backendBaseURL
 } else
-if (window.Cypress) {
+if (window.Cypress) {   // when running under Cypress TEST
+  console.log("Running apiClient under Cypress TEST")
   axios.defaults.baseURL = window.Cypress.config('backendBaseURL')
+  log = console     //BUGFIX to show loglevel in Cypress test runner's console
 } else {
   throw new Error("LiqudioApiClient: baseURL MUST be defined!")
 }
 
-console.log("LiqudioApiClient "+axios.defaults.baseURL)
+console.log("LiqudioApiClient "+Math.random() + " baseUrl=" + axios.defaults.baseURL)
 
-/****** Axios REQUEST interceptor that adds the JWT token into the header (if known) *****/
+/* Axios REQUEST interceptor that adds the JWT token into the header (if known)
 axios.interceptors.request.use(function (config) {
   if (jsonWebToken) {
     //Would also work  axios.defaults.headers.common['Authorization'] = "Bearer "+jsonWebToken
@@ -53,6 +48,8 @@ axios.interceptors.request.use(function (config) {
   log.error("Error in axios request", error)
   return Promise.reject(error);
 });
+
+*/
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
@@ -94,58 +91,24 @@ axios.interceptors.response.use(function (response) {
 var globalPropertiesCache = undefined
 
 
+//TODO: do i need client side caching at all? => well it is for example nice for client side filtering. => Cache in table?
+// I once had a nice caching interceptor. But do I globally need that?
+
+
 //==================================================================================================================
 // Public/Exported methods
 //==================================================================================================================
 
 module.exports = {
 
-  /**
-   * register as a new user
-   */
-  register(newUser) {
-    log.info("Register new user "+JSON.stringify(newUser))
-    return axios({
-      method: 'POST',
-      url: "/auth/register",
-      headers: { 'Content-Type' : 'application/json' },
-      data: newUser
-    })
-    .then(res => {
-      return res.data
-    })
-  },
-
-  /** send a link to login via email */
-  sendMagicEmailLink() {
-    return Promise.resolve("/loginWithToken?token=ABCDEF")
-  },
-
-  /** send a login code via SMS */
-  sendSmsLoginCode(mobile) {
-    console.log("sendSmsLoginCode", mobile)
-    return axios.get('/auth/requestSmsCode', { params: { mobile: mobile} } )
-  },
-
-  /** login with code that user received via SMS */
-  loginWithSmsCode(mobile, code) {
-    return axios.get('/auth/loginWithSmsCode', { params: { mobile: mobile, code: code} } )
-      .then(res => {
-        jsonWebToken = res.data
-        log.debug("Received JWT: ", res)
-        return jsonWebToken
-      })
-  },
-
   /** Set the JWT that will be used for all future requests */
-  setJsonWebToken(jwt) {
-    jsonWebToken = jwt
-  },
-
-  /** logout the current user */
-  logout() {
-    jsonWebToken = undefined
-    //TODO: flush the cache
+  setJsonWebTokenHeader(jwt) {
+    if (!jwt) {
+      axios.defaults.headers.common['Authorization'] = undefined
+    } else {
+      axios.defaults.headers.common['Authorization'] = "Bearer "+jwt
+      //log.debug("apiClient authorized with JWT")
+    }
   },
 
   /**
@@ -158,14 +121,6 @@ module.exports = {
       return Promise.resolve("Backend is alive")
     })
   },
-
-
-
-
-
-  //TODO: do i need client side caching at all? => well it is for example nice for client side filtering. => Cache in table?
-  // I had a nice caching interceptor. But do I globally need that?
-
 
 
 //==================================================================================================================
@@ -220,9 +175,13 @@ module.exports = {
 
   /**
    * Follow an HATEOAS link and return the linked entity
+   * @param hateoasJson {Object} a entity as returned by the backend (with _links, _self etc.)
+   * @param linkName {String} name of HATEOAS _link to follow
+   * @param urlTemplateParams {Object} (optional) parameteres in the _link's URL that will be expanded (e.g. project=myProjection)
+   * @return (a promise that will resolve to) the linked entity or an array of entities
    */
-  follow(hateoasJson, linkName, uriTemplateParams) {
-    var url = this.getHateoasLink(hateoasJson, linkName, uriTemplateParams)
+  follow(hateoasJson, linkName, urlTemplateParams) {
+    var url = this.getHateoasLink(hateoasJson, linkName, urlTemplateParams)
     return axios.get(url).then(res => res.data)       // might return just one entity or an array of entities
   },
 
@@ -535,14 +494,10 @@ module.exports = {
    */
   addSupporterToIdea(idea, user) {
     if (!idea || !user) return Promise.reject("Cannot add Supporter. Need idea and user!")
-    var supportersURI = this.getHateoasLink(idea, "supporters")
-    var userURI       = this.getURI(user)
-    log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title+"': POST "+supportersURI)
+    log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title)
     return axios({
-      method: 'POST',
-      url:   supportersURI,
-      headers: { 'Content-Type' : 'text/uri-list' },  //BUGFIX for "no String-argument constructor/factory method to deserialize from String value"   send text/uri-list !
-      data: userURI
+      method:  'POST',
+      url:     '/laws/'+idea.id+'/like',
     }).then(res => {
       return ""  // backend returns status 204
     }).catch(err => {
@@ -625,6 +580,7 @@ module.exports = {
     * @return Promise (HTTP 204)
     */
   upvoteComment(comment, user) {
+    //TODO: use currentUser
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
     var userURI     = this.getURI(user)
     log.debug("upvoteComment", upvotersURI, userURI)

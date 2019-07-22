@@ -183,7 +183,6 @@ var requiresAuth = function(to) {
  * Otherwise next()
  */
 router.beforeEach((to, from, next) => {
-  console.log("checking route", to)
   // IF no route matched, THEN page was not found
   if (to.matched.length == 0) {
     next({path: '/pageNotFound'})
@@ -261,8 +260,8 @@ var startApp = function(props) {
     router,
     data: {
       api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
+      auth: auth,                           // authentication, login, logout and caches currentUser
       props: props,                         // application wide properties (read from backend DB)
-      auth: auth,
     },
     ...RootApp
   }).$mount()
