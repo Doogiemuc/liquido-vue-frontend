@@ -1,23 +1,23 @@
 <template>
   <div v-if="!this.proposal" class="container">
-		<h1>Proposal</h1>
-	  <div v-if="proposal === null" class="container">
-	    <span v-html="loadingMessage"></span>
-	  </div>
+	<h1>Proposal</h1>
+	<div v-if="proposal === null" class="container">
+		<span v-html="loadingMessage"></span>
 	</div>
-	<div v-else class="container" id="ProposalShow">
-  	<h1      v-if="proposal.status === 'IDEA'">Idea</h1>
+  </div>
+  <div v-else class="container" id="ProposalShow">
+  	<h1 v-if="proposal.status === 'IDEA'">Idea</h1>
   	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
-		<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
+	<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
   	<h1 v-else-if="proposal.status === 'VOTING'">Proposal in voting phase</h1>
   	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
-		<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
+	<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
 
-		<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
+	<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
 
     <div v-if="createdByCurrentUser" class="panel panel-default">
 	    <div class="panel-heading">
-				<h4 class="panelTitle">This is your {{nameByStatus}}</h4>
+			<h4 class="panelTitle">This is your {{nameByStatus}}</h4>
 	    </div>
 	    <div class="panel-body">
 	    	<div v-if="proposal.status === 'IDEA'">
@@ -26,11 +26,11 @@
 	    		<p><button type="button" class="btn btn-sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
 	    	</div>
 	      <div v-else-if="proposal.status === 'PROPOSAL'">
-	      	<p>Your idea reached its quorum and now became a proposal that can further be discussed. You should carefully consider and respect the suggestions for improvement discussed below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
+	      	<p>Your idea reached its quorum and now became a proposal. It can now be discussed. You should carefully consider and respect the suggestions for improvements below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
 	        <ul class="startJoinList">
 	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - Add your proposal as an alternative suggestion to an existing poll.</li>
 	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
-					</ul>
+			</ul>
 	      </div>
 	      <div v-else-if="proposal.status === 'ELABORATION'">
 	        <p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
@@ -44,8 +44,8 @@
 	        <p>Voting has started. Good luck in the poll.</p>
 	      </div>
 	    </div>
-	  </div>
-	  <div v-else class="panel panel-default" id="infoPanel">
+	</div>
+	<div v-else class="panel panel-default" id="infoPanel">
 	    <div class="panel-body">
 	    	<div v-if="proposal.status === 'IDEA'">
 	    		<p>This idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
@@ -56,8 +56,8 @@
 	  			improvements to the proposal's author below.</p>
 	  		</div>
 	  		<div v-else-if="proposal.status === 'ELABORATION'">
-	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
- 						<i class="fas fa-angle-double-right"></i>
+	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Back to poll
+ 					<i class="fas fa-angle-double-right"></i>
 	  			</button>
 	  			<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
 	  		</div>
@@ -68,78 +68,81 @@
 	  			<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
 	  		</div>
 	  	</div>
-	  </div>
+	</div>
 
-		<h4 v-if="showComments">Suggestions for improvement</h4>
+	<div v-if="showComments">
+		<h4 >Suggestions for improvement</h4>
 
-    <div v-if="showComments" v-for="comment in comments" :key="comment.id" class="media">
-      <div class="media-left">
-        <img :src="comment.createdBy.profile.picture" />
-      </div>
-      <div class="media-body">
+    	<div v-for="comment in comments" :key="comment.id" class="media">
+	  
+			<div class="media-left">
+				<img :src="comment.createdBy.profile.picture" />
+			</div>
+			<div class="media-body">
 
-        <div class="comment">
-	        <span class="pull-right">
-	        	<span v-if="comment.replies.length === 0">
-	          	<span v-on:click="showReplyInput(comment)"><i class="fas fa-reply replyHoverIcon" ></i>&nbsp;</span>&nbsp;&nbsp;
-	          </span>
-	          <span v-if="comment.upvotedByCurrentUser">
-	          	<i class="fas fa-thumbs-up alreayUpvoted"></i> {{comment.upVotes}}&nbsp;
-	          	<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{comment.downVotes}}
-	          </span>
-	          <span v-if="comment.downvotedByCurrentUser">
-	            <i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{comment.upVotes}}&nbsp;
-	            <i class="fas fa-thumbs-down alreayDownvoted"></i> {{comment.downVotes}}
-	          </span>
-	          <span v-if="!comment.upvotedByCurrentUser && !comment.downvotedByCurrentUser" class="commentIcon">
-	            <span v-on:click="upvoteComment(comment)"><i class="fas fa-thumbs-up"></i> {{comment.upVotes}}</span>&nbsp;
-	            <span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
-	          </span>
-	        </span>
-	        <small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
-	        <p>{{comment.comment}}</p>
-        </div>
+				<div class="comment">
+					<span class="pull-right">
+						<span v-if="comment.replies.length === 0">
+						<span v-on:click="showReplyInput(comment)"><i class="fas fa-reply replyHoverIcon" ></i>&nbsp;</span>&nbsp;&nbsp;
+					</span>
+					<span v-if="comment.upvotedByCurrentUser">
+						<i class="fas fa-thumbs-up alreayUpvoted"></i> {{comment.upVotes}}&nbsp;
+						<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{comment.downVotes}}
+					</span>
+					<span v-if="comment.downvotedByCurrentUser">
+						<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{comment.upVotes}}&nbsp;
+						<i class="fas fa-thumbs-down alreayDownvoted"></i> {{comment.downVotes}}
+					</span>
+					<span v-if="!comment.upvotedByCurrentUser && !comment.downvotedByCurrentUser" class="commentIcon">
+						<span v-on:click="upvoteComment(comment)"><i class="fas fa-thumbs-up"></i> {{comment.upVotes}}</span>&nbsp;
+						<span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
+					</span>
+					</span>
+					<small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
+					<p>{{comment.comment}}</p>
+				</div>
 
-				<div v-for="reply in comment.replies" class="media reply">
-		      <div class="media-left">
-		        <img class="replyUserImg" :src="reply.createdBy.profile.picture" />
-		      </div>
-		      <div class="media-body">
-		        <span class="pull-right">
+				<div v-for="reply in comment.replies" :key="reply.id" class="media reply">
+					<div class="media-left">
+						<img class="replyUserImg" :src="reply.createdBy.profile.picture" />
+					</div>
+					<div class="media-body">
+						<span class="pull-right">
 							<span v-if="reply.upvotedByCurrentUser">
-		          	<i class="fas fa-thumbs-up alreayUpvoted"></i> {{reply.upVotes}}&nbsp;
-		          	<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{reply.downVotes}}
-		          </span>
-		          <span v-else-if="reply.downvotedByCurrentUser">
-		            <i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{reply.upVotes}}&nbsp;
-		            <i class="fas fa-thumbs-down alreayDownvoted"></i> {{reply.downVotes}}
-		          </span>
-		          <span v-else class="commentIcon">
-		            <span v-on:click="upvoteComment(reply)"><i class="fas fa-thumbs-up"></i> {{reply.upVotes}}</span>&nbsp;
-		            <span v-on:click="downvoteComment(reply)"><i class="fas fa-thumbs-down"></i> {{reply.downVotes}}</span>
-		          </span>
-		        </span>
-		        <small class="text-muted">{{reply.createdBy.profile.name}} commented {{getFromNow(reply.createdAt)}}</small>
-		        <p>{{reply.comment}}</p>
-		      </div>
-	      </div>
+								<i class="fas fa-thumbs-up alreayUpvoted"></i> {{reply.upVotes}}&nbsp;
+								<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{reply.downVotes}}
+							</span>
+							<span v-else-if="reply.downvotedByCurrentUser">
+								<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{reply.upVotes}}&nbsp;
+								<i class="fas fa-thumbs-down alreayDownvoted"></i> {{reply.downVotes}}
+							</span>
+							<span v-else class="commentIcon">
+								<span v-on:click="upvoteComment(reply)"><i class="fas fa-thumbs-up"></i> {{reply.upVotes}}</span>&nbsp;
+								<span v-on:click="downvoteComment(reply)"><i class="fas fa-thumbs-down"></i> {{reply.downVotes}}</span>
+							</span>
+						</span>
+						<small class="text-muted">{{reply.createdBy.profile.name}} commented {{getFromNow(reply.createdAt)}}</small>
+						<p>{{reply.comment}}</p>
+					</div>
+				</div>
 
-	      <div v-if="discussionIsOpen && (comment.replies.length > 0 || comment.showReplyInput)" class="media reply">
-		      <div class="media-left">
-		        <img class="replyUserImg" :src="currentUser.profile.picture" />
-		      </div>
-		      <div class="media-body">
-			      <div class="input-group col-xs-12 col-md-6">
-						  <input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
-						   v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Your reply" >
-						  <span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
+				<div v-if="discussionIsOpen && (comment.replies.length > 0 || comment.showReplyInput)" class="media reply">
+					<div class="media-left">
+						<img class="replyUserImg" :src="currentUser.profile.picture" />
+					</div>
+					<div class="media-body">
+						<div class="input-group col-xs-12 col-md-6">
+							<input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
+								v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Your reply" >
+							<span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
 						</div>
-		      </div>
-	      </div>
+					</div>
+				</div>
 
-      </div>
-      <hr class="commentSeparator" />
-    </div>
+			</div>
+    		<hr class="commentSeparator" />
+		</div>
+	</div>
 
 	<div v-if="showComments && discussionIsOpen" class="media">
       <div class="media-left">
@@ -155,8 +158,7 @@
       <hr/>
     </div>
 
-	</div>
-</div>
+  </div>
 </template>
 
 <script>
@@ -164,23 +166,18 @@ import moment from 'moment'
 import LawPanel from '../components/LawPanel'
 import timeline from '../components/Timeline'
 
-
-//
-//TODO:  Very nice RESPONSIVE layout for comments: https://bootsnipp.com/snippets/featured/comment-posts-layout
-//
-
 export default {
 	props: {
 		'proposalId': { type: String, required: true }
 	},
 
 	data () {
-    return {
-    	loadingMessage: "<h3>Loading ...</h3>",
-      proposal: null,
-      comments: null,
-      replyText: [],
-      suggestionText: ""
+		return {
+			loadingMessage: "<h3>Loading ...</h3>",
+			proposal: null,
+			comments: null,
+			replyText: [],
+			suggestionText: ""
 		}
 	},
 
@@ -192,7 +189,7 @@ export default {
 
 	computed: {
 		showAsReadOnly() {
-			return this.proposal.status !== 'IDEA'
+			return this.proposal.status !== 'IDEA' && this.proposal.status !== 'PROPOSAL' && this.proposal.status !== "ELABORATION"
 		},
 		nameByStatus: function() {
 			if (this.proposal.status === 'IDEA') return "idea"
@@ -210,13 +207,6 @@ export default {
 			console.log("=== calculdated percent", start, end, percent)
 			return percent
 		},
-		timelineEvents: function() {
-		  return [
-        { percent: "5",  above: this.ideaCreated, below: "Idea<br/>created"},  //TODO: make it possible to pass dates instead of percentage values
-        { percent: "50", above: this.reachedQuorumAt, below: "Voting</br>start"},
-        { percent: "95", above: this.votingEnd, below: "Voting<br/>end"},
-      ]
-		},
 		currentUser: function() { return this.$root.currentUser },
 		discussionIsOpen: function() {
 			return this.proposal.status === 'PROPOSAL' || this.proposal.status === 'ELABORATION'
@@ -230,19 +220,24 @@ export default {
 	},
 
 
-  methods: {
+  	methods: {
 		/** get localized display Value of a date */
-    getFromNow: function(dateVal) {					//MAYBE: Make this a VueJS filter and the use {{value | fromNow}}
-      return moment(dateVal).fromNow()
-    },
+		getFromNow: function(dateVal) {					//MAYBE: Make this a VueJS filter and the use {{value | fromNow}}
+			return moment(dateVal).fromNow()
+		},
 
-    goToPoll() {
-    	this.$router.push('/polls/'+this.proposal.poll.id)
-    },
+		goToPoll() {
+			this.$router.push('/polls/'+this.proposal.poll.id)
+		},
 
-    editProposal() {
+		editProposal() {
 			//TODO: this.$router.push('/proposals/'+this.proposal.id+"/edit")
-    },
+		},
+
+		joinPoll() {
+			//TODO: Join a proposal into an existing poll.  Same as on Proposal_Show page!
+		},
+
 
 		upvoteComment(comment) {
 			this.$root.api.upvoteComment(comment, this.$root.currentUser).then(res => {
@@ -257,11 +252,11 @@ export default {
 			//TODO: comments with more than n downVotes should be deleted  (impl. in the backend)
 		},
 
-    /**
-     * Compare two comments
-     * 1. their number of upvotes (more upvotes at the top)
-     * 2. if votes equal (especially no up or downvotes) then compare by date created (newest suggestion at the bottom)
-     */
+		/**
+		 * Compare two comments
+		 * 1. their number of upvotes (more upvotes at the top)
+		 * 2. if votes equal (especially no up or downvotes) then compare by date created (newest suggestion at the bottom)
+		 */
 		commentComparator(c1, c2) {
 			var comp = c2.upVotes - c1.upVotes
 			if (comp == 0) {
@@ -291,7 +286,7 @@ export default {
 			})
 		},
 
-    /** When user clicks on the reply button next to a suggestion, that does not yet have any replies, then show input for reply text */
+		/** When user clicks on the reply button next to a suggestion, that does not yet have any replies, then show input for reply text */
 		showReplyInput(comment) {
 			this.$set(comment, 'showReplyInput', true)   // must use Vue's reactive setter, because we want to add a new (reactive) attribute to comment
 		},
@@ -309,7 +304,7 @@ export default {
 
 		//TODO: edit own comment
 
-  },
+	},
 
 	created () {
 		this.$root.api.getProposal(this.proposalId, /*load projection*/true)

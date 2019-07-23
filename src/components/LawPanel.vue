@@ -25,12 +25,12 @@
 							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}
 						</td>
 						<td class="userDataSmall">
-              <i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
-              <i v-if="law.poll !== null && !readOnly" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
+							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
+							<i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
 						</td>
-            <td class="userDataSmall">
-              <i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}
-            </td>
+						<td class="userDataSmall">
+							<i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}
+						</td>
 						<td class="likeButtonCell">
 							<support-button :law="law" v-on:like="likeToDiscuss" :readOnly="readOnly || createdByCurrentUser"></support-button>
 						</td>

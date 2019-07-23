@@ -13,16 +13,15 @@
 		</h1>
 
 		<div v-if="poll.status === 'ELABORATION'" class="panel panel-default">
-	    <div class="panel-body"">
+	    <div class="panel-body">
 	      <p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
-	        Click on the title of each proposal to join the discussion and suggest improvements.</p>
-	      <p>Further alternative proposals may also still be added to this poll.</p>
+	        Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
 	    </div>
 	  </div>
 
 		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
-	    <div class="panel-body"">
+	    <div class="panel-body">
 	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
 	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
 	      <button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
@@ -32,7 +31,7 @@
 	  </div>
 
 		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
-	    <div class="panel-body"">
+	    <div class="panel-body">
 	      <p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
 	    </div>
@@ -47,7 +46,7 @@
 	      	<span v-if="ownBallot.level == 0">This ballot was casted by yourself {{ownBallotCreatedAt}}.</span>
 			  	<span v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy {{ownBallotCreatedAt}}.</span>
 			  	<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
-		  	  <span v-if="poll.status == 'VOTING'">Since this poll is in its voting phase, you may still change the voteOrder in your ballot. Simply click on the cast vote button again.</span>
+		  		<span v-if="poll.status == 'VOTING'">You may still change your mind and update  the vote order in your ballot as long as the poll is in its voting phase. Simply click on the cast vote button again.</span>
 	  	  </p>
         <ol>
           <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
@@ -106,9 +105,9 @@
 
 		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default">
 	    <div class="panel-heading">
-				<h4 class="panelTitle">Join this poll</h4>
+			<h4 class="panelTitle">Join this poll</h4>
 	    </div>
-	    <div class="panel-body"">
+	    <div class="panel-body">
 	      <p>If you think that one of your proposals <b>in this area</b> matches this poll's topic, then you can add your proposal into this poll and put it to the vote.</p>
 	      <div class="form-inline">
 	      	<div class="input-group">
@@ -143,13 +142,14 @@ export default {
 
 	data () {
     return {
-      poll: { _embedded: { proposals: [] }},
-      delegations: undefined,
-      voterToken: undefined,
-      ownBallot: undefined,
-      userProposals: [],  										// all the proposals of the currently logged in user in this area (needed for joining the poll)
-      searchVal: "",
-      selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
+      	poll: { 
+			_embedded: { proposals: [] }},
+			delegations: undefined,
+			voterToken: undefined,
+			ownBallot: undefined,
+			userProposals: [],  										// all the proposals of the currently logged in user in this area (needed for joining the poll)
+			searchVal: "",
+			selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 		}
 	},
 
@@ -167,10 +167,10 @@ export default {
 		untilVotingEnd()     { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
 		timelineEvents() {
 		  return [
-        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
-        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
-        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
-      ]
+				{ date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
+				{ date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
+				{ date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
+			]
 		},
 
 		delCount()  { return this.delegations.delegationCount },

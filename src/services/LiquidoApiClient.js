@@ -26,11 +26,13 @@ const anonymousClient = axios.create()      // extra HTTP client instance for an
 // Set Base URL
 if (process.env.backendBaseURL) {
   axios.defaults.baseURL = process.env.backendBaseURL
+  anonymousClient.defaults.baseURL = process.env.backendBaseURL
 } else
 if (window.Cypress) {   // when running under Cypress TEST
   console.log("Running apiClient under Cypress TEST")
   axios.defaults.baseURL = window.Cypress.config('backendBaseURL')
-  log = console     //BUGFIX to show loglevel in Cypress test runner's console
+  anonymousClient.defaults.baseURL = window.Cypress.config('backendBaseURL')
+  log = console     //BUGFIX to show loglevel output in Cypress test runner's console
 } else {
   throw new Error("LiqudioApiClient: baseURL MUST be defined!")
 }
