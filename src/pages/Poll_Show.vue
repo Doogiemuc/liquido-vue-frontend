@@ -16,6 +16,7 @@
 			<div class="panel-body">
 				<p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
 					Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>
+				<p v-if="poll._embedded.proposals.length === 1">There is just one proposal in this poll yet. Others must join this poll before the voting phase can start.</p>	
 				<timeline ref="pollTimeline" :height="80" :fillToDate="new Date()" :events="timelineEvents"></timeline>
 			</div>
 		</div>

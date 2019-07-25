@@ -6,7 +6,7 @@
     </div>
     <table class="table lawListCondensedTable">
       <tbody>
-        <tr v-for="law in laws">
+        <tr v-for="law in laws" :key="law.id">
           <td>
             <div class="maxHeightPreviewWrapper">
               <h4 class="lawTitle">
@@ -24,7 +24,8 @@
               <li><span class="fa-li"><i class="far fa-user"></i></span>{{law.createdBy.profile.name}}</li>
               <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(law.createdAt)}}</li>
               <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{law.area.title}}</li>
-              <li v-if="law.poll !== null""><span class="fa-li"><i class="fas fa-poll"></i></span>
+			  <li><span class="fa-li"><i class="fa" :class="getIconFor(law)" aria-hidden="true"></i></span>{{law.status}}</li>
+              <li v-if="law.poll !== null"><span class="fa-li"><i class="fas fa-poll"></i></span>
                 <router-link :to="'/polls/'+law.poll.id">Poll</router-link>
               </li>
             </ul>

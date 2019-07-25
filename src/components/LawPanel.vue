@@ -26,7 +26,9 @@
 						</td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
-							<i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
+							<span v-if="law.poll !== null">
+								<i class="fas fa-balance-scale"></i>&nbsp;Poll({{law.poll.numCompetingProposals}})
+							</span>
 						</td>
 						<td class="userDataSmall">
 							<i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}

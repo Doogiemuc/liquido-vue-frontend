@@ -9,10 +9,12 @@
       </div>
       <div class="panel-body ballot-body">
         <ol>
-          <li v-for="proposal in voteOrderProposals">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+          <li v-for="proposal in voteOrderProposals" :key="proposal.id">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
         </ol>
       </div>
     </div>
+
+	<p>&nbsp;</p>
 
     <!-- Cast vote - Step 1 - Fetch voter token -->
     <div id="getVoterTokenPanel" class="panel panel-default">
