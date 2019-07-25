@@ -52,6 +52,13 @@ export default {
     DoogieTableFilters,
     TableSupportButton,
   },
+  
+  /* 
+  //TODO: make it possible to jump to the search page with an initial query
+  props: {
+  	initQuery: 
+  },
+  */
 
   data () {
     var that = this

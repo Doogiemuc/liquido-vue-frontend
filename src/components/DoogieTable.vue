@@ -139,15 +139,15 @@ export default {
     // make all rows the same hight. Larger content will be hidden
     fixedRowHeight: { type: Number, required: false, default: -1 },
 
-		// A message that is shown below the last row, e.g "loading" or can be used for error messages
-		message: { type: String, required: false, default: "" },
+	// A message that is shown below the last row, e.g "loading" or can be used for error messages
+	message: { type: String, required: false, default: "" },
 
     // show selected row with blue background
     highlightSelectedRow: { type: Boolean, required: false, default: false },
 
-		// CLIENT SIDE filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
+	// CLIENT SIDE filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
     // (Keep in mind that client side filtering can only work correctly when you loaded ALL data from the backend.)
-		rowFilterFunc: { type: Function, required: false },
+	rowFilterFunc: { type: Function, required: false },
   },
 
   data () {
@@ -201,12 +201,13 @@ export default {
           return $("#bottomOfTable")
         },
         appear: function appear(el){
-          //console.log('===== Vissible', el);
-          if (this.dynamicLoadFunc === "function") { this.dynamicLoadFunc(this.rowData) }
+          if (this.dynamicLoadFunc === "function") { 
+          	// TODO: show correct message: loading, more data available, or emtpy is all data is loaded
+          	this.dynamicLoadFunc(that.rowData) 
+          }
           that.$emit("appendData", that.rowData)
         },
         disappear: function disappear(el){
-          //console.log('===== no longer visible', el);
         },
         bounds: 0,
         reappear: true
@@ -320,17 +321,17 @@ export default {
       return (row == this.selectedRow) && this.highlightSelectedRow
     },
 
-		/**
-		 * Get the <b>unfiltered</b> index of row in this.rowData array.  Compares on object equality. Not just primaryKey!
-		 * @param {object} row one element from this.rowData
-		 * @return {integer} index so that this.rowData[index] === row
-		 */
-		getIndexOf(row) {
-			for (var i = 0; i < this.rowData.length; i++) {
-				if (this.rowData[i] == row) return i
-			}
-			return -1
-		},
+	/**
+	 * Get the <b>unfiltered</b> index of row in this.rowData array.  Compares on object equality. Not just primaryKey!
+	 * @param {object} row one element from this.rowData
+	 * @return {integer} index so that this.rowData[index] === row
+	 */
+	getIndexOf(row) {
+		for (var i = 0; i < this.rowData.length; i++) {
+			if (this.rowData[i] == row) return i
+		}
+		return -1
+	},
 
     /**
      * Get a row from rowData by its primary key

@@ -47,8 +47,9 @@ const routes = [
       require(['./pages/Categories_List.vue'], resolve)
     }
   },
-  /*  TODO: editCategory
-  { path: '/editCategory',  // optional url parameter ...?categoryId=...  Without it a new category can be created
+  /*
+  //TODO: editCategory
+  { path: '/category/:categoryId/edit',
     component: function(resolve) {
       require(['./pages/EditCategory.vue'], resolve)
     }
@@ -65,7 +66,8 @@ const routes = [
     name: 'search',
     component: function(resolve) {
       require(['./pages/Search.vue'], resolve)
-    }
+    },
+    props: true
   },
   { path: '/ideas/add',
     component: function(resolve) {
@@ -112,7 +114,42 @@ const routes = [
     props: true
   },
 
-  // ======================= User Home =======================
+  // ======================= Polls =======================
+  { path: '/polls',
+    component: function(resolve) {
+      require(['./pages/Polls_List.vue'], resolve)
+    }
+  },
+  { path: '/polls/add',
+  	name: 'pollAdd',
+    component: function(resolve) {
+      require(['./pages/Poll_Create.vue'], resolve)
+    },
+    props: true
+  },
+  { path: '/polls/:pollId',
+    name: 'showPoll',
+    component: function(resolve) {
+      require(['./pages/Poll_Show.vue'], resolve)
+    },
+	props: true
+  },
+  { path: '/polls/:pollId/sortBallot',
+    name: 'sortBallot',
+    component: function(resolve) {
+      require(['./pages/Poll_SortBallot.vue'], resolve)
+    },
+    props: true
+  },
+  { path: '/polls/:pollId/castVote',    // can only be called as named route.
+    name: 'castVote',
+    component: function(resolve) {
+      require(['./pages/Poll_CastVote.vue'], resolve)
+    },
+    props: true
+  },
+
+ // ======================= User Home =======================
   { path: '/userHome',
     component: function(resolve) {
       require(['./pages/UserHome.vue'], resolve)
@@ -131,35 +168,7 @@ const routes = [
     },
     props: true
   },
-
-  // ======================= Polls =======================
-  { path: '/polls',
-    component: function(resolve) {
-      require(['./pages/Polls_List.vue'], resolve)
-    }
-  },
-	{ path: '/polls/:pollId',
-    name: 'showPoll',
-    component: function(resolve) {
-      require(['./pages/Poll_Show.vue'], resolve)
-    },
-		props: true
-  },
-  { path: '/polls/:pollId/sortBallot',
-    name: 'sortBallot',
-    component: function(resolve) {
-      require(['./pages/Poll_SortBallot.vue'], resolve)
-    },
-    props: true
-  },
-  { path: '/polls/:pollId/castVote',    // can only be called as named route.
-    name: 'castVote',
-    component: function(resolve) {
-      require(['./pages/Poll_CastVote.vue'], resolve)
-    },
-    props: true
-  },
-
+  
   // ======================= PageNotFound =======================
   // Show error page for all invalid pathes
   { path: '/pageNotFound', component: PageNotFound, meta: { requiresAuth: false } }

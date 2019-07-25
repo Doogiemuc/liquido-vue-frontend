@@ -5,7 +5,7 @@
 -->
 
 <template>
-  <div class="container" id="PollShow">
+	<div class="container" id="PollShow">
 		<h1><i class="fas fa-poll"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
@@ -13,58 +13,57 @@
 		</h1>
 
 		<div v-if="poll.status === 'ELABORATION'" class="panel panel-default">
-	    <div class="panel-body"">
-	      <p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
-	        Click on the title of each proposal to join the discussion and suggest improvements.</p>
-	      <p>Further alternative proposals may also still be added to this poll.</p>
-	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	    </div>
-	  </div>
+			<div class="panel-body">
+				<p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
+					Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>
+				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+			</div>
+		</div>
 
 		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
-	    <div class="panel-body"">
-	      <p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
-	      <timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	      <button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
-				  Cast vote <i class="fas fa-angle-double-right"></i>
+			<div class="panel-body">
+				<p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
+				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+				<button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
+					Cast vote <i class="fas fa-angle-double-right"></i>
 				</button>
-	    </div>
-	  </div>
+			</div>
+		</div>
 
 		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
-	    <div class="panel-body"">
-	      <p>This poll is finished. The winning proposal is now a law.</p>
+			<div class="panel-body">
+				<p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
-	    </div>
-	  </div>
+			</div>
+		</div>
 
 		<div v-if="ownBallot" class="panel panel-default">
-      <div class="panel-heading">
-        <h4>Your current ballot in this poll</h4>
-      </div>
-      <div class="panel-body ballot-body">
-      	<p>
-	      	<span v-if="ownBallot.level == 0">This ballot was casted by yourself {{ownBallotCreatedAt}}.</span>
-			  	<span v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy {{ownBallotCreatedAt}}.</span>
-			  	<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
-		  	  <span v-if="poll.status == 'VOTING'">Since this poll is in its voting phase, you may still change the voteOrder in your ballot. Simply click on the cast vote button again.</span>
-	  	  </p>
-        <ol>
-          <li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
-        </ol>
-      </div>
-    </div>
+			<div class="panel-heading">
+				<h4>Your current ballot in this poll</h4>
+			</div>
+			<div class="panel-body ballot-body">
+				<p>
+					<span v-if="ownBallot.level == 0">This ballot was casted by yourself {{ownBallotCreatedAt}}.</span>
+					<span v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy {{ownBallotCreatedAt}}.</span>
+					<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
+					<span v-if="poll.status == 'VOTING'">You may still change your mind and update	the vote order in your ballot as long as the poll is in its voting phase. Simply click on the cast vote button again.</span>
+				</p>
+				<ol>
+					<li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+				</ol>
+			</div>
+		</div>
 
 		<div class="row" v-if="poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
 				<h3>Alternative proposals in this poll</h3>
 			</div>
-		  <div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
+			<div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
 				<law-panel
-				  :law="proposal"
-				  :showTimeline="false"
-				  :fixedHeight="200"
-				  v-on:like="likeToDiscuss">
+					:law="proposal"
+					:showTimeline="false"
+					:fixedHeight="200"
+					v-on:like="likeToDiscuss">
 				</law-panel>
 			</div>
 		</div>
@@ -105,24 +104,24 @@
 		<br/>
 
 		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default">
-	    <div class="panel-heading">
-				<h4 class="panelTitle">Join this poll</h4>
-	    </div>
-	    <div class="panel-body"">
-	      <p>If you think that one of your proposals <b>in this area</b> matches this poll's topic, then you can add your proposal into this poll and put it to the vote.</p>
-	      <div class="form-inline">
-	      	<div class="input-group">
-		      	<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
-		      	 class="form-control" style="width: 300px" v-model="searchVal">
-		      	<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
-		      		<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
-		      	</ul>
-		      </div>
-		      <button type="button" class="btn btn-primary" :class="joinProposalButtonClass" v-on:click="joinPoll">
-					  Join your proposal
+			<div class="panel-heading">
+			<h4 class="panelTitle">Join this poll</h4>
+			</div>
+			<div class="panel-body">
+				<p>If you think that one of your proposals <b>in this area</b> matches this poll's topic, then you can add your proposal into this poll and put it to the vote.</p>
+				<div class="form-inline">
+					<div class="input-group">
+						<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
+						 class="form-control" style="width: 300px" v-model="searchVal">
+						<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
+							<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
+						</ul>
+					</div>
+					<button type="button" class="btn btn-primary" :class="joinProposalButtonClass" v-on:click="joinPoll">
+						Join your proposal
 					</button>
-	      </div>
-	    </div>
+				</div>
+			</div>
 		</div>
 
 
@@ -142,14 +141,16 @@ export default {
 	},
 
 	data () {
-    return {
-      poll: { _embedded: { proposals: [] }},
-      delegations: undefined,
-      voterToken: undefined,
-      ownBallot: undefined,
-      userProposals: [],  										// all the proposals of the currently logged in user in this area (needed for joining the poll)
-      searchVal: "",
-      selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
+		return {
+			poll: { 
+				_embedded: { proposals: [] }
+			},
+			delegations: undefined,
+			voterToken: undefined,
+			ownBallot: undefined,
+			userProposals: [],											// all the proposals of the currently logged in user in this area (needed for joining the poll)
+			searchVal: "",
+			selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 		}
 	},
 
@@ -159,28 +160,28 @@ export default {
 	},
 
 	computed: {
-		pollCreated()        { return moment(this.poll.createdAt).format('L') },
-		votingStart()        { return moment(this.poll.votingStartAt).format('L') },
-		votingEnd()          { return moment(this.poll.votingEndAt).format('L') },
+		pollCreated()				 { return moment(this.poll.createdAt).format('L') },
+		votingStart()				 { return moment(this.poll.votingStartAt).format('L') },
+		votingEnd()					 { return moment(this.poll.votingEndAt).format('L') },
 		ownBallotCreatedAt() { return this.ownBallot ? moment(this.ownBallot.createdAt).fromNow() : "" },
-		untilVotingStart()   { return moment().to(this.poll.votingStartAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
-		untilVotingEnd()     { return moment().to(this.poll.votingEndAt, true) },  // e.g. "14 days"  (including the word days/minutes/seconds etc.)
+		untilVotingStart()	 { return moment().to(this.poll.votingStartAt, true) },	 // e.g. "14 days"	(including the word days/minutes/seconds etc.)
+		untilVotingEnd()		 { return moment().to(this.poll.votingEndAt, true) },	 // e.g. "14 days"	(including the word days/minutes/seconds etc.)
 		timelineEvents() {
-		  return [
-        { date: new Date(this.poll.createdAt),     above: this.pollCreated, below: "Poll<br/>created" },
-        { date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
-        { date: new Date(this.poll.votingEndAt),   above: this.votingEnd,   below: "Voting<br/>end" }
-      ]
+			return [
+				{ date: new Date(this.poll.createdAt),		 above: this.pollCreated, below: "Poll<br/>created" },
+				{ date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
+				{ date: new Date(this.poll.votingEndAt),	 above: this.votingEnd,		below: "Voting<br/>end" }
+			]
 		},
 
-		delCount()  { return this.delegations.delegationCount },
-		delReq()    { return this.delegations.delegationRequests.length },
+		delCount()	{ return this.delegations.delegationCount },
+		delReq()		{ return this.delegations.delegationRequests.length },
 		voteOrder() { return this.ownBallot ? this.ownBallot.voteOrder : undefined },
 
 		/**
-		  A user can join a poll, when the poll is still in elaboration
-		  and he has a proposal in that area
-		  and he did not already join this poll with one of his proposals.
+			A user can join a poll, when the poll is still in elaboration
+			and he has a proposal in that area
+			and he did not already join this poll with one of his proposals.
 		 */
 		canJoinPoll() {
 			var alreadyJoined = this.poll._embedded.proposals.some(prop => prop.createdBy.id === this.$root.currentUser.id)
@@ -206,7 +207,7 @@ export default {
 		this.loadPoll()
 			.then(this.loadOwnBallot)
 			.then(this.loadUsersProposalsInArea)
-			//.then(this.loadDelegations)    //MAYBE: Could load delegations since I already have the user's voterToken
+			//.then(this.loadDelegations)		 //MAYBE: Could load delegations since I already have the user's voterToken
 	},
 
 	mounted() {
@@ -219,8 +220,8 @@ export default {
 		},
 
 		/**
-		   Load proposals that the currently logged in user has in the area of the poll.
-		   He could join the poll with one of those proposals.
+			 Load proposals that the currently logged in user has in the area of the poll.
+			 He could join the poll with one of those proposals.
 		 */
 		loadUsersProposalsInArea() {
 			return this.$root.api.findByStatusAndCreator('PROPOSAL', this.$root.currentUser).then(proposals => {
@@ -228,88 +229,88 @@ export default {
 			})
 		},
 
-    /**
-     * Load info about delegations TO this user as a proxy
-     * On this Poll_Show page, we only show the info about delegations TO this user.
-     * The information about being a proxy himself can be seen under /proxies -> Proxies_Show  !
-     */
-  	loadDelegations() {
-  		return this.fetchVoterToken().then(voterToken => {
-	      return this.$root.api.getMyDelegations(this.poll.area, this.voterToken).then(del => {
-	      	this.delegations = del
-	      })
-	    })
-    },
+		/**
+		 * Load info about delegations TO this user as a proxy
+		 * On this Poll_Show page, we only show the info about delegations TO this user.
+		 * The information about being a proxy himself can be seen under /proxies -> Proxies_Show	 !
+		 */
+		loadDelegations() {
+			return this.fetchVoterToken().then(voterToken => {
+				return this.$root.api.getMyDelegations(this.poll.area, this.voterToken).then(del => {
+					this.delegations = del
+				})
+			})
+		},
 
-    /* lazily fetch the user's voterToken and cache it locally */
-    fetchVoterToken() {
-    	if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
-    	return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
-    		this.voterToken = token.voterToken
-    		return this.voterToken
-    	})
-    },
+		/* lazily fetch the user's voterToken and cache it locally */
+		fetchVoterToken() {
+			if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
+			return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
+				this.voterToken = token.voterToken
+				return this.voterToken
+			})
+		},
 
-    /**
-     * load voter's own ballot, if he has voted already.
-     * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
-     */
-  	loadOwnBallot() {
-  		if (this.poll.status === 'VOTING') {
-	  		return this.fetchVoterToken().then(voterToken => {
-	  			this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
-	  				this.ownBallot = ballot  // may be undefined if user did not vote yet!
-		  		})
-	  		})
-	  	}
-  	},
+		/**
+		 * load voter's own ballot, if he has voted already.
+		 * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
+		 */
+		loadOwnBallot() {
+			if (this.poll.status === 'VOTING') {
+				return this.fetchVoterToken().then(voterToken => {
+					this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
+						this.ownBallot = ballot	 // may be undefined if user did not vote yet!
+					})
+				})
+			}
+		},
 
-  	becomePublicProxy() {
-  		var that = this
-  		return this.fetchVoterToken().then(voterToken => {
-  			return this.$root.api.becomePublicProxy(this.poll.area, voterToken).then(res => {
-  				log.info("User is now a public proxy")
-  				this.loadDelegations()
-  				iziToast.success({
-            title: 'Success',
-            message: "Your are now a public proxy in<br/>"+this.poll.area.title,
-          })
-  			})
-  		})
-  	},
+		becomePublicProxy() {
+			var that = this
+			return this.fetchVoterToken().then(voterToken => {
+				return this.$root.api.becomePublicProxy(this.poll.area, voterToken).then(res => {
+					log.info("User is now a public proxy")
+					this.loadDelegations()
+					iziToast.success({
+						title: 'Success',
+						message: "Your are now a public proxy in<br/>"+this.poll.area.title,
+					})
+				})
+			})
+		},
 
-  	acceptDelegations() {
-  		var that = this
-  		return this.fetchVoterToken().then(voterToken => {
-  			this.$root.api.acceptDelegationRequests(this.poll.area, voterToken).then(res => {
-  				log.info("Accepted delgation requests")
-  				this.loadDelegations()
-  				iziToast.success({
-            title: 'Success',
-            message: "Delegation requests accepted."
-          })
-  			})
-  		})
-  	},
+		acceptDelegations() {
+			var that = this
+			return this.fetchVoterToken().then(voterToken => {
+				this.$root.api.acceptDelegationRequests(this.poll.area, voterToken).then(res => {
+					log.info("Accepted delgation requests")
+					this.loadDelegations()
+					iziToast.success({
+						title: 'Success',
+						message: "Delegation requests accepted."
+					})
+				})
+			})
+		},
 
-  	gotoSortBallot() {
-  		this.$router.push({name: 'sortBallot', params: {
-  			pollId: this.poll.id+'',    // MUST convert to String, so that the prop validation in Poll_CastVote accepts it
-  			voteOrder: this.voteOrder   // if user already voted
-  		}})
-  	},
+		gotoSortBallot() {
+			this.$router.push({name: 'sortBallot', params: {
+				pollId: this.poll.id+'',		// MUST convert to String, so that the prop validation in Poll_CastVote accepts it
+				voteOrder: this.voteOrder		// if user already voted, then pass the full voteOrder JSON
+			}})
+		},
 
-  	/* jump to the edit proxy page */
-  	editProxy() {
-  		this.$router.push({name: "editProxy", params: {
-  			categoryId: this.poll.area.id,
-  			category:   this.poll.area,
-  			//we do not have the currently assigned proxy.  Proxy_edit.vue will load it
-  		}})
-  	},
+		/* jump to the edit proxy page */
+		editProxy() {
+			this.$router.push({name: "editProxy", params: {
+				categoryId: this.poll.area.id,
+				category:		this.poll.area,
+				//we do not have the currently assigned proxy.	Proxy_edit.vue will load it
+			}})
+		},
 
-  	joinPoll() {
-  		return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
+		joinPoll() {
+			return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
 				console.log("joined proposal into poll.", res)
 			})
 		},
@@ -318,36 +319,36 @@ export default {
 		 * When a user likes a proposal, then we update its properties
 		 * (a little bit of a small dirty hack, but better than reloading the whole poll from the backend)
 		 */
-  	likeToDiscuss(likedProposal) {
-  		this.poll._embedded.proposals.forEach(proposal => {
-  			if (proposal.id === likedProposal.id) {
-  				proposal.numSupporters++
-  				proposal.supportedByCurrentUser = true
-  			}
-  		})
-  	},
+		likeToDiscuss(likedProposal) {
+			this.poll._embedded.proposals.forEach(proposal => {
+				if (proposal.id === likedProposal.id) {
+					proposal.numSupporters++
+					proposal.supportedByCurrentUser = true
+				}
+			})
+		},
 
 		selectUserProposal(proposal) {
 			this.searchVal = proposal.title
 			this.$nextTick(function() {
-			  this.selectedUserProposal = proposal
+				this.selectedUserProposal = proposal
 			})
 		},
 
-  	/** get localized display Value of a date */
-    getFromNow(dateVal) {
-      return moment(dateVal).fromNow();
-    },
+		/** get localized display Value of a date */
+		getFromNow(dateVal) {
+			return moment(dateVal).fromNow();
+		},
 
-    getDuelMatrixCellClass(row, col) {
-    	var a = this.poll.duelMatrix.rawData[row][col]
-    	var b = this.poll.duelMatrix.rawData[col][row]
-    	if (a > b) return "winner"
-    	if (a < b) return "looser"
-    	return "tie"
-    },
+		getDuelMatrixCellClass(row, col) {
+			var a = this.poll.duelMatrix.rawData[row][col]
+			var b = this.poll.duelMatrix.rawData[col][row]
+			if (a > b) return "winner"
+			if (a < b) return "looser"
+			return "tie"
+		},
 
-  }
+	}
 }
 </script>
 
@@ -359,31 +360,31 @@ export default {
 	.grey{
 		color: grey;
 	}
-  .searchInput {
-    display: inline-block;
-    height: 22px;
-    width: 50%;
-    padding-left: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  ul.dropdown-menu li {
-  	padding: 0 !important;
-  	margin: 0 !important;
-  }
-  ul.dropdown-menu > li > a {
-  	overflow: hidden;
-  	padding: 5px;
-  	margin: 0;
-  }
-  .winner {
-  	background: #DFD;
-  }
-  .looser {
-  	background: #FDD;
-  }
-  .tie {
-  	background: #EEE;
-  }
+	.searchInput {
+		display: inline-block;
+		height: 22px;
+		width: 50%;
+		padding-left: 5px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
+	ul.dropdown-menu li {
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+	ul.dropdown-menu > li > a {
+		overflow: hidden;
+		padding: 5px;
+		margin: 0;
+	}
+	.winner {
+		background: #DFD;
+	}
+	.looser {
+		background: #FDD;
+	}
+	.tie {
+		background: #EEE;
+	}
 </style>
 

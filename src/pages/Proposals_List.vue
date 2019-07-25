@@ -11,8 +11,10 @@
     </div>
     <div class="col-sm-6">
       <law-list :laws="recentlyDiscussed" id="trendingProposals" lawListTitle="Trending proposals"></law-list>
+      <p>
+      	<button type="button" class="btn btn-default" @click="showUsersOwnProposals()">Your proposals</button>
+      </p>
     </div>
-
   </div>
 
 
@@ -38,7 +40,14 @@ export default {
   },
 
   methods: {
-
+  	/* Jump to search page and show all proposals that were created by this user */
+	showUsersOwnProposals() {
+		var query = {
+			status: ["PROPOSAL", "ELABORATION" ],
+			createdBy: this.$root.currentUser
+		}
+		//TODO: this.$router.push('/search?query='+query)
+	}
   },
 
   created () {

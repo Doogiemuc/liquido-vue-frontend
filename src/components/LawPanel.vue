@@ -13,7 +13,7 @@
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
       <div v-html="law.description"></div>
-      <timeline v-if="showTimeline" :height="60" :events="timelineEvents"></timeline>
+      <timeline v-if="showTimeline" :height="80" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
 			<table class="table lawFooterTable">
@@ -25,12 +25,12 @@
 							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}
 						</td>
 						<td class="userDataSmall">
-              <i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
-              <i v-if="law.poll !== null && !readOnly" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
+							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
+							<i v-if="law.poll !== null" class="fas fa-balance-scale"></i>&nbsp;<router-link v-if="law.poll !== null && !readOnly" :to="'/polls/'+law.poll.id">Poll</router-link>
 						</td>
-            <td class="userDataSmall">
-              <i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}
-            </td>
+						<td class="userDataSmall">
+							<i class="fa fa-fw" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{statusLoc}}
+						</td>
 						<td class="likeButtonCell">
 							<support-button :law="law" v-on:like="likeToDiscuss" :readOnly="readOnly || createdByCurrentUser"></support-button>
 						</td>
@@ -105,10 +105,10 @@ export default {
         { percent: "90", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
       ]
       if (this.law.status === "ELABORATION" || this.law.status === "VOTING") return [    // implies    this.law.poll !== undefined && this.law.poll !== null
-        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
-        { percent: "33", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
-        { percent: "66", above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
-        { percent: "95", above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
+        { date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
+        { date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+        { date: new Date(this.law.poll.votingStartAt), above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
+        { date: new Date(this.law.poll.votingEndAt), above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
       ]
       //MAYBE: if (this.law.status === "LAW")
       if (this.law.status === "RETENTION") {

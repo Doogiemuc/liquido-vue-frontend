@@ -96,7 +96,7 @@ export default {
 
   props: {
     'pollId': { type: String, required: true },    // String is passed from url-param
-    'voteOrder': { type: Array, required: false }  // optional array of proposals, if voter already has a ballot
+    'voteOrder': { type: Array, required: false }  // optional array of proposals (full JSON), if voter already has a ballot
   },
 
   data () {
