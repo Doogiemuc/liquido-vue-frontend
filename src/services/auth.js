@@ -14,11 +14,9 @@ const axios = require('axios')
 const JWT_ITEM_KEY = 'liquido-jwt'
 var log = loglevel.getLogger('auth.js')
 
-console.log("Liquido auth.js "+Math.random())
-
 export default {
 	jsonWebToken: undefined,      // JWT
-  currentUser:  undefined,			// Currenely logged in user
+	currentUser:  undefined,			// Currenely logged in user
 
 	isLoggedIn() {
 		return this.currentUser !== undefined

@@ -17,19 +17,15 @@
 				before the voting phase can start.</p>
 				
 				<p>
-					<input type="text" class="form-control input-sm" name="pollTitle" :id="pollTitleId" v-model="pollTitle" placeholder="Poll title" >
+					<input type="text" class="form-control" name="pollTitle" id="pollTitleId" v-model="pollTitle" placeholder="Poll title" >
 					<small>The poll's title can be edited by anyone who has a proposal in this poll. Please choose a short umbrella term that describes the general topic.</small>
 				</p>
 				
-				<p><button type="button" class="btn btn-primary pull-right" @click="createNewPoll()">Create new poll</button></p>
+				<p><button type="button" class="btn btn-primary pull-right" v-bind:disabled="disableSaveButton" @click="createNewPoll()">Create new poll</button></p>
 			</div>
 		</div>
 
 		<law-panel v-if="proposal" :law="proposal"></law-panel>
-		
-		<pre>
-		{{proposal}}
-		</pre>
 
 	</div>
 </template>
@@ -57,13 +53,37 @@ export default {
 	},
 
 	computed: {
+		disableSaveButton: function() {
+			return this.pollTitle.length < 5 || this.proposal === undefined
+		}
 	},
 
 	created() {
+		if (!this.proposal) {
+			log.warn("Cannot create new poll without a proposal.")
+			this.$router.push('/polls')
+		} 
 	},
 
 	methods: {
-
+		createNewPoll() {
+			log.info("Creating a new poll with proposal.id="+this.proposal.id)
+			var poll = {
+				proposals: [ 
+					this.$root.api.getURI(this.proposal)
+				]
+			}
+			this.$root.api.createNewPoll(poll).then(poll => {
+				iziToast.success({
+					title: 'Poll created',
+					message: 'A new poll has been created.'
+				})
+				this.$router.push('/polls/'+poll.id)
+			})
+			.catch(err => {
+				log.warn("Cannot create new poll", err)
+			})
+		}
 	}
 }
 </script>

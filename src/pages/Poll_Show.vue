@@ -16,14 +16,14 @@
 			<div class="panel-body">
 				<p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
 					Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>
-				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+				<timeline ref="pollTimeline" :height="80" :fillToDate="new Date()" :events="timelineEvents"></timeline>
 			</div>
 		</div>
 
 		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
 			<div class="panel-body">
 				<p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
-				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+				<timeline ref="pollTimeline" :height="80" :fillToPercent="60" :events="timelineEvents"></timeline>
 				<button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
 					Cast vote <i class="fas fa-angle-double-right"></i>
 				</button>
@@ -33,7 +33,7 @@
 		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
 			<div class="panel-body">
 				<p>This poll is finished. The winning proposal is now a law.</p>
-				<timeline ref="pollTimeline" :height="80" :fillTo="new Date()" :events="timelineEvents"></timeline>
+				<timeline ref="pollTimeline" :height="80" :fillToPercent="100" :events="timelineEvents"></timeline>
 			</div>
 		</div>
 
@@ -49,7 +49,7 @@
 					<span v-if="poll.status == 'VOTING'">You may still change your mind and update	the vote order in your ballot as long as the poll is in its voting phase. Simply click on the cast vote button again.</span>
 				</p>
 				<ol>
-					<li v-for="proposal in voteOrder">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+					<li v-for="proposal in voteOrder" :key="proposal.id">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
 				</ol>
 			</div>
 		</div>
@@ -58,7 +58,7 @@
 			<div class="col-sm-12">
 				<h3>Alternative proposals in this poll</h3>
 			</div>
-			<div class="col-sm-6" v-for="proposal in poll._embedded.proposals">
+			<div class="col-sm-6" v-for="proposal in poll._embedded.proposals" :key="proposal.id">
 				<law-panel
 					:law="proposal"
 					:showTimeline="false"
@@ -114,7 +114,7 @@
 						<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
 						 class="form-control" style="width: 300px" v-model="searchVal">
 						<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
-							<li v-for="prop in matchingProposals"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
+							<li v-for="prop in matchingProposals" :key="prop.id"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
 						</ul>
 					</div>
 					<button type="button" class="btn btn-primary" :class="joinProposalButtonClass" v-on:click="joinPoll">
@@ -168,14 +168,14 @@ export default {
 		untilVotingEnd()		 { return moment().to(this.poll.votingEndAt, true) },	 // e.g. "14 days"	(including the word days/minutes/seconds etc.)
 		timelineEvents() {
 			return [
-				{ date: new Date(this.poll.createdAt),		 above: this.pollCreated, below: "Poll<br/>created" },
-				{ date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
-				{ date: new Date(this.poll.votingEndAt),	 above: this.votingEnd,		below: "Voting<br/>end" }
+				{ percent:  10, date: new Date(this.poll.createdAt),	 above: this.pollCreated, below: "Poll<br/>created" },
+				{ percent:  50, date: new Date(this.poll.votingStartAt), above: this.votingStart, below: "Voting</br>start" },
+				{ percent:  90, date: new Date(this.poll.votingEndAt),	 above: this.votingEnd,	  below: "Voting<br/>end" }
 			]
 		},
 
 		delCount()	{ return this.delegations.delegationCount },
-		delReq()		{ return this.delegations.delegationRequests.length },
+		delReq()    { return this.delegations.delegationRequests.length },
 		voteOrder() { return this.ownBallot ? this.ownBallot.voteOrder : undefined },
 
 		/**
@@ -208,6 +208,7 @@ export default {
 			.then(this.loadOwnBallot)
 			.then(this.loadUsersProposalsInArea)
 			//.then(this.loadDelegations)		 //MAYBE: Could load delegations since I already have the user's voterToken
+			
 	},
 
 	mounted() {

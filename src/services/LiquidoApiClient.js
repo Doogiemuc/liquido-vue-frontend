@@ -23,7 +23,7 @@ var log = loglevel.getLogger("LiquidoApiClient")
 const axios = require('axios')              // main HTTP client
 const anonymousClient = axios.create()      // extra HTTP client instance for anonymous unauthenticated requests
 
-// Set Base URL
+/***** Set Base URL of backend *****/
 if (process.env.backendBaseURL) {
   axios.defaults.baseURL = process.env.backendBaseURL
   anonymousClient.defaults.baseURL = process.env.backendBaseURL
@@ -36,22 +36,7 @@ if (window.Cypress) {   // when running under Cypress TEST
 } else {
   throw new Error("LiqudioApiClient: baseURL MUST be defined!")
 }
-
-console.log("LiqudioApiClient "+Math.random() + " baseUrl=" + axios.defaults.baseURL)
-
-/* Axios REQUEST interceptor that adds the JWT token into the header (if known)
-axios.interceptors.request.use(function (config) {
-  if (jsonWebToken) {
-    //Would also work  axios.defaults.headers.common['Authorization'] = "Bearer "+jsonWebToken
-    config.headers['Authorization'] = "Bearer "+jsonWebToken
-  }
-  return config;
-}, function (error) {
-  log.error("Error in axios request", error)
-  return Promise.reject(error);
-});
-
-*/
+log.debug("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
@@ -148,7 +133,7 @@ module.exports = {
         }
         return uri
       } catch (err) {
-				console.log("Cannot get URI of ", model, err)
+		console.log("Cannot get URI of ", model, err)
         throw new Error("Cannot get URI of "+model+": "+err)
       }
     }
@@ -685,6 +670,26 @@ module.exports = {
     return axios.get(pollURI)
       .then( res => { return res.data })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) })
+  },
+
+  /** Create a new poll from one proposal */
+  createNewPoll(poll) {
+    log.debug("POST createNewPoll: "+JSON.stringify(poll))
+    return axios({
+      method: 'POST',
+      url: '/polls/add',
+      headers: { 'Content-Type' : 'application/json' },
+      data: poll
+	})
+	.then(res => { return res.data })
+	.catch(err => {
+    	if (err.response.status == 409) {
+        	log.warn("Cannot createNewPoll: A poll with that exact title already exists! "+JSON.stringify(poll)+" :", err)
+    	} else {
+        	log.error("Cannot createNewPoll:"+JSON.stringify(poll)+" :", err)
+    	}
+    	return Promise.reject(err)
+    })
   },
 
   joinPoll(proposal, poll) {

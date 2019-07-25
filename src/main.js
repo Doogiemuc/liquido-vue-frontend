@@ -274,7 +274,7 @@ var startApp = function(props) {
     },
     ...RootApp
   }).$mount()
-  log.info("===== LIQUIDO web app has started.")
+  log.info("##### LIQUIDO web app has started ##### env="+process.env.NODE_ENV)
   return rootApp
 }
 

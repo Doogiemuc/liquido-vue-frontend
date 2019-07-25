@@ -8,27 +8,28 @@
 	  exampleTimelineData = {
 		height: 40,          // full height of component in pixels.  The absolut positioned texts require to have a fixed height. It is VERY hard to make a DIV as high as some inner absolutely posinnioned child DIVs. Give it a try!
 		fillToPercent: 65,   // percentage, how far the timeline shall be filled. You can use this.date2percent(date, start, end) to fill up to a given date
+		fillToDate: new Date()  // when you add dates to the events, then this timeline component can interpolate this given date value between the percentage positions of the events.
 		events: [
-		  { percent:   0, above: "Proposal", below: "start"},
+		  { percent:   0, date: new Date(isoDateStr), above: "Proposal", below: "start"},
 		  { percent:  10, above: "Quorum",   below: "in between"},
 		  { percent:  30, above: "Voting",   below: "starts"},
-		  { percent: 100, above: moment().format('L') },   
+		  { percent: 100, date: new Date(isoDateStr), above: moment().format('L') },   
 		]
 	  }
 	  
-  TODO: Make it possible to pass "dates" instead of percentages. But then it is hard to calculate 
-        how far the timeline should be filled (in percent). Need to interpolate "today" into dates on percentage positions.
+  TODO: Make it possible to pass "dates" in addition to percentages. And then over to fill until "today". Needs to be interpolated between the event dates on percentage positions.
 
    */
 
 <template>
 	<div class="timeline" :style="{ height: height+'px' }" >
 		<div class="timeline_grey"></div>
-		<span class="filling_line" v-bind:style="{ width: this.fillToPercent+'%' }"></span>
+		<span class="filling_line" v-bind:style="{ width: this.fillingLineWidth+'%' }"></span>
 		<span :class="arrowClass"></span>
 		<div class="eventsWrapper">
 			<ol class="eventsList">
 			  <li v-for="event in this.events"
+			      :key="event.above"
 				  class="timeline_event circle"
 				  v-bind:style="{ left: event.percent+'%'}"
 				  v-bind:class="{ filledCircle: isFilled(event) }" >
@@ -47,6 +48,10 @@
 	  height:     { type: Number, required: false, default: function() { return 40 } },
 	  // by default a timeline is filled until today's date
 	  fillToPercent: { type: Number, required: false, default: function() { return 0 } },
+
+	  // If you pass a date here, then the timeline will be filled up to that date (in between the events positioned by percentages)
+	  fillToDate:    { type: Date,   required: false },
+
 	  // list of events in the timeline. Each event MUST have a date or a percentage value
 	  events: { type: Array,  required: true, validator:
 		function(events) {
@@ -60,13 +65,21 @@
 	  }
 	},
 
+	data: function() { 
+		return {
+			fillingLineWidth: this.fillToPercent
+		}
+	},
+
 	computed: {
 	  arrowClass() {
 		return {
 		  timeline_arrow_right: true,
-		  timeline_arrow_right_fillled: this.fillToPercent >= 100     // timeline arrow is filled when timeline is is fully filled
+		  timeline_arrow_right_fillled: this.fillingLineWidth >= 100     // timeline arrow is filled when timeline is is fully filled
 		}
 	  },
+	  firstDate() { return this.events[0].date },
+	  lastDate()  { return this.events[this.events.length-1].date }
 	},
 
 	//TODO:  maybe it would be easier to watch: { events : function(newEvents, oldEvents) { ... } }
@@ -81,7 +94,7 @@
 
 	  /** event circles are filled when they are in the past */
 	  isFilled(event) {
-		return event.percent <= this.fillToPercent
+		return event.percent <= this.fillingLineWidth
 	  },
 
 	  /**
@@ -97,6 +110,22 @@
 		var percent = rel / period * 100
 		return this.limit(percent, 0, 100)
 	  },
+
+		fillUpTo(date) {
+			if (!this.firstDate || !this.lastDate) throw new Error("Events must have dates to fillUpTo(date)")
+			if (date.getTime() < this.firstDate.getTime()) {
+				this.fillingLineWidth = 0
+			} else 
+			if (date.getTime() > this.lastDate.getTime()) {
+				this.fillingLineWidth = 100
+			} else {
+				var nextEventIdx = this.events.findIndex(event => event.date.getTime() > date.getTime())
+				var before = this.events[nextEventIdx-1]
+				var after  = this.events[nextEventIdx  ]
+				var innerPercent = this.date2percent(date, before.date, after.date)
+				this.fillingLineWidth = before.percent + (after.percent - before.percent)*innerPercent/100
+			}
+	  	},
  
 	},
 
@@ -105,12 +134,19 @@
 	 */
 	created () {
 		this.events.forEach(event => {
-			if (event.date !== undefined) {
-			  event.percent = this.date2percent(event.date, this.startDate, this.endDate)
-			} else {
-			  event.percent = this.limit(event.percent, 0, 100)
+			if (event.percent === undefined) {
+				if (event.date === undefined) throw new Error("You MUST either set percent or dates for timeline events.")
+				var startDate = this.events[0].date
+				var endDate   = this.events[this.events.length-1].date
+				event.percent = this.date2percent(event.date, startDate, endDate)
 			}
+			event.percent = this.limit(event.percent, 0, 100)
 		})
+		console.log("Filling up to ", this.fillToDate)
+		if (this.fillToDate && typeof this.fillToDate.getMonth === 'function') {
+			console.log("Filling up to ", this.fillToDate)
+			this.fillUpTo(this.fillToDate)
+		}
 	}
   }
 </script>
@@ -143,8 +179,6 @@
 
 .timeline .eventsWrapper {
 	position: relative;
-	margin-left:  30px;
-	margin-right: 30px;
 }
 
 .timeline .eventsList {

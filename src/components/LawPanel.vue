@@ -13,7 +13,7 @@
     </div>
     <div class="panel-body lawDescription" :style="getLawDescriptionStyle()">
       <div v-html="law.description"></div>
-      <timeline v-if="showTimeline" :height="80" :events="timelineEvents"></timeline>
+      <timeline v-if="showTimeline" :height="80" :fillToDate="new Date()" :events="timelineEvents"></timeline>
     </div>
 		<div class="panel-footer">
 			<table class="table lawFooterTable">
@@ -88,8 +88,8 @@ export default {
         case "DROPPED":     return "Dropped law"
         case "RETENTION":   return "Law in retention"
         case "RETRACTED":   return "Rectracted law"
-        return "<unknown>"
-      }
+	  }
+	  return "<unknown>";
     },
 
     createdByCurrentUser() {
@@ -98,17 +98,17 @@ export default {
 
     timelineEvents() {
       if (this.law.status === "IDEA") return [
-        { percent: "5", above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
       ]
       if (this.law.status === "PROPOSAL") return [
-        { percent:  "5", above: moment(this.law.createdAt).format('L'), below: "created" },
-        { percent: "90", above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: 90, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
       ]
       if (this.law.status === "ELABORATION" || this.law.status === "VOTING") return [    // implies    this.law.poll !== undefined && this.law.poll !== null
-        { date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
-        { date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
-        { date: new Date(this.law.poll.votingStartAt), above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
-        { date: new Date(this.law.poll.votingEndAt), above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
+        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
+        { percent: 33, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+        { percent: 66, date: new Date(this.law.poll.votingStartAt), above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
+        { percent: 90, date: new Date(this.law.poll.votingEndAt), above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
       ]
       //MAYBE: if (this.law.status === "LAW")
       if (this.law.status === "RETENTION") {
