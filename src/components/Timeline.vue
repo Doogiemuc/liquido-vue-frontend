@@ -22,7 +22,7 @@
    */
 
 <template>
-	<div class="timeline" :style="{ height: height+'px' }" >
+	<div class="timeline" :style="{ height: height+'px' }">
 		<div class="timeline_grey"></div>
 		<span class="filling_line" v-bind:style="{ width: this.fillingLineWidth+'%' }"></span>
 		<span :class="arrowClass"></span>
@@ -39,6 +39,7 @@
 			</ol>
 		</div>
 	</div>
+	
 </template>
 
 
@@ -130,7 +131,8 @@
 	},
 
 	/**
-	 * When no dates are given for events that calculate percentage values from the given dates. 
+	 * When percentage values are given then these will be used
+	 * When only date values are given then calculate percentage values from the given dates. 
 	 */
 	created () {
 		this.events.forEach(event => {
@@ -142,9 +144,7 @@
 			}
 			event.percent = this.limit(event.percent, 0, 100)
 		})
-		console.log("Filling up to ", this.fillToDate)
 		if (this.fillToDate && typeof this.fillToDate.getMonth === 'function') {
-			console.log("Filling up to ", this.fillToDate)
 			this.fillUpTo(this.fillToDate)
 		}
 	}

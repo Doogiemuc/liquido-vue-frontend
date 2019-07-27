@@ -6,12 +6,7 @@
 	</div>
   </div>
   <div v-else class="container" id="ProposalShow">
-  	<h1 v-if="proposal.status === 'IDEA'">Idea</h1>
-  	<h1 v-else-if="proposal.status === 'PROPOSAL'">Proposal</h1>
-	<h1 v-else-if="proposal.status === 'ELABORATION'">Proposal in elaboration</h1>
-  	<h1 v-else-if="proposal.status === 'VOTING'">Proposal in voting phase</h1>
-  	<h1 v-else-if="proposal.status === 'LAW'">Law</h1>
-	<h1 v-else-if="proposal.status === 'DROPPED'">Dropped Proposal</h1>
+  	<h1>{{statusLoc}}</h1>
 
 	<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
 
@@ -186,8 +181,23 @@ export default {
 
 
 	computed: {
+		//TODO: localize translations
+		statusLoc() {
+			switch(this.proposal.status) {
+				case "IDEA":        return "Idea"
+				case "PROPOSAL":    return "Proposal"
+				case "ELABORATION": return "Proposal in elaboration"
+				case "VOTING":      return "Proposal in voting"
+				case "LAW":         return "Law"
+				case "DROPPED":     return "Dropped law"
+				case "RETENTION":   return "Law in retention"
+				case "RETRACTED":   return "Rectracted law"
+			}
+			return "<???>";
+		},
+
 		showAsReadOnly() {
-			return this.proposal.status !== 'IDEA' && this.proposal.status !== 'PROPOSAL' && this.proposal.status !== "ELABORATION"
+			return this.proposal.status === 'DROPPED'
 		},
 		nameByStatus: function() {
 			if (this.proposal.status === 'IDEA') return "idea"

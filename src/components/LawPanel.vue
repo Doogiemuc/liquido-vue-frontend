@@ -99,23 +99,28 @@ export default {
     },
 
     timelineEvents() {
-      if (this.law.status === "IDEA") return [
-        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
-      ]
-      if (this.law.status === "PROPOSAL") return [
-        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
-        { percent: 90, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
-      ]
-      if (this.law.status === "ELABORATION" || this.law.status === "VOTING") return [    // implies    this.law.poll !== undefined && this.law.poll !== null
-        { percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" },
-        { percent: 33, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
-        { percent: 66, date: new Date(this.law.poll.votingStartAt), above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
-        { percent: 90, date: new Date(this.law.poll.votingEndAt), above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
-      ]
-      //MAYBE: if (this.law.status === "LAW")
-      if (this.law.status === "RETENTION") {
-        //TODO: show how long until retracted
-      }
+		var events = [
+			{ percent: 10, date: new Date(this.law.createdAt), above: moment(this.law.createdAt).format('L'), below: "created" }
+		]
+		if (this.law.status === "IDEA") {
+			// add no event
+		} else
+    	if (this.law.status === "PROPOSAL") {
+			events.push(
+				{ percent: 90, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"}
+			)
+		} else {
+			events.push(
+        		{ percent: 33, date: new Date(this.law.reachedQuorumAt), above: moment(this.law.reachedQuorumAt).format('L'), below: "Quorum<br/>reached"},
+        		{ percent: 66, date: new Date(this.law.poll.votingStartAt), above: moment(this.law.poll.votingStartAt).format('L'), below: "Voting<br/>start"},
+        		{ percent: 90, date: new Date(this.law.poll.votingEndAt), above: moment(this.law.poll.votingEndAt).format('L'), below: "Voting<br/>end"}
+			)
+		}
+    	//MAYBE: if (this.law.status === "LAW")
+    	if (this.law.status === "RETENTION") {
+        	//TODO: show how long until retracted
+		}
+		return events
     }
   },
 
