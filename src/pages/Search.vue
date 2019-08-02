@@ -53,28 +53,28 @@ export default {
     TableSupportButton,
   },
   
-  /* 
-  //TODO: make it possible to jump to the search page with an initial query
+
   props: {
-  	initQuery: 
+  	initQuery: { type: Object, required: false }
   },
-  */
+
 
   data () {
     var that = this
     return {
       // Data for DoogieTable.vue
       tableColumns: [
+		{ title: "", path: "status", vueFilter: 'statusIcon', rawHTML: true},  
         { title: "Title", path: "title", editable: false, rawHTML: false },
         { title: "Description", path: "description", editable: false, rawHTML: true },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true },
         { htmlTitle: '<i class="fas fa-thumbs-up"></i>',
-				  path: "numSupporters",
-					cellComponent: TableSupportButton,       // this cell has its own Vue component that is interactive
-					cellComponentProps: {
+			path: "numSupporters",
+			cellComponent: TableSupportButton,       // this cell has its own Vue component that is interactive
+			cellComponentProps: {
             supporterAdded: this.supporterAdded
           }
-				},
+		},
         { htmlTitle: '<i class="fa fa-bookmark"></i>', path: "area.title", vueFilter: 'makeSmall', rawHTML: true },
         { title: "Created", path: "createdAt", vueFilter: 'localizeDateSmall', rawHTML: true },
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
@@ -88,8 +88,8 @@ export default {
       sortOrder: undefined,
       debouncedReload: function() {},
 
-			//===== data for DoogieFilter.vue
-			filtersConfig: [
+	  //===== data for DoogieFilter.vue
+	  filtersConfig: [
         {
           type: "textSearch",
           id: "textSearch",
@@ -123,13 +123,13 @@ export default {
           id: "createdByEmail",
           name: "Created by",
           options: [],
-					onChange: function(filter, newValue, oldValue) {
-						var currentUser = this.$root.currentUser
-						if (currentUser.email !== newValue) {
-							console.log("clearFilter(createdByYouId)")
-							this.clearFilter("createdByYou")
-						}
-					}
+		  onChange: function(filter, newValue, oldValue) {
+			var currentUser = this.$root.currentUser
+			if (currentUser.email !== newValue) {
+				//console.log("clearFilter(createdByYouId)")
+				this.clearFilter("createdByYou")
+			}
+		  }
         },
         {
           type: "toggleButton",
@@ -139,11 +139,11 @@ export default {
             if (newValue) {
               var currentUser = this.$root.currentUser
               // When "My Ideas" is clicked, then also set the value of the other CreatedBy filter
-              console.log("toggle ACTIVATE createdByYou", this)
+              //console.log("toggle ACTIVATE createdByYou", this)
               //this is the DoogieTableFilter component
               this.setFilterValue('createdByEmail', currentUser.profile.name, currentUser.email)
             } else {
-              console.log("toggle DEactive - clearFilter createdById")
+              //console.log("toggle DEactive - clearFilter createdById")
               this.clearFilter('createdByEmail')
             }
           },
@@ -217,11 +217,11 @@ export default {
       this.$root.api.patch(ideaURI, patchedIdea)
     },
 
-		/**
+	/**
      * Called when the advanced filters above the table have changed. Then we reload all the data from the backend.
      * @param {object} newFilters the new filter configuration
      */
-		tableFiltersChanged(newFilters) {
+	tableFiltersChanged(newFilters) {
       // reload immideately if we do not have any data. Otherwise debounce quick filter changes into one final call to the backend
       if (this.laws.length === 0) {
         this.reloadFromServer()
@@ -237,11 +237,11 @@ export default {
       this.reloadFromServer()
     },
 
-		/**
-		 * callback when supporter was added.
-		 * @param {object} idea the supported idea, proposal or law <b>IN ITS OLD STATE!!!</b>. Needs to be reloaded!
-		 */
-		supporterAdded(idea) {
+	/**
+	 * callback when supporter was added.
+	 * @param {object} idea the supported idea, proposal or law <b>IN ITS OLD STATE!!!</b>. Needs to be reloaded!
+	 */
+	supporterAdded(idea) {
       this.$root.api.addSupporterToIdea(idea, this.$root.currentUser).then(res => {
         iziToast.success({
           title: 'Liked',
@@ -253,36 +253,47 @@ export default {
     /** When user clicks on the title of an idea, then open that idea */
     cellClicked(idea, col) {
       if (col.path === "title") {
-        this.$router.push('/ideas/'+idea.id)
+		switch(idea.status) {
+			case "IDEA":
+				this.$router.push('/ideas/'+idea.id)
+				break;
+			case "PROPOSAL":
+			case "ELABORATION":
+			case "VOTING":
+				this.$router.push('/proposals/'+idea.id)
+				break;
+			default:
+				this.$router.push('/laws/'+idea.id)
+				break;
+		}
       }
     },
 
     /**
      * Reload (filtered) tabledata from the server.
      */
-		reloadFromServer() {
+	reloadFromServer() {
       this.tableMessage = "loading ..."
       $('#loadingIcon').addClass('fa-spin')
       var query = this.getSearchQuery()
       this.$root.api.findByQuery(query).then(result => {
-				this.laws = result._embedded.laws || []
-        this.totalElements = result.totalElements
-				if (this.laws.length === 0) {
-          this.tableMessage = "Empty data"
-        } else if (this.laws.length < this.totalElements) {
-          this.tableMessage = "ready to load more rows ..."
-        }
-        this.$refs.SearchTable.setRowData(this.laws)
-        $('#loadingIcon').removeClass('fa-spin')
-			})
-			.catch(err => {
-        console.error("ERROR loading table data: ", err)
-        this.tableMessage = "Error loading table data!"
-        $('#loadingIcon').removeClass('fa-spin')
-        //$('#loadingIcon').addClass('loadingError')
-      })
-
-		},
+			this.laws = result._embedded.laws || []
+        	this.totalElements = result.totalElements
+			if (this.laws.length === 0) {
+          		this.tableMessage = "Empty data"
+        	} else if (this.laws.length < this.totalElements) {
+          		this.tableMessage = "ready to load more rows ..."
+        	}
+        	this.$refs.SearchTable.setRowData(this.laws)
+        	$('#loadingIcon').removeClass('fa-spin')
+		})
+		.catch(err => {
+        	console.error("ERROR loading table data: ", err)
+        	this.tableMessage = "Error loading table data!"
+        	$('#loadingIcon').removeClass('fa-spin')
+        	//$('#loadingIcon').addClass('loadingError')
+      	})
+	},
 
     /** Dynamically append additional rows to the bottom of the table */
     appendData(rowData) {
@@ -290,7 +301,7 @@ export default {
         this.tableMessage = undefined
         return;      // all data is already loaded
       }
-      console.log("loading additional table data")
+      //console.log("loading additional table data")
       this.tableMessage = "loading additional data ..."
       var query = this.getSearchQuery(rowData.length)
       this.$root.api.findByQuery(query).then(result => {
@@ -299,7 +310,7 @@ export default {
         this.tableMessage = "ready to load more rows ..."
         this.$refs.SearchTable.appendRowData(newLaws)
       })
-      .catch(err => { console.log("ERROR appending to search result: ", err) })
+      .catch(err => { console.error("ERROR appending to search result: ", err) })
 
     }
 
@@ -317,16 +328,44 @@ export default {
     this.$root.api.getAllUsers().then(users => {
       this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
     })
-    this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
+	this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
   },
 
   mounted() {
-    this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
+	// set filterConfig from passed initial query
+	if (this.initQuery) {
+		for (var filterId in this.initQuery) {
+			switch (filterId) {
+				case "areaId":
+					this.$refs.tableFilter.setFilterValue("category", this.initQuery[filterId])
+					break;
+				case "textSearch":
+					this.$refs.tableFilter.setFilterValue("textSearch", this.initQuery[filterId])   	// test seach has only one value
+					break;
+				case "statusList":
+					this.$refs.tableFilter.setFilterValue("status", null, this.initQuery[filterId])   	// newDisplayValue of MulitSelect will be automatically calculated
+					break;
+				case "createdByYou":
+					this.$refs.tableFilter.setFilterValue("createdByYou", this.initQuery[filterId])   	// newValue = true or false
+					break;
+			}
+		}
+	} else {
+		this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
+	}
   },
 
   /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
   filters: {
-    userAvatar(user) {
+	statusIcon(status) {
+		switch(status) {
+			case "IDEA": return '<i class="far fa-lightbulb"  aria-hidden="true"></i>'
+			case "LAW":  return '<i class="fa  fa-university" aria-hidden="true"></i>'
+		}
+		return '<i class="fa fa-file-alt" aria-hidden="true"></i>'
+	},
+	
+	userAvatar(user) {
       return '<img src="'+user.profile.picture+'" title="'+user.profile.name +' <'+ user.email +'>" />'
     },
 

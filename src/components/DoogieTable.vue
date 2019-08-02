@@ -52,6 +52,7 @@
         <tr>
           <th v-if="showRowNumbers">&nbsp;</th>
           <th v-for="col in columns"
+		    :key="col.id"
             @click="clickHeader(col)"
             :class="{active: sortByCol == col}">
             <span v-if="col.htmlTitle" v-html="col.htmlTitle"></span>
@@ -65,7 +66,7 @@
           <th v-if="showRowNumbers">
             {{index + 1}}
           </th>
-          <td v-for="col in columns" v-bind:class="{'selectedRow':highlightRow(row)}"  @click="cellClicked(row, col, $event)">
+          <td v-for="col in columns" :key="col.id" v-bind:class="{'selectedRow':highlightRow(row)}"  @click="cellClicked(row, col, $event)">
             <div :style="fixedRowHeightStyle">
               <editable-cell
                 v-if="col.editable"

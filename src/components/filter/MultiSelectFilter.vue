@@ -5,7 +5,7 @@
     </button>
     <div class="dropdown-menu" @click="clickDropdown">
       <ul class="selectList">
-        <li v-for="option in options" @click="toggleOption"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes"/>&nbsp;{{option.displayValue || option.value}}</li>
+        <li v-for="option in options" :key="option.value" @click="toggleOption"><input type="checkbox" :value="option.value" v-model="selectedCheckboxes"/>&nbsp;{{option.displayValue || option.value}}</li>
       </ul>
       <div role="separator" class="selectDivider"></div>
       <button type="button" class="btn btn-primary btn-xs applyButton" @click="applyCheckboxes">Apply</button>

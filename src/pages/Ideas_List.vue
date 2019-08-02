@@ -7,7 +7,7 @@
   <p>An idea is a spontaneous suggestions for improvement. Everyone may add an idea at any time. But an idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters, before it becomes a proposal.
     If you want to support an idea, then click its like button.</p>
 
-  <p>You can search for ideas and proposals on the <router-link to="search">search page.</router-link>
+  <p>You can search for ideas and proposals on the <router-link to="search">search page.</router-link>. For example <router-link :to="{ name: 'search', params: { initQuery: { textSearch: 'testXX' }}}" >all your ideas.</router-link>
 
   <div class="row">
     <div class="col-sm-6">

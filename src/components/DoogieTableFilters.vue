@@ -1,6 +1,6 @@
 <template>
 	<div class="filtersOuterWrapper">
-    <div v-for="filter in filtersConfig" class="filterWrapper">
+    <div v-for="filter in filtersConfig" :key="filter.id" class="filterWrapper">
 
       <!-- Vue component for this filter. Automatically bind all filter attributes to child component. Required is id.  Most filters require a single 'value' or an 'options' array -->
       <component
@@ -28,10 +28,10 @@ import toggleButton from '../components/filter/toggleButtonFilter'
 
 /**
  * Filter functionality for rows in DoogieTable.
- * Do not confuse this with Vue's "filters" !!! Vue's filters are for string conversion in vue templates, e.g. {{ value | capitalize }}
+ * Do not confuse this with Vue's "filters"!!! Vue's filters are for string conversion in vue templates, e.g. {{ value | capitalize }}
  * And by the way they should be called converters by Vue.
  *
- * This component offers powerfull filters that can be dynamically be combined. Maybe you know the filters of JIRA.
+ * This component offers powerfull filters that can be dynamically combined. They are similiar to the filter functionality of the well-known Attlasian JIRA software.
  */
 export default {
   props: {
@@ -44,6 +44,7 @@ export default {
     }},
   },
 
+  /** The available types of filters. Each filter is a vue component. */
   components: {
     textSearch,
     singleSelect,
@@ -56,7 +57,7 @@ export default {
   data () {
     return {
       filterConfigsById: {},    // the filtersConfig array mapped to an object with filter.ids as keys
-      currentFilters: {},       // { filterID: value, ... } for all active filters. Contains only IDs and values. Not andy displayNames.
+      currentFilters: {},       // { filterID: value, ... } for all active filters. Contains only IDs and values. Not any displayNames.
     }
   },
 
@@ -66,17 +67,17 @@ export default {
       You might want to listen to this and then (debounced) reload your table data.
      */
     currentFilters: {
-      handler: function(newFilters) {
-				this.$emit('tableFiltersChanged', newFilters)
-      },
-      deep: true
+    	handler: function(newFilters) {
+			this.$emit('tableFiltersChanged', newFilters)
+    	},
+    	deep: true
     }
   },
 
   methods: {
     /**
      * Set the value of one filter. This will fire the filterChanged event.
-     * @param {String} filterId of one element from your filtersConfig array
+     * @param {String} filterId id of one element from your filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
      * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
@@ -106,7 +107,7 @@ export default {
 
   /**
    Add one watcher for every filter. When the value of a filter changes then emit an "filterChanged" event.
-   This is one event per filter. There is also the global tableFitlersChanged event.
+   There is one event per filter. And there is also a global tableFitlersChanged event that you can subscribe to.
    */
   mounted() {
     this.filtersConfig.forEach(filter => {

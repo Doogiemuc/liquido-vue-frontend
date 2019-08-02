@@ -13,8 +13,8 @@
 				<h4>Poll title (editable)</h4>
 			</div -->
 			<div class="panel-body ballot-body">
-				<p>Before you create a new poll, you should consider joining an already existing poll in this area. There must be at least two proposals in a poll
-				before the voting phase can start.</p>
+				<p if="pollsInElaboration.length > 0">Before you start a new poll, you should consider joining an already existing poll. 
+					There {{pollsInElaboration.length == 1 ? 'is one poll' : 'are '+loadPollsInElaboration.length+' polls'}} in this area that you can join.</p>
 				
 				<p>
 					<input type="text" class="form-control" name="pollTitle" id="pollTitleId" v-model="pollTitle" placeholder="Poll title" >
@@ -25,7 +25,15 @@
 			</div>
 		</div>
 
-		<law-panel v-if="proposal" :law="proposal"></law-panel>
+		<div class="row">
+			<div class="col-sm-6">
+				<law-panel v-if="proposal" :law="proposal"></law-panel>
+			</div>
+			<div class="col-sm-6">
+				<p v-if="proposalsToInvite.length > 0">There are {{proposalsToInvite.length}} other proposals in this area. If one of them might be an alternative proposal for this poll, then you can invite 
+					its creator to join this poll.</p>					
+			</div>
+		</div>		
 
 	</div>
 </template>
@@ -44,7 +52,9 @@ export default {
 
 	data () {
 		return {
-			pollTitle: "",			
+			pollTitle: "",		
+			pollsInElaboration: [],
+			proposalsToInvite: []	
 		}
 	},
 
@@ -63,9 +73,28 @@ export default {
 			log.warn("Cannot create new poll without a proposal.")
 			this.$router.push('/polls')
 		} 
+		this.loadPollsInElaboration()
+		this.loadProposalsToInvite()
 	},
 
 	methods: {
+		loadPollsInElaboration() {
+			this.$root.api.findPollsByStatusAndArea("ELABORATION", '/areas/'+this.proposal.area.id)
+				.then(res => { this.pollsInElaboration = res } )
+		},
+
+		loadProposalsToInvite() {
+			var query = {
+				statusList: ['PROPOSAL'],
+				areaId: this.proposal.area.id
+			}
+			this.$root.api.findByQuery(query)
+				.then(res => { 
+					console.log(res)
+					this.proposalsToInvite = res._embedded.laws
+				})
+		},
+
 		createNewPoll() {
 			log.info("Creating a new poll with proposal.id="+this.proposal.id)
 			var poll = {

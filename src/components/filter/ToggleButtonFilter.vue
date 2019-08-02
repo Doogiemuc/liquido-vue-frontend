@@ -10,7 +10,7 @@
 export default {
   props: {
     id: { type: String, required: true },						// id of this filter
-		name: { type: String, required: false, default: function() { return this.id } },			    // name of the input field
+	name: { type: String, required: false, default: function() { return this.id } },			    // name of the input field
   },
 
   data () {

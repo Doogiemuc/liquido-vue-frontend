@@ -13,6 +13,9 @@
 		</h1>
 
 		<div v-if="poll.status === 'ELABORATION'" class="panel panel-default">
+			<div class="panel-heading">
+				<h4>{{poll.title}}</h4>
+			</div>
 			<div class="panel-body">
 				<p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
 					Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>

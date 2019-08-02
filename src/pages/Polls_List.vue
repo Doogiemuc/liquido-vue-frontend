@@ -4,16 +4,16 @@
       <div class="col-sm-6" id="pollsInElaboration">
         <h2>Polls in elaboration phase</h2>
         <p>The proposals in these polls can be discussed and improved.</p>
-				<poll-panel v-for="poll in pollsInElaboration" :poll="poll"></poll-panel>
+		<poll-panel v-for="poll in pollsInElaboration" :key="poll.id" :poll="poll"></poll-panel>
 
         <h2>Recently finished polls</h2>
         <p>Polls that have a winning proposal.</p>
-        <poll-panel v-for="poll in finishedPolls" :poll="poll"></poll-panel>
+        <poll-panel v-for="poll in finishedPolls" :key="poll.id" :poll="poll"></poll-panel>
       </div>
       <div class="col-sm-6" id="pollsInVoting">
         <h2>Polls currently open for voting</h2>
         <p>You can cast your ballot in these polls.</p>
-				<poll-panel v-for="poll in pollsInVotingPhase" :poll="poll"></poll-panel>
+		<poll-panel v-for="poll in pollsInVotingPhase" :key="poll.id" :poll="poll"></poll-panel>
   	  </div>
     </div>
   </div>

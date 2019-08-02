@@ -24,7 +24,7 @@
 	      	<p>Your idea reached its quorum and now became a proposal. It can now be discussed. You should carefully consider and respect the suggestions for improvements below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
 	        <ul class="startJoinList">
 	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Join an existing poll</button> - Add your proposal as an alternative suggestion to an existing poll.</li>
-	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
+	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch" @click="startNewPoll">Start a new poll</button> - You then need alternative suggestions before the voting phase can start.</li>
 			</ul>
 	      </div>
 	      <div v-else-if="proposal.status === 'ELABORATION'">
@@ -229,8 +229,11 @@ export default {
 			this.$router.push('/polls/'+this.proposal.poll.id)
 		},
 
-		editProposal() {
-			//TODO: this.$router.push('/proposals/'+this.proposal.id+"/edit")
+		/** Create a new poll with the current proposal	*/
+		startNewPoll() {
+			this.$router.push({name: 'pollAdd', params: {
+				proposal: this.proposal  // pass the proposal as full JSON
+			}})
 		},
 
 		joinPoll() {

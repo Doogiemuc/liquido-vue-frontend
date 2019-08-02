@@ -3,17 +3,16 @@
   <h1><i class="fa far fa-file-alt"></i> Proposals</h1>
   <p>When an idea reaches its quorum, then it becomes a proposal. A proposal can be further discussed and improved. The creator of a proposal can either start a new poll
     or he can join his proposal into an already existing poll.</p>
-  <p>You can search for ideas and proposals on the <router-link to="search">search page.</router-link></p>
-
+  <button type="button" class="btn btn-xs btn-default pull-right" @click="showUsersOwnProposals">Your proposals <i class="fa fa-angle-double-right"></i></button>
+  <p>You can search for ideas and proposals on the <router-link to="search">search page</router-link>.
+  
   <div class="row">
     <div class="col-sm-6">
       <law-list :laws="recentProposals" id="recentlyNewProposals" lawListTitle="Recently new proposals"></law-list>
     </div>
     <div class="col-sm-6">
       <law-list :laws="recentlyDiscussed" id="trendingProposals" lawListTitle="Trending proposals"></law-list>
-      <p>
-      	<button type="button" class="btn btn-default" @click="showUsersOwnProposals()">Your proposals</button>
-      </p>
+     
     </div>
   </div>
 
@@ -43,10 +42,10 @@ export default {
   	/* Jump to search page and show all proposals that were created by this user */
 	showUsersOwnProposals() {
 		var query = {
-			status: ["PROPOSAL", "ELABORATION" ],
-			createdBy: this.$root.currentUser
+			statusList: ["PROPOSAL", "ELABORATION" ],
+			createdByYou: true
 		}
-		//TODO: this.$router.push('/search?query='+query)
+		this.$router.push( { name: 'search', params: { initQuery: query }})
 	}
   },
 
