@@ -21,7 +21,7 @@
 					<tr>
 						<td><img :src="law.createdBy.profile.picture" class="media-object avatarImg"></td>
 						<td class="userDataSmall">
-							<i class="far fa-fw fa-user" aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
+							<i class="far fa-fw fa-user"  aria-hidden="true"></i>&nbsp;{{law.createdBy.profile.name}}<br/>
 							<i class="far fa-fw fa-clock" aria-hidden="true"></i>&nbsp;{{getFromNow(law.createdAt)}}
 						</td>
 						<td class="userDataSmall">
@@ -187,8 +187,8 @@ export default {
   }
   .lawFooterTable td {
     margin: 0;
-		padding: 0;
-		border: none;
+	padding: 0;
+	border: none;
   }
   .userDataSmall {
     color: #999;

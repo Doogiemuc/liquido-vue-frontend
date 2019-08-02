@@ -783,6 +783,19 @@ module.exports = {
       voterToken: voterToken
     }})
     .then(res => { return res.data })
+  },
+
+  /**
+   * Verify if a ballot with that checksum was counted in the poll
+   * @param {Number} pollId id of a poll
+   * @param {String} checksumStr a checksum to verify
+   * @return true, if a ballot with that checksum exists in this poll
+   */
+  verifyChecksum(pollId, checksum) {
+	  return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
+		  checksum: checksum
+	  }})
+	  .then(res => { return res.data })
   }
 
 }

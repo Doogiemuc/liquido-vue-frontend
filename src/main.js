@@ -90,6 +90,7 @@ const routes = [
 
   // ======================= Proposals =======================
   { path: '/proposals',
+    name: 'proposals',
     component: function(resolve) {
       require(['./pages/Proposals_List.vue'], resolve)
     }
@@ -103,6 +104,7 @@ const routes = [
 
   // ======================= Laws =======================
   { path: '/laws',
+  	name: 'laws',
     component: function(resolve) {
       require(['./pages/Laws_List.vue'], resolve)
     }
@@ -116,6 +118,7 @@ const routes = [
 
   // ======================= Polls =======================
   { path: '/polls',
+    name: 'polls',
     component: function(resolve) {
       require(['./pages/Polls_List.vue'], resolve)
     }

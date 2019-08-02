@@ -12,7 +12,7 @@
       </div>
       <div class="col-sm-6" id="pollsInVoting">
         <h2>Polls currently open for voting</h2>
-        <p>You can cast your ballot in these polls.</p>
+        <p>You can cast your vote in these polls.</p>
 		<poll-panel v-for="poll in pollsInVotingPhase" :key="poll.id" :poll="poll"></poll-panel>
   	  </div>
     </div>

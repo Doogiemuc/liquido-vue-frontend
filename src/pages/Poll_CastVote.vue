@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div v-if="delegationCount > 0 || numDelReq > 0" class="panel panel-default">
+    <div v-if="delegationCount > 0 || numDelReq > 0" class="panel panel-default delegationPanel">
       <div class="panel-heading">
         <h3 class="panel-title">Delegations to you as a proxy</h3>
       </div>
@@ -55,11 +55,11 @@
             <span v-show="numDelReq === 0" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
             <p v-if="numDelReq == 1">
               A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
-              Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy.
+              Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
             </p>
             <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
               Do you want to accept these requests? These voters would then be able to see how you voted. But only them because you are their proxy.
-              Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote).
+              Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote). This step is optional.
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
               Accept delegation requests
@@ -93,8 +93,6 @@
         </div>
       </div>
     </div><!-- /.panel -->
-
-
 
     <button v-if="step3_status === 'success'" type="button" id="gotoPollButton" class="btn btn-primary pull-right" @click="goToPoll">
       Go to poll <i class="fas fa-angle-double-right"></i>
@@ -330,6 +328,11 @@ export default {
 
   .ballot-body {
     background-color: #F9F9F9;
+  }
+
+  .delegationPanel {
+	  margin-left: 5%;
+	  margin-right: 5%;
   }
 
   .expandButton {

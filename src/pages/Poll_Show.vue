@@ -25,16 +25,19 @@
 		</div>
 
 		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
+			<div class="panel-heading">
+				<h4>{{poll.title}}</h4>
+			</div>
 			<div class="panel-body">
 				<p>The voting phase of this poll has started. There are {{untilVotingEnd}} left until the voting phase will close.</p>
 				<timeline ref="pollTimeline" :height="80" :fillToPercent="60" :events="timelineEvents"></timeline>
-				<button type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
-					Cast vote <i class="fas fa-angle-double-right"></i>
-				</button>
 			</div>
 		</div>
 
 		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
+			<div class="panel-heading">
+				<h4>{{poll.title}}</h4>
+			</div>
 			<div class="panel-body">
 				<p>This poll is finished. The winning proposal is now a law.</p>
 				<timeline ref="pollTimeline" :height="80" :fillToPercent="100" :events="timelineEvents"></timeline>
@@ -57,6 +60,10 @@
 				</ol>
 			</div>
 		</div>
+
+		<button v-if="poll.status==='VOTING'" type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
+			Cast vote <i class="fas fa-angle-double-right"></i>
+		</button>
 
 		<div class="row" v-if="poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
@@ -103,6 +110,15 @@
 					</tr>
 				</tbody>
 			</table>
+
+			<h3>Verify checksum</h3>
+			<p>Here you can check, if your vote was counted correctly in this poll. If you voted in this poll, you should have received a checksum for your ballot that you can verify here.</p>
+			<div class="form form-inline">
+				<input type="text" class="form-control" name="checksum" id="checksumInput" v-model="checksum" placeholder="">
+				<button type="button" class="btn btn-default" v-bind:disabled="disableChecksumButton" @click="verifyChecksum">Verify checksum</button>
+			</div>
+			<div v-if="checksumValidity === 'valid'" class="alert alert-success checksumAlert" role="alert">This checksum is valid and your ballot was counted in this poll.</div>
+			<div v-if="checksumValidity === 'invalid'" class="alert alert-danger checksumAlert" role="alert">This checksum is <b>not</b> valid</div>
 		</div>
 
 		<br/>
@@ -155,6 +171,8 @@ export default {
 			userProposals: [],											// all the proposals of the currently logged in user in this area (needed for joining the poll)
 			searchVal: "",
 			selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
+			checksum: undefined,
+			checksumValidity: undefined,
 		}
 	},
 
@@ -204,7 +222,11 @@ export default {
 		//join proposal button is only active, when one of the user's proposal has been selected
 		joinProposalButtonClass() {
 			return { 'disabled' : this.selectedUserProposal === undefined }
+		},
+		disableChecksumButton() {
+			return this.checksum === undefined || this.checksum.length < 10
 		}
+
 	},
 
 	created() {
@@ -353,6 +375,13 @@ export default {
 			return "tie"
 		},
 
+		verifyChecksum() {
+			this.$root.api.verifyChecksum(this.pollId, this.checksum)
+				.then(res => {
+					this.checksumValidity = res.valid ? 'valid' : 'invalid'
+				})
+		},
+
 	}
 }
 </script>
@@ -390,6 +419,9 @@ export default {
 	}
 	.tie {
 		background: #EEE;
+	}
+	.checksumAlert {
+		margin-top: 1em;
 	}
 </style>
 
