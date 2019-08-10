@@ -10,8 +10,6 @@
       <!-- left column: public and general things -->
       <div class="col-sm-6">
 
-        <poll-panel v-for="poll in openForVotingPolls" :poll="poll"></poll-panel>
-
         <law-list :laws="supportedProposals" lawListTitle="Proposals supported by you"></law-list>
 
       </div>
@@ -26,24 +24,23 @@
           <div class="panel-body">
             <div class="media">
               <div class="media-left">
-                <i class="far fa-lightbulb fa-2x"></i>
+                <i class="far fa-share-square fa-2x"></i>
               </div>
               <div class="media-body">
                 <small class="pull-right text-muted">4 hours ago</small>
-                <h4 class="media-heading">Idea reaches 100 likes</h4>
+                <h4 class="media-heading">Delegation requests</h4>
                 <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöl
+                  10 other voters would like to delegate their vote in the area XYZ to you as their proxy. Do you want to accept these delegations?
                 </p>
               </div>
             </div>
 
             <div class="media">
               <div class="media-left">
-                <i class="fas fa-poll fa-2x"></i>
+                <i class="fas fa-balance-scale-left fa-2x"></i>
               </div>
               <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
+                <small class="pull-right text-muted">2 days ago</small>
                 <h4 class="media-heading">Voting for your poll has started</h4>
                 <p>
                   Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
@@ -57,7 +54,7 @@
                 <i class="far fa-file-alt fa-2x"></i>
               </div>
               <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
+                <small class="pull-right text-muted">15 minutes ago</small>
                 <h4 class="media-heading">New comments on your proposal</h4>
                 <p>
                   Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
@@ -73,8 +70,8 @@
             <h4>Your ideas that recently reached their quorum</h4>
           </div>
           <ul class="list-group">
-            <li v-for="proposal in reachedQuorum" class="list-group-item item-condensed">
-              <router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-lightbulb "></i> {{proposal.title}}</router-link>
+            <li v-for="proposal in reachedQuorum" :key="proposal.id" class="list-group-item item-condensed">
+              <router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
             </li>
           </ul>
         </div>

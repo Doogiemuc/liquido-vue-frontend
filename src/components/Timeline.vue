@@ -29,7 +29,7 @@
 		<div class="eventsWrapper">
 			<ol class="eventsList">
 			  <li v-for="event in this.events"
-			      :key="event.above"
+			      :key="event.above+'#'+event.below"
 				  class="timeline_event circle"
 				  v-bind:style="{ left: event.percent+'%'}"
 				  v-bind:class="{ filledCircle: isFilled(event) }" >

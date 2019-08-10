@@ -26,8 +26,11 @@
 						</td>
 						<td class="userDataSmall">
 							<i class="far fa-fw fa-bookmark" aria-hidden="true"></i>&nbsp;{{law.area.title}}<br/>
-							<span v-if="law.poll !== null">
+							<span v-if="law.poll !== null && readOnly">
 								<i class="fas fa-balance-scale"></i>&nbsp;Poll({{law.poll.numCompetingProposals}})
+							</span>
+							<span v-if="law.poll !== null && !readOnly">
+								<i class="fas fa-balance-scale"></i>&nbsp; <router-link :to="'/polls/'+law.poll.id">Poll({{law.poll.numCompetingProposals}})</router-link>
 							</span>
 						</td>
 						<td class="userDataSmall">
@@ -71,14 +74,28 @@ export default {
     },
 
     // dynamically set icon depending on law.status
-    // BUGFIX: Must be a computed prop. Not a method!
     iconForLaw() {
-      switch(this.law.status) {
-        case "IDEA":    return { "far": true, "fa-lightbulb": true }
-        case "LAW":     return { "fa-university": true }  // or balance-scale?
-        default:        return { "fa-file-alt": true }  // proposal etc
-      }
-    },
+		switch(this.law.status) {
+			case "IDEA":
+				return { "far": true, "fa-lightbulb": true }
+			case "PROPOSAL": 
+				return { "far": true, "fa-file-alt": true }
+			case "ELABORATION":
+				return { "far": true, "fa-comments": true }
+			case "VOTING":
+				return { "fas": true, "fa-vote-yea": true }
+			case "LAW":
+				return { "fas": true, "fa-balance-scale-left": true }
+			case "DROPPED":
+				return { "far": true, "fa-window-close": true }
+			case "RETENTION":
+				return { "fas": true, "fa-temperature-low": true }
+			case "RETRACTED":
+				return { "fas": true, "fa-backspace": true }
+			default:
+				return { "fas": true, "fa-university": true }
+		}
+	},
 
     statusLoc() {
       switch(this.law.status) {

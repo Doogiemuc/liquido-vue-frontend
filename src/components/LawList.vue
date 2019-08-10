@@ -11,7 +11,7 @@
             <div class="maxHeightPreviewWrapper">
               <h4 class="lawTitle">
                 <router-link v-if="!readOnly" :to="getLinkToLaw(law)">
-                  <i class="fa" :class="getIconFor(law)" aria-hidden="true"></i>&nbsp;{{law.title}}
+                  <i :class="getIconFor(law)" aria-hidden="true"></i>&nbsp;{{law.title}}
                 </router-link>
               </h4>
               <div class="maxHeightPreview" :style="previewHeightStyle">{{law.description}}</div>
@@ -24,7 +24,7 @@
               <li><span class="fa-li"><i class="far fa-user"></i></span>{{law.createdBy.profile.name}}</li>
               <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(law.createdAt)}}</li>
               <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{law.area.title}}</li>
-			  <li><span class="fa-li"><i class="fa" :class="getIconFor(law)" aria-hidden="true"></i></span>{{law.status}}</li>
+			  <li><span class="fa-li"><i :class="getIconFor(law)" aria-hidden="true"></i></span>{{law.status}}</li>
               <li v-if="law.poll !== null"><span class="fa-li"><i class="fas fa-poll"></i></span>
                 <router-link :to="'/polls/'+law.poll.id">Poll</router-link>
               </li>
@@ -66,9 +66,24 @@ export default {
     // dynamically set icon depending on law.status
     getIconFor(law) {
       switch(law.status) {
-        case "IDEA":    return { "far": true, "fa-lightbulb": true }
-        case "LAW":     return { "fa-university": true }  // or balance-scale?
-        default:        return { "fa-file-alt": true }    // proposal etc
+		case "IDEA":
+			return { "far": true, "fa-lightbulb": true }
+		case "PROPOSAL": 
+			return { "far": true, "fa-file-alt": true }
+		case "ELABORATION":
+			return { "far": true, "fa-comments": true }
+		case "VOTING":
+			return { "fas": true, "fa-vote-yea": true }
+        case "LAW":
+			return { "fas": true, "fa-balance-scale-left": true }
+		case "DROPPED":
+			return { "far": true, "fa-window-close": true }
+		case "RETENTION":
+			return { "fas": true, "fa-temperature-low": true }
+		case "RETRACTED":
+			return { "fas": true, "fa-backspace": true }
+        default:
+			return { "fas": true, "fa-university": true }
       }
     },
 

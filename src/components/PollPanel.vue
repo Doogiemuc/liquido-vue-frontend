@@ -4,7 +4,7 @@
 			<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
 				<i class="fas fa-angle-double-right"></i>
 			</router-link>
-			<h4><i class="fas fa-poll"></i>&nbsp;{{poll.title}}</h4>
+			<h4><i class="fas fa-balance-scale-left"></i>&nbsp;{{poll.title}}</h4>
 		</div>
 		<div class="panel-body poll-list" :id="pollPanelID">
 			<div v-for="(proposal, index) in poll._embedded.proposals" :key="proposal.id">
@@ -24,7 +24,7 @@
 		<div class="panel-footer footerSmall">
 			<i class="far fa-clock"></i>&nbsp;{{getFromNow(poll.createdAt)}}&nbsp;&nbsp;
 			<i class="far fa-bookmark"></i>&nbsp;{{poll._embedded.proposals[0].area.title}}&nbsp;&nbsp;
-			<i class="fas fa-poll"></i>&nbsp;{{poll.status}}&nbsp;&nbsp;
+			<i class="fas fa-balance-scale-left"></i>&nbsp;{{poll.status}}&nbsp;&nbsp;
 		</div>
 	</div>
 

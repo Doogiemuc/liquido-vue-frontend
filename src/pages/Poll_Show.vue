@@ -85,14 +85,14 @@
 			<law-panel
 				:law="poll._embedded.winner"
 				:showTimeline="false"
-				:fixedHeight="200"
 				:readOnly="true">
 			</law-panel>
 
-			<h3>Poll result - DuelMatrix</h3>
-			<p>This matrix shows the comparison between each pair of proposals. The numbers show how many voters
-			preferred the proposal of that <em>row</em> over the proposal in the <em>col header</em>. These voters sorted the proposal in that row higher in their ballot.
-			The winning proposal has the most green cells in its row.</p>
+			<p>&nbsp;</p>
+			<h3>Poll result</h3>
+			<p>This matrix shows the direct comparison between each pair of proposals. The number in each cell shows how many voters
+			preferred the proposal of that <em>row</em> over the proposal in the <em>col header</em>. That many voters sorted the proposal in that row higher in their ballot as the proposal in the col header.
+			Then the winning proposal is the one that won the most direct comparisons, ie. the proposal with the most green cells in its row.</p>
 
 			<table class="table table-bordered">
 				<thead>
@@ -111,8 +111,9 @@
 				</tbody>
 			</table>
 
-			<h3>Verify checksum</h3>
-			<p>Here you can check, if your vote was counted correctly in this poll. If you voted in this poll, you should have received a checksum for your ballot that you can verify here.</p>
+			<p>&nbsp;</p>
+			<h3>Verify your ballot</h3>
+			<p>Here you can check, if your ballot was counted correctly in this poll. If you voted in this poll, you should have received a checksum for your ballot that you can verify here.</p>
 			<div class="form form-inline">
 				<input type="text" class="form-control" name="checksum" id="checksumInput" v-model="checksum" placeholder="">
 				<button type="button" class="btn btn-default" v-bind:disabled="disableChecksumButton" @click="verifyChecksum">Verify checksum</button>
