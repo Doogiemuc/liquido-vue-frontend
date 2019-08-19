@@ -71,7 +71,12 @@ export default {
 			this.$emit('tableFiltersChanged', newFilters)
     	},
     	deep: true
-    }
+	}
+	
+	// Implementation note: 
+	// Filter watchers have a very subtle and dangerous vicious cirle: One the one hand you want to listen for changes when a filter is changed by the user via GUI.
+	// On the other hand you also want to be able to programatically set the value of a filter. Shall your listener be called in this case?
+	// Yes, it will be called. But now you MUSTN'T change the value of that filter, or you'll end up in an endless loop.
   },
 
   methods: {

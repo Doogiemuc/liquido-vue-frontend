@@ -10,7 +10,7 @@
       <div role="separator" class="selectDivider"></div>
       <div class="selectListWrapper">
       <ul class="selectList">
-        <li v-for="option in getFilteredOptions" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
+        <li v-for="option in getFilteredOptions" :key="option.value" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
@@ -45,7 +45,6 @@ export default {
 	watch: {
     // See  https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 		value: function(newValue, oldValue) {
-      console.log("SelectWithSearchFilter.value changed to ", newValue)
 			this.$emit('input', newValue)
 		},
 	},

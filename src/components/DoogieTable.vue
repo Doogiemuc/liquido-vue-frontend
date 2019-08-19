@@ -201,10 +201,15 @@ export default {
         elements: function elements(){
           return $("#bottomOfTable")
         },
+        /** When the last row of the table becomes visible */
         appear: function appear(el){
+          // and a dynamicLoadFunction is given
           if (this.dynamicLoadFunc === "function") { 
-          	// TODO: show correct message: loading, more data available, or emtpy is all data is loaded
-          	this.dynamicLoadFunc(that.rowData) 
+            // then load additional data
+            //this.message  = "Loading ..."     // Set this in your own dyamic load function (correctly localized :-)
+          	this.dynamicLoadFunc(that.rowData).then(res => {
+              //this.message = ""
+            })
           }
           that.$emit("appendData", that.rowData)
         },

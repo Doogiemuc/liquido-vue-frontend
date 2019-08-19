@@ -80,13 +80,14 @@ export default {
         { title: "Last activity", path: "updatedAt", vueFilter: 'fromNowSmall', rawHTML: true },
       ],
       lawKey: "_links.self.href",
-      tableMessage: "loading ...",
+      tableMessage: "",
 
       laws: [],
       totalElements: 0,   // total overall number of available rows from backend
       sortByCol: undefined,
       sortOrder: undefined,
-      debouncedReload: function() {},
+      debouncedReload: undefined,
+      listenToTableFilterChanges: false,  // initially we do not yet listen to changes in table fitlers. Will be activated in mounted()
 
 	  //===== data for DoogieFilter.vue
 	  filtersConfig: [
@@ -140,7 +141,7 @@ export default {
               var currentUser = this.$root.currentUser
               // When "My Ideas" is clicked, then also set the value of the other CreatedBy filter
               //console.log("toggle ACTIVATE createdByYou", this)
-              //this is the DoogieTableFilter component
+              //"this" is the DoogieTableFilter component
               this.setFilterValue('createdByEmail', currentUser.profile.name, currentUser.email)
             } else {
               //console.log("toggle DEactive - clearFilter createdById")
@@ -221,14 +222,10 @@ export default {
      * Called when the advanced filters above the table have changed. Then we reload all the data from the backend.
      * @param {object} newFilters the new filter configuration
      */
-	tableFiltersChanged(newFilters) {
-      // reload immideately if we do not have any data. Otherwise debounce quick filter changes into one final call to the backend
-      if (this.laws.length === 0) {
-        this.reloadFromServer()
-      } else {
-        this.debouncedReload()
-      }
-		},
+    tableFiltersChanged(newFilters) {
+      // When the table filter changes very quickly, then only load the LAST filter configuration
+      if (this.listenToTableFilterChanges) this.debouncedReload()
+	},
 
     sortingChanged(sortByCol, sortOrder) {
       //console.log("searchTable.sortingChanged", sortByCol, sortOrder)
@@ -276,16 +273,20 @@ export default {
       this.tableMessage = "loading ..."
       $('#loadingIcon').addClass('fa-spin')
       var query = this.getSearchQuery()
+      console.log("reloadFrom server", query)
       this.$root.api.findByQuery(query).then(result => {
-			this.laws = result._embedded.laws || []
-        	this.totalElements = result.totalElements
-			if (this.laws.length === 0) {
-          		this.tableMessage = "Empty data"
-        	} else if (this.laws.length < this.totalElements) {
-          		this.tableMessage = "ready to load more rows ..."
-        	}
-        	this.$refs.SearchTable.setRowData(this.laws)
-        	$('#loadingIcon').removeClass('fa-spin')
+        this.laws = result._embedded.laws || []
+        this.totalElements = result.totalElements
+        if (this.laws.length === 0) {
+        	this.tableMessage = "Empty data"
+        } else if (this.laws.length < this.totalElements) {
+        	this.tableMessage = "Ready to load more rows ..."
+        } else {
+          this.tableMessage = ""  // All rows loaded from backend
+        }
+        console.log(query, " => ", this.laws.length)
+        this.$refs.SearchTable.setRowData(this.laws)
+        $('#loadingIcon').removeClass('fa-spin')
 		})
 		.catch(err => {
         	console.error("ERROR loading table data: ", err)
@@ -328,11 +329,12 @@ export default {
     this.$root.api.getAllUsers().then(users => {
       this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
     })
-	this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
+	  this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
   },
 
   mounted() {
-	// set filterConfig from passed initial query
+  // set filterConfig from passed initial query
+  console.log("MOUNTED start")
 	if (this.initQuery) {
 		for (var filterId in this.initQuery) {
 			switch (filterId) {
@@ -350,9 +352,11 @@ export default {
 					break;
 			}
 		}
+		this.$nextTick(this.reloadFromServer)   // when new filter values have propagated through UI, then reload data from server
 	} else {
 		this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
 	}
+	this.listenToTableFilterChanges = true
   },
 
   /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
