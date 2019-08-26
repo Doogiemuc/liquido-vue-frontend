@@ -162,7 +162,8 @@ const routes = [
   { path: '/proxies',
     component: function(resolve) {
       require(['./pages/Proxies_Show.vue'], resolve)
-    }
+	},
+	name: 'proxies'
   },
   { path: '/proxies/:categoryId',
     name: 'editProxy',
@@ -170,6 +171,12 @@ const routes = [
       require(['./pages/Proxy_Edit.vue'], resolve)
     },
     props: true
+  },
+  { path: '/delegations',
+    component: function(resolve) {
+      require(['./pages/Proxies_Delegations.vue'], resolve)
+	},
+	name: 'delegations'
   },
   
   // ======================= PageNotFound =======================
@@ -199,6 +206,11 @@ router.beforeEach((to, from, next) => {
   if (to.matched.length == 0) {
     next({path: '/pageNotFound'})
   } else
+
+  console.log(process.env.NODE_ENV)
+  console.log(to.query)
+  console.log(to.query.devLoginMobilephone)
+  console.log(process.env.NODE_ENV === "development" && to.query.devLoginMobilephone)
 
   if (process.env.NODE_ENV === "development" && to.query.devLoginMobilephone) {
     log.debug("devLoginMobilephone", to.query.devLoginMobilephone)

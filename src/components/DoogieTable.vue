@@ -147,16 +147,17 @@ export default {
     highlightSelectedRow: { type: Boolean, required: false, default: false },
 
 	// CLIENT SIDE filtering of tableData. When rowFilterFunc(row) returns false, then that row will not be shown.
-    // (Keep in mind that client side filtering can only work correctly when you loaded ALL data from the backend.)
+	// Keep in mind that client side filtering can only work correctly when you loaded ALL data from the backend.
+	// NEW: Have a look at   DoogieTableFilters component for far more advanced filtering capabilities.
 	rowFilterFunc: { type: Function, required: false },
   },
 
   data () {
     return {
-      rowData: this.initialRowData || [],  // data for rows in table
-      sortByCol: this.columns[0],          // by default sort by first col (thers must be a first col!)
-      sortOrder: 1,										     // initial sort order is ascending
-      selectedRow: null								     // currently selected row
+      rowData: this.initialRowData || [],	// data for rows in table. Each row is an object.
+      sortByCol: this.columns[0],			// by default sort by first col (thers must be a first col!)
+      sortOrder: 1,							// initial sort order is ascending
+      selectedRow: null						// currently selected row
     }
   },
 
@@ -167,19 +168,18 @@ export default {
   //These computed properties are cached. See https://vuejs.org/v2/guide/computed.html#Computed-Properties
   computed: {
 
-    /**
-     Get rows that match a given filter 'this.rowFilterFunc'
-     adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
-     and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
-     This is a computed property. Its result is cached by Vue.
-     Do not confuse this with Vue's "filter" for converting values to display values!
-    */
-    filteredRowData() {
-      if (this.rowData === undefined || this.rowData.length === 0) return []
-			if (typeof this.rowFilterFunc !== "function") return this.rowData
-      return this.rowData.filter(row => this.rowFilterFunc(row))
-    },
+	/**
+	 Get rows that match a given filter 'this.rowFilterFunc'
+	 adapted from https://github.com/vuejs/vue/blob/4f5a47d750d4d8b61fe3b5b2251a0a63b391ac27/examples/grid/grid.js
+	 and updated to Vue 2.0:  https://vuejs.org/v2/guide/migration.html#Filters
+	*/
+	filteredRowData() {
+		if (this.rowData === undefined || this.rowData.length === 0) return []
+		if (typeof this.rowFilterFunc !== "function") return this.rowData
+		return this.rowData.filter(row => this.rowFilterFunc(row))
+	},
 
+	/** calculate CSS style when fixedRowHeight is set */
     fixedRowHeightStyle() {
       if (this.fixedRowHeight > 0) {
         return "height: "+this.fixedRowHeight+"px; "+
@@ -310,7 +310,7 @@ export default {
       return val
     },
 
-    // pick the lodash utility function 'get path in object' and make it available in our template
+    // pick the lodash utility function 'get path in object' and make it available for our Vue template above
     getPath: _.get,
 
     /** @return {boolean} true when this column is selected (has been clicked on) */

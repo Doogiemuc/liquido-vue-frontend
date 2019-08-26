@@ -97,14 +97,14 @@
 			<table class="table table-bordered">
 				<thead>
 					<th></th>
-					<th v-for="colVal,colIndex in poll.duelMatrix.rawData[0]">
+					<th v-for="(colVal,colIndex) in poll.duelMatrix.rawData[0]" :key="colIndex">
 						#{{colIndex+1}}
 					</th>
 				</thead>
 				<tbody>
-					<tr v-for="row,rowIndex in poll.duelMatrix.rawData">
+					<tr v-for="(row,rowIndex) in poll.duelMatrix.rawData" :key="rowIndex">
 						<th>#{{rowIndex+1}}: {{poll._embedded.proposals[rowIndex].title}}</th>
-						<td v-for="colVal,colIndex in row" :class="getDuelMatrixCellClass(rowIndex,colIndex)">
+						<td v-for="(colVal,colIndex) in row" :class="getDuelMatrixCellClass(rowIndex,colIndex)" :key="colIndex">
 							{{colIndex == rowIndex ? "" : colVal }}
 						</td>
 					</tr>

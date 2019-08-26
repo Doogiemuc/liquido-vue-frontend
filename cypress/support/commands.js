@@ -39,8 +39,29 @@ Cypress.Commands.add('devLogin', (mobile) => {
 	var auth = Cypress.env('auth')
 	//var mobilephone = Cypress.env('mobilephone_prefix') + mobileSuffix
 	return auth.loginWithSmsCode(mobile, Cypress.env('devLoginDummySmsCode')).then(user => {
-		console.log("devLogin "+user.email+" (id="+user.id+")")
+		console.log("Cypress: devLogin "+user.email+" (id="+user.id+")")
 		return user
 	})
 })
 
+/** Goto is like cy.visit but you can also pass URL params that will be uriencoded. */
+Cypress.Commands.add('goto', (urlOrOpts, config) => {
+	var opts 
+	if (Cypress._.isString(urlOrOpts)) {
+		if (config === undefind) {
+			return cy.visit(urlOrOpts)    // only string passed
+		} else {
+			opts = config
+			opts.url = urlOrOpts
+		}
+	} else {
+		opts = urlOrOpts
+	}
+
+	if (opts.params) {
+		var params = Cypress.$.param(config.params);
+		opts.url = opts.url+'?'+params
+	}
+	console.log("Command goto", opts)
+	return cy.visit(opts)
+})

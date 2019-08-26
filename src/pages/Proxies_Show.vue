@@ -1,74 +1,85 @@
 <template>
-  <div class="container">
-    <h1>Liquid Democracy Proxy Voting</h1>
-    <p>In Liquid Democracy voters can delegate their vote to a proxy. Maybe you now someone who is an expert in an area and trust him
-      to vote better for you. Then you can assign him as your proxy. But even then, it is <b>always</b> possible to vote for yourself. Even when your proxy has already voted for you in a poll,
-    you can still override his decision and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
-    <p>Other voters might also want to delegate their right to vote to you, so that you may vote for them as their proxy. This is a delegation request.
-      When you accept these delegations, then your ballot will also be counted for each of your delegees.
-    <p>There is one thing to consider. When you accept delegations and become a proxy, then your delegees will know how you voted, because you also voted for them. Therefore becoming a proxy
-      is an opt-in step in Liquido. By default you must accept delegation requests. But you can decide to immideately and automatically accept all delegations to you. This is called becoming a public proxy.</p>
+<div class="container">
+	<h1>Liquid Democracy Proxy Voting</h1>
 
-    <div class="row">
-      <div class="col-sm-6" v-for="area in categories" :key="area.id">
-        <div v-if="proxyInfo[area.id] && delegations[area.id]" class="panel panel-default proxyPanel">
-          <div class="panel-heading">
-            <a class="editIcon pull-right" @click="editProxy(area)"><i class="fas fa-edit" aria-hidden="true"></i></a>
-            <h4>{{area.title}} - {{area.description}}</h4>
-          </div>
-          <div class="panel-body proxyPanelBody">
-            <div class="row row-no-gutters">
-              <div class="col-md-6 ">
-                <div v-if="myProxy(area)">
-                  <a href="#" @click="editProxy(area)">
-                    <img :src="myProxy(area).profile.picture" class="avatarImg pull-left"/>
-                  </a>
-                  <b v-if="proxyInfo[area.id].directProxyDelegation.delegationRequest">
-                    Requested delegation to
-                  </b>
-                  <b v-else>
-                    Your {{ !proxyInfo[area.id].directProxyDelegation.transitive ? "non-transitive" : ""}} proxy
-                  </b>
-                  <br/>
-                  {{myProxy(area).profile.name}}<br/>
-                  &lt;{{myProxy(area).email }}&gt;
-                </div>
-                <div v-else>
-                  <a href="#" @click="editProxy(area)">
-                    <img src="/static/img/placeholder.png" class="avatarImg pull-left placeholderImg"/> Assign a proxy
-                  </a>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div v-if="showTopProxy(area)">
-                  <img :src="proxyInfo[area.id].topProxy.profile.picture" class="avatarImg pull-left"/>
-                  <b>Top proxy</b><br/>
-                  {{proxyInfo[area.id].topProxy.profile.name}}<br/>
-                  &lt;{{ proxyInfo[area.id].topProxy.email }}&gt;
-                </div>
-              </div>
-            </div>
+	<p>In Liqudido voters can delegate their vote to a proxy. Maybe you now someone who is an expert in an area and trust him
+		to vote better for you. Then you can assign him as your proxy. But even then, it is <b>always</b> possible to vote for yourself. Even when your proxy has already voted for you in a poll,
+	you can still override his decision and vote for youself as long as that poll is still in its voting phase. And a delegation to a proxy can be revoked at any time.</p>
+	<p>Other voters might also want to delegate their right to vote to you, so that you may vote for them as their proxy. This is a delegation request.
+		When you accept these delegations, then your ballot will also be counted for each of your delegees.
+	<p>There is one thing to consider. When you accept delegations and become a proxy, then your delegees will know how you voted, because you also voted for them. Therefore becoming a proxy
+		is an opt-in step in Liquido. By default you must accept delegation requests. But you can decide to immideately and automatically accept all delegations to you. This is called becoming a public proxy.</p>
 
-          </div>
-          <div class="panel-footer proxyDataSmall">
-            <a href="#" v-if="!delegations[area.id].isPublicProxy" class="pull-right" @click="becomePublicProxy(area)">
-              <i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;public proxy
-            </a>
-            <span v-if="delegations[area.id].isPublicProxy"  class="pull-right"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;public proxy</span>
-            <i class="fas fa-fw fa-forward" aria-hidden="true"></i>&nbsp;{{delegations[area.id].delegationCount}}&nbsp;delegations
-            <a href="#" v-if="delegations[area.id].delegationRequests.length > 0" @click="acceptDelegationRequest(area)">
-              &nbsp;({{delegations[area.id].delegationRequests.length}}&nbsp;request{{delegations[area.id].delegationRequests.length > 1 ? "s" : ""}})
-            </a>
+	<div class="row">
 
-          </div>
-        </div>
-      </div>
-    </div>
+		<div class="col-sm-6" v-for="area in categories" :key="area.id">
+			<div v-if="proxyInfo[area.id] && delegations[area.id]" class="panel panel-default proxyPanel">
+				<div class="panel-heading">
+					<a class="editIcon pull-right" @click="editProxy(area)"><i class="fas fa-edit" aria-hidden="true"></i></a>
+					<h4>{{area.title}} - {{area.description}}</h4>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div class="row smallFont">
+							<div class="col-md-6">
+								<div v-if="myProxy(area)">
+									<a href="#" @click="editProxy(area)">
+										<img :src="myProxy(area).profile.picture" class="avatarImg pull-left"/>
+									</a>
+									<b v-if="proxyInfo[area.id].directProxyDelegation.delegationRequest">
+										Requested delegation to
+									</b>
+									<b v-else>
+										Your {{ proxyInfo[area.id].directProxyDelegation.transitive ? "" : "non-transitive"}} proxy
+									</b>
+									<br/>
+									{{myProxy(area).profile.name}}<br/>
+									&lt;{{myProxy(area).email }}&gt;
+								</div>
+								<div v-else>
+									<a href="#" @click="editProxy(area)">
+										<img src="/static/img/placeholder.png" class="avatarImg pull-left placeholderImg"/> Assign a proxy
+									</a>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div v-if="showTopProxy(area)">
+									<img :src="proxyInfo[area.id].topProxy.profile.picture" class="avatarImg pull-left"/>
+									<b>Top proxy</b><br/>
+									{{proxyInfo[area.id].topProxy.profile.name}}<br/>
+									&lt;{{ proxyInfo[area.id].topProxy.email }}&gt;
+								</div>
+							</div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<ul class="fa-ul userProxyInfo">
+							<li><i class="fas fa-fw fa-forward"></i>&nbsp;You are the proxy for {{delegations[area.id].delegationCount}} voter(s) in this area.</li>
+							<li v-if="delegations[area.id].delegationRequests.length > 0">
+								<i class="fas fa-fw fa-forward"></i>&nbsp;
+								<a href="#" @click="acceptDelegationRequest(area)">Accept {{delegations[area.id].delegationRequests.length}} delegation request{{delegations[area.id].delegationRequests.length > 1 ? "s" : ""}}</a>
+							</li>
+							<li v-else>
+								<i class="fas fa-fw fa-forward"></i>&nbsp;Currently no furhter delegation requests.
+							</li>
+							<li v-if="delegations[area.id].isPublicProxy"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;You are a public proxy in this area.</li>
+							<li v-else>
+								<a href="#" @click="becomePublicProxy(area)">
+									<i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;Become a public proxy
+								</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
 
-    <div v-if="status === 'loading'" class="row">
-      <span><i class="fas fa-2x fa-spinner grey fa-spin"></i> Loading ...</span>
-    </div>
-  </div>
+			</div>
+		</div>
+	</div>
+
+	<div v-if="status === 'loading'" class="row">
+		<span><i class="fas fa-2x fa-spinner grey fa-spin"></i> Loading ...</span>
+	</div>
+</div>
 </template>
 
 <script>
@@ -113,7 +124,6 @@ export default {
       //log.debug("Loading proxy info for area.id="+area.id)
       return this.$root.api.getMyProxy(area).then(proxyInfo => {
         this.$set(this.proxyInfo, area.id, proxyInfo)    // need vues reactive setter so that UI gets updated dynamically.
-        //log.debug("DONE: Loaded proxy info for area.id="+area.id)
       })
     },
 
@@ -207,53 +217,53 @@ export default {
         log.debug("Finished loading proxyInfo for ALL areas in "+(end-start)+"ms.")
       })
     })
-
   }
 
 }
 </script>
 
 <style>
-  .proxyPanelBody {
-    padding: 10px;
-    font-size: 12px;
-    height: 80px;
-  }
-  .proxyPanel .panel-heading {
-    padding: 5px 15px;
-  }
-  .proxyPanel:hover .editIcon {
-    visibility: visible;
-  }
-  .editIcon {
-    visibility: hidden;
-    font-size: 16px;
-    vertical-align: middle;
-    color: #AAA;
-    cursor: pointer;
-  }
-  .proxyPanel .avatarImg {
-    width: 50px;
-    height: 50px;
-    margin-right: 0.5em;
-  }
-  .placeholderImg {
-    opacity: 0.5;
-    filter: alpha(opacity=50); /* For IE8 and earlier */
-  }
-  .placeholderImg:hover {
-    opacity: 1;
-    filter: alpha(opacity=100); /* For IE8 and earlier */
-  }
-  .panel-heading h4 {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-  .proxyDataSmall {
-    color: #999;
-    font-size: 12px;
-    line-height: 1.4;
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
+	.proxyPanelBody {
+		padding: 10px;
+		font-size: 12px;
+		height: 80px;
+	}
+	.proxyPanel .panel-heading {
+		padding: 5px 15px;
+	}
+	.proxyPanel:hover .editIcon {
+		visibility: visible;
+	}
+	.editIcon {
+		visibility: hidden;
+		font-size: 16px;
+		vertical-align: middle;
+		color: #AAA;
+		cursor: pointer;
+	}
+	.proxyPanel .avatarImg {
+		width: 50px;
+		height: 50px;
+		margin-right: 0.5em;
+	}
+	.placeholderImg {
+		opacity: 0.5;
+		filter: alpha(opacity=50); /* For IE8 and earlier */
+	}
+	.placeholderImg:hover {
+		opacity: 1;
+		filter: alpha(opacity=100); /* For IE8 and earlier */
+	}
+	.panel-heading h4 {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	.smallFont {
+		font-size: 12px;
+	}
+	.userProxyInfo {
+		margin-left: 0;
+		font-size: 12px;
+	}
+ 
 </style>

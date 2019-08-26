@@ -10,6 +10,9 @@ function rand(min,max)   // Intervall [min, max[
   return Math.floor(Math.random()*(max-min)+min);
 }
 
+// QUick shortcut to access test fixture data
+var fix
+
 // The individual tests inside this spec.js file run in order
 // Some of those tests generate data that is used in later steps.
 // This data is stored in Cypress.env
@@ -17,108 +20,121 @@ describe('Liquido Happy Case Test', function() {
 
 	before(function() {
 		/** Import all fixtures into Cypress.env  and then add some dynamically created values */
-    // https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data
-		cy.fixture('liquidoTestFixtures.json').then(fix => {
-      this.fix = Cypress.env()
-
-
-      Cypress.env('auth', auth)   // Shared instance of auth.js    Looks like an ugly hack, but works fine
-
+		// https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data
+		cy.fixture('liquidoTestFixtures.json').then(fixtures => {
+			Cypress.env(fixtures)  // store in cypres environment
+			Cypress.env('auth', auth)   // Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
 			//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
-
-			cy.log("Cypress.env initialized", JSON.stringify(Cypress.env()))
-
-
+			fix = fixtures
+			console.log("Cypress.env initialized", fix)
+			cy.log("Cypress.env initialized", fix)
 		})
 	})
 
-  it('open Liquido start page', function() {
-    cy.visit('/')
-    cy.get('#LiquidoHome').should('exist')
-  })
+	/** Print name of current test to console */
+	beforeEach(function() {
+		console.log("=======>>>", Cypress.mocha.getRunner().suite.ctx.currentTest.title)
+	})
 
-  it.only('register as a new user', function() {
-    // GIVEN random new user data
-    let num = rand(1000,9999)
-    var randUsername     = this.fix.username_prefix + num
-    var randEMail        = randUsername + this.fix.email_suffix
-    var randMobilephone  = this.fix.mobilephone_prefix + num
-    var randWebsite      = 'www.fromCypressTest.org'
+	it('open Liquido start page', function() {
+		cy.visit('/')
+		cy.get('#LiquidoHome').should('exist')
+	})
 
-    // WHEN this user registers
-    cy.visit('/')
+	it('register as a new user', function() {
+		// GIVEN random new user data
+		let num = rand(1000,9999)
+		var randUsername     = fix.username_prefix + num
+		var randEMail        = randUsername + fix.email_suffix
+		var randMobilephone  = fix.mobilephone_prefix + num
+		var randWebsite      = 'www.fromCypressTest.org'
+
+		// WHEN this user registers
+		cy.visit('/')
 		cy.get('#RegisterButton').click()
-    cy.get('#RegisterPage').should('exist')
-    cy.get('#emailInput').type(randEMail)
-    cy.get('#fullnameInput').type(randUsername)
-    cy.get('#mobilephoneInput').type(randMobilephone)
-    cy.get('#websiteInput').type(randWebsite).blur()
-    cy.get('#RegisterButton').should('be.enabled').click()
-    cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
+		cy.get('#RegisterPage').should('exist')
+		cy.get('#emailInput').type(randEMail)
+		cy.get('#fullnameInput').type(randUsername)
+		cy.get('#mobilephoneInput').type(randMobilephone)
+		cy.get('#websiteInput').type(randWebsite).blur()
+		cy.get('#RegisterButton').should('be.enabled').click()
+		cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
 
-    // THEN the user exists in the backend
-    cy.devLogin(randMobilephone).then(user => {
-      console.log("got user", user)
-      expect(user.profile.mobilephone).to.equal(randMobilephone)
-    })
-  })
+		// THEN the user exists in the backend
+		cy.devLogin(randMobilephone).then(user => {
+			console.log("got user", user)
+			expect(user.profile.mobilephone).to.equal(randMobilephone)
+		})
+	})
 
-  it('login via UI: with SMS code', function() {
-  	cy.visit('/')
-  	cy.get('#NavLoginButton').click()
-  	cy.get('#phoneInput').type(Cypress.env('mobilephone'))
-  	cy.get('#sendSmsLoginCodeButton').click()
-  	cy.get('#digit0').type('9')
-  	cy.get('#digit1').type('9')
-  	cy.get('#digit2').type('8')
-  	cy.get('#digit3').type('8')
-  	cy.get('#digit4').type('7')
-  	cy.get('#digit5').type('7')
-  	cy.get('#UserHomePage').should('exist')
-  })
+	it('login via UI: with SMS code', function() {
+		// GIVEN the startpage
+		cy.visit('/')
+		cy.get('#NavLoginButton').click()
+		//WHEN user enters login info
+		cy.get('#phoneInput').type(fix.user1_mobilephone)
+		cy.get('#sendSmsLoginCodeButton').click()
+		cy.get('#digit0').type(fix.devLoginDummySmsCode[0])
+		cy.get('#digit1').type(fix.devLoginDummySmsCode[1])
+		cy.get('#digit2').type(fix.devLoginDummySmsCode[2])
+		cy.get('#digit3').type(fix.devLoginDummySmsCode[3])
+		cy.get('#digit4').type(fix.devLoginDummySmsCode[4])
+		cy.get('#digit5').type(fix.devLoginDummySmsCode[5])
+		//THEN user is logged in and there is a success message
+		cy.get('#UserHomePage').should('exist')
+		cy.get('#LoginSuccess').should('exist')
 
-  it('support one proposal', function() {
-  	//GIVEN user1 needs at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-    cy.devLogin('1')
-  	//cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
-  	cy.get('#LiquidoHome').should('exist')
-  	cy.get('#ProposalsArrow').click()
-  	cy.get('#ProposalsList').should('exist')
+		
+	})
 
-    //WHEN clicking on the support button
-  	cy.get('#recentlyNewProposals .likeButton button:not(.disabled)').first().then(btn => {
-      var h4 = Cypress.$(btn).parent().parent().prev().find("h4")
-      console.log(h4.text())
-      //cy.log(btn)
-      //console.log(btn)
-      btn.click()  //.should('be.disabled')
-      //THEN proposal is now supported by currentuser. ie. support button is deactivated
-      expect(btn, "like button should now be active").to.have.class('active')
-    })
-  })
+	
+	it.only('support one proposal', function() {
+		//GIVEN user1 needs at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
+		//cy.devLogin(fix.user1_mobilephone)
+		cy.goto({ url: '/#', params: {
+			devLoginMobilephone: fix.user1_mobilephone
+		}})
+
+
+		cy.get('#LiquidoHome').should('exist')
+		cy.get('#ProposalsArrow').click()
+		cy.get('#ProposalsList').should('exist')
+
+		//WHEN clicking on the support button
+		cy.get('#recentlyNewProposals .likeButton button:not(.disabled)').first().then(btn => {
+			var h4 = Cypress.$(btn).parent().parent().prev().find("h4")
+			console.log(h4.text())
+			//cy.log(btn)
+			//console.log(btn)
+			btn.click()  //.should('be.disabled')
+			//THEN proposal is now supported by currentuser. ie. support button is shown deactivated and shown in blue
+			expect(btn, "like button should now be active").to.have.class('active')
+		})
+	})
 
 	it('add comment to a proposal', function() {
-  	//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-  	cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
-  	cy.get('#LiquidoHome').should('exist')
-  	cy.get('#ProposalsArrow').click()
-  	cy.get('#ProposalsList').should('exist')
-  	cy.get('#recentlyNewProposals .lawTitle > a')
-  		.first().click()
-  	cy.get('#ProposalShow').should('exist')
+		//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
+		cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
+		cy.get('#LiquidoHome').should('exist')
+		cy.get('#ProposalsArrow').click()
+		cy.get('#ProposalsList').should('exist')
+		cy.get('#recentlyNewProposals .lawTitle > a')
+			.first().click()
+		cy.get('#ProposalShow').should('exist')
 
-  	cy.wait(1000)  // need to wait a bit until existing comments are loaded
-  	let comment = "Very impressive suggestion from Cypress"+rand(1000,9999)
-  	cy.get('#suggestImprovementInput').type(comment+"{enter}")
-  	cy.wait(1000)
-  	cy.get('div.comment > p').contains(comment)
-  })
+		cy.wait(1000)  // need to wait a bit until existing comments are loaded
+		let comment = "Very impressive suggestion from Cypress"+rand(1000,9999)
+		cy.get('#suggestImprovementInput').type(comment+"{enter}")
+		cy.wait(1000)
+		cy.get('div.comment > p').contains(comment)
+	})
 
+  /*
   it('create a new idea', function() {
 
     let num = rand(1000,9999)
-    Cypress.env('ideaTitle', this.fix.ideaTitle_prefix + num)
-    Cypress.env('ideaDescription', this.fix.ideaDescription_prefix + num)
+    Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)
+    Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
 
 
     cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
@@ -149,7 +165,7 @@ describe('Liquido Happy Case Test', function() {
     var findIdea = function() {
       var query = {
         status: "IDEA",
-        createdByEmail: this.fix.user1_email
+        createdByEmail: fix.user1_email
       }
       return api.findByQuery(query).then(page => {
         var ideas = page._embedded.laws
@@ -167,10 +183,11 @@ describe('Liquido Happy Case Test', function() {
     }
 
     //THEN: The idea should have become a proposal
-    cy.devLogin("1")  // this.fix.user1_mobile
+    cy.devLogin("1")  // fix.user1_mobile
       .then(findIdea)
       .then(addSupportersToIdea)
 	})
 
+*/
 })
 

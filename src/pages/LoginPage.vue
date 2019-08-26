@@ -169,6 +169,7 @@ export default {
         .then(user => {
           this.smsErrorMsg = ""
           iziToast.success({
+			id: "LoginSuccess",
             title: 'Login',
             message: 'You are now logged in as '+user.email,
             position: 'bottomRight',
