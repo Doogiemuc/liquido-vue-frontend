@@ -17,7 +17,6 @@ var fix
 // Some of those tests generate data that is used in later steps.
 // This data is stored in Cypress.env
 describe('Liquido Happy Case Test', function() {
-
 	before(function() {
 		/** Import all fixtures into Cypress.env  and then add some dynamically created values */
 		// https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data
@@ -33,7 +32,7 @@ describe('Liquido Happy Case Test', function() {
 
 	/** Print name of current test to console */
 	beforeEach(function() {
-		console.log("=======>>>", Cypress.mocha.getRunner().suite.ctx.currentTest.title)
+		console.log("======= TEST CASE >>>", Cypress.mocha.getRunner().suite.ctx.currentTest.title)
 	})
 
 	it('open Liquido start page', function() {
@@ -61,7 +60,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
 
 		// THEN the user exists in the backend
-		cy.devLogin(randMobilephone).then(user => {
+		cy.loginWithSmsCode(randMobilephone, fix.devLoginDummySmsCode).then(user => {
 			console.log("got user", user)
 			expect(user.profile.mobilephone).to.equal(randMobilephone)
 		})
@@ -87,34 +86,9 @@ describe('Liquido Happy Case Test', function() {
 		
 	})
 
-	
-	it.only('support one proposal', function() {
-		//GIVEN user1 needs at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-		//cy.devLogin(fix.user1_mobilephone)
-		cy.goto({ url: '/#', params: {
-			devLoginMobilephone: fix.user1_mobilephone
-		}})
-
-
-		cy.get('#LiquidoHome').should('exist')
-		cy.get('#ProposalsArrow').click()
-		cy.get('#ProposalsList').should('exist')
-
-		//WHEN clicking on the support button
-		cy.get('#recentlyNewProposals .likeButton button:not(.disabled)').first().then(btn => {
-			var h4 = Cypress.$(btn).parent().parent().prev().find("h4")
-			console.log(h4.text())
-			//cy.log(btn)
-			//console.log(btn)
-			btn.click()  //.should('be.disabled')
-			//THEN proposal is now supported by currentuser. ie. support button is shown deactivated and shown in blue
-			expect(btn, "like button should now be active").to.have.class('active')
-		})
-	})
-
 	it('add comment to a proposal', function() {
 		//GIVEN:  need at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
-		cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
+		cy.devLogin(fix.user1_mobilephone)
 		cy.get('#LiquidoHome').should('exist')
 		cy.get('#ProposalsArrow').click()
 		cy.get('#ProposalsList').should('exist')
@@ -129,65 +103,147 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('div.comment > p').contains(comment)
 	})
 
-  /*
-  it('create a new idea', function() {
+  
+	it('add a new idea', function() {
+		//GIVEN an idea with a random title
+		let num = rand(1000,9999)
+		Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)
+		Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
 
-    let num = rand(1000,9999)
-    Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)
-    Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
+		//WHEN user adds a new idea
+		cy.devLogin(fix.user1_mobilephone)
+		cy.get('#LiquidoHome').should('exist')
+		cy.get('#IdeasArrow').click()
+		cy.get('#IdeasList').should('exist')
+		cy.get('#AddIdeaButton').click()
+		cy.get('.mce-branding-powered-by').should('exist')    // wait for TinyMCE to load
+		cy.get('#ideaTitle').type(Cypress.env('ideaTitle'))
 
+		//AND types into TinyMCE.
+		cy.window().then(win => {
+			win.tinyMCE.activeEditor.setContent(Cypress.env('ideaDescription'))
+			win.tinyMCE.activeEditor.save()   // BUGFIX: Must manually save TinyMCE's content back to the textare to trigger all necessary events. *sic*
+		})
+		cy.get('#ideaAreaSelect').select(Cypress.env('area0_title'))
+		//AND saves that idea
+		cy.get('#saveIdeaButton').click()
 
-    cy.visit('/#/?devLoginMobilephone='+Cypress.env('mobilephoneUrlEncoded'))
-    cy.get('#LiquidoHome').should('exist')
-    cy.get('#IdeasArrow').click()
-    cy.get('#IdeasList').should('exist')
-    cy.get('#AddIdeaButton').click()
-    cy.get('.mce-branding-powered-by').should('exist')    // wait for TinyMCE to load
-    cy.get('#ideaTitle').type(Cypress.env('ideaTitle'))
-
-    // Type into TinyMCE.  This is the reason why I chose Cypress.
-    cy.window().then(win => {
-      win.tinyMCE.activeEditor.setContent(Cypress.env('ideaDescription'))
-      win.tinyMCE.activeEditor.save()   // BUGFIX: Must manually save TinyMCE's content back to the textare to trigger all necessary events. *sic*
-    })
-    cy.get('#ideaAreaSelect').select(Cypress.env('area0_title'))
-    cy.get('#saveIdeaButton').click()
-    cy.get('.sa-success').should('exist')     // Sweet Alert
-
-    //TODO: make users new idea become a proposal
-    //TODO: join an existing ppoll
-    //TODO: vote in that poll
-
-  })
-
-	it('add supporters to idea', function() {
-    //GIVEN: user 1 must have an idea
-    var findIdea = function() {
-      var query = {
-        status: "IDEA",
-        createdByEmail: fix.user1_email
-      }
-      return api.findByQuery(query).then(page => {
-        var ideas = page._embedded.laws
-        expect(ideas).to.have.length.of.at.least(1)
-        return ideas[0]
-      })
-    }
-
-    //WHEN: adding enough supporters to that idea
-    var addSupportersToIdea = function(idea) {
-      console.log("addSupportersToIdea", idea)
-      return cy.devLogin("2").then(user => {
-        return api.addSupporterToIdea(idea, user)
-      })
-    }
-
-    //THEN: The idea should have become a proposal
-    cy.devLogin("1")  // fix.user1_mobile
-      .then(findIdea)
-      .then(addSupportersToIdea)
+		//THEN the idea is saved successfully
+		cy.get('.sa-success').should('exist')     // Sweet Alert
 	})
 
-*/
+	it('add supporters to idea until it becomes a proposal', function() {
+		//GIVEN a new idea
+		var saveNewIdea = function() {
+			var newIdea = {
+				title: "Idea created by Test "+rand(1000,9999),
+				description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
+				area: "/areas/"+fix.area0_id
+			}
+			return cy.loginWithSmsCode(fix.mobilephone_prefix+"1", fix.devLoginDummySmsCode).then(user => {
+				console.log("Add new idea", user)
+				return api.saveNewIdea(newIdea)
+			})
+		}
+
+		//WHEN adding enough supporters to that idea
+		var addSupportersToIdea = function(idea) {
+			console.log("addSupportersToIdea", idea)
+
+			var requests = []
+			for(var i = 2; i<=11; i++) {
+				var req = cy.loginWithSmsCode(fix.mobilephone_prefix+i, fix.devLoginDummySmsCode).then(() => {
+					console.log("addSupportersToIdea (id="+idea.id+")")
+					return api.addSupporterToIdea(idea)
+				})
+				requests.push(req)
+			}
+
+			// This was tricky!!! Need to run this sequentially https://jrsinclair.com/articles/2019/how-to-run-async-js-in-parallel-or-sequential/
+			// login, add supporter and repeat
+			const starterPromise = Promise.resolve(null)
+			cy.wrap(
+				requests.reduce((chain, req) => chain.then(req), starterPromise)
+			)
+			.then(res => { 
+				console.log("Cypress TEST: Ok, added 10 supporters")
+				return idea 
+			})
+		}
+
+		//THEN that idea should have become a proposal
+		var checkThatIdeaHasBecomeProposal = function(idea) {
+			console.log("checkThatIdeaHasBecomeProposal")
+			return api.getIdea(idea.id).then(proposal => {
+				console.log("Received new proposal", proposal)
+				expect(proposal.status, "Idea has now become a proposal").to.equal('PROPOSAL')
+				return proposal
+			})
+		}
+
+		// Run test as promise chain
+		saveNewIdea()
+			.then(addSupportersToIdea)
+			.then(checkThatIdeaHasBecomeProposal)
+		
+		//Implementation note: This test does not really use the UI. It is blazingly fast!
+	})
+
+
+	it('support an idea via UI', function() {
+		//GIVEN user1 needs at least one proposal that is not yet supported by this user   => precondition must be provided by TestDataCreator.java
+		//cy.devLogin(fix.user1_mobilephone)
+
+		//GIVEN an idea that is not yet liked by the current user
+		saveNewIdea().then(idea => {
+			cy.devLogin(fix.user2_mobilephone)
+			cy.get('#LiquidoHome').should('exist')
+			cy.get('#IdeasArrow').click()
+			cy.get('#IdeasList').should('exist')
+
+			var lawUri = idea._links.self.href
+			//cy.get('.likeButton button:not(.disabled):not(.active)').first().then(btns => {
+			cy.get('[data-lawuri="'+lawUri+'"] h4').then(h4s => {
+				console.log("Like idea:", h4s[0].textContent)
+			})
+
+			// WHEN clicking on the support button
+			cy.get('[data-lawuri="'+lawUri+'"] .likeButton button').click()
+
+			//THEN proposal is now supported by currentuser. ie. support button is shown deactivated and shown in blue
+			cy.get('[data-lawuri="'+lawUri+'"] .likeButton button').should('have.class', 'active')			
+
+		})
+	})
+
+	//TODO: join an existing ppoll
+	//TODO: vote in that poll
+
+
 })
 
+//GIVEN: user 1 must have an idea
+var findIdea = function() {
+	var query = {
+		status: "IDEA",
+		createdByEmail: fix.user1_email
+	}
+	return api.findByQuery(query).then(page => {
+	var ideas = page._embedded.laws
+	expect(ideas).to.have.length.of.at.least(1)
+	return ideas[0]
+	})
+}
+
+//GIVEN a new idea
+var saveNewIdea = function() {
+	var newIdea = {
+		title: "Idea created by Test "+rand(1000,9999),
+		description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
+		area: "/areas/"+fix.area0_id
+	}
+	return cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(user => {
+		console.log("Add new idea", user)
+		return api.saveNewIdea(newIdea)
+	})
+}

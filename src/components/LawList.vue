@@ -6,7 +6,7 @@
     </div>
     <table class="table lawListCondensedTable">
       <tbody>
-        <tr v-for="law in laws" :key="law.id">
+        <tr v-for="law in laws" :key="law.id" :data-lawuri="getLawURI(law)">
           <td>
             <div class="maxHeightPreviewWrapper">
               <h4 class="lawTitle">
@@ -63,6 +63,10 @@ export default {
   },
 
   methods: {
+	getLawURI(law) {
+      return this.$root.api.getURI(law)
+	},
+	
     // dynamically set icon depending on law.status
     getIconFor(law) {
       switch(law.status) {

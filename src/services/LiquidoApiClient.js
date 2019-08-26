@@ -431,7 +431,7 @@ module.exports = {
   /**
    * save a new(!) idea in the backend
    * The new idea will automatically be createdBy the currently logged in user.
-   * @return the stored idea  or 409 if an idea with that title already exists
+   * @return the stored idea or 409 if an idea with that title already exists
    */
   saveNewIdea(newIdea) {
     log.debug("POST newIdea: "+JSON.stringify(newIdea))
@@ -476,14 +476,14 @@ module.exports = {
   },
 
   /**
-   * add user as a supporter to an idea
+   * add current user as a supporter to an idea
    * @param {Object} idea the idea that the user likes
    * @param {Object} user the user that likes to discuss this idea
    * @return Just HTTP status 204
    */
-  addSupporterToIdea(idea, user) {
-    if (!idea || !user) return Promise.reject("Cannot add Supporter. Need idea and user!")
-    log.debug(user.profile.name+" ("+user.email+") now supports idea("+idea.id+") '"+idea.title)
+  addSupporterToIdea(idea) {
+    if (!idea) return Promise.reject("Cannot add Supporter. Need idea!")
+    log.debug("Current user () now supports idea("+idea.id+") '"+idea.title)
     return axios({
       method:  'POST',
       url:     '/laws/'+idea.id+'/like',
@@ -569,7 +569,7 @@ module.exports = {
     * @return Promise (HTTP 204)
     */
   upvoteComment(comment, user) {
-    //TODO: use currentUser
+    //TODO: use currentUser. But api client does not know user. It only knows JWT ???
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
     var userURI     = this.getURI(user)
     log.debug("upvoteComment", upvotersURI, userURI)

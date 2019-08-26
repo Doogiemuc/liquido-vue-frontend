@@ -30,16 +30,19 @@ Cypress.Commands.add('devLoginUI', (mobile) => {
 	cy.visit('/#/?devLoginMobilephone='+mobile)
 })
 
+Cypress.Commands.add('devLogin', (mobilephone) => {
+	return cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
+})
+
 /**
  * Quickly login a given user via mobilephone
  * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
- */
-Cypress.Commands.add('devLogin', (mobile) => {
+ */ 
+Cypress.Commands.add('loginWithSmsCode', (mobilephone, smsCode) => {
 	var auth = Cypress.env('auth')
-	//var mobilephone = Cypress.env('mobilephone_prefix') + mobileSuffix
-	return auth.loginWithSmsCode(mobile, Cypress.env('devLoginDummySmsCode')).then(user => {
-		console.log("Cypress: devLogin "+user.email+" (id="+user.id+")")
+	return auth.loginWithSmsCode(mobilephone, smsCode).then(user => {
+		console.log("Cypress: devLogin "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
 		return user
 	})
 })
@@ -59,9 +62,10 @@ Cypress.Commands.add('goto', (urlOrOpts, config) => {
 	}
 
 	if (opts.params) {
-		var params = Cypress.$.param(config.params);
-		opts.url = opts.url+'?'+params
+		var urlParams = Cypress.$.param(opts.params);
+		opts.url = opts.url+'?'+urlParams
 	}
-	console.log("Command goto", opts)
+	
 	return cy.visit(opts)
 })
+

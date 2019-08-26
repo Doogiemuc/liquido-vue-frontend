@@ -4,7 +4,7 @@
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 
-import Vue from 'vue'
+ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
@@ -207,11 +207,6 @@ router.beforeEach((to, from, next) => {
     next({path: '/pageNotFound'})
   } else
 
-  console.log(process.env.NODE_ENV)
-  console.log(to.query)
-  console.log(to.query.devLoginMobilephone)
-  console.log(process.env.NODE_ENV === "development" && to.query.devLoginMobilephone)
-
   if (process.env.NODE_ENV === "development" && to.query.devLoginMobilephone) {
     log.debug("devLoginMobilephone", to.query.devLoginMobilephone)
     auth.devLogin(to.query.devLoginMobilephone)
@@ -264,7 +259,7 @@ var isBackendAlive = function() {
 
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV === "development") {
-    log.info("LIQUDIO is running in DEVELOPMENT mode!")
+    log.info("LIQUDIO is starting in DEVELOPMENT mode!")
     loglevel.setLevel("trace")   // trace == log everything
     log.debug("process.env", process.env)
   }
