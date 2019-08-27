@@ -23,8 +23,8 @@
 export default {
   props: {
     id: { type: String, required: true },						// id of this filter
-		name: { type: String, required: true },			    // filter name to display to the user. Will be concatenated with displayValue
-		options: { type: Array, required: true },				// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
+	name: { type: String, required: true },			    // filter name to display to the user. Will be concatenated with displayValue
+	options: { type: Array, required: true },				// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
                                                     // Option.values may also be objects. This component will hold on of these values as its v-model
   },
 
@@ -46,11 +46,11 @@ export default {
   methods: {
     /**
      * set the value of this filter
-     * @param {Object} filter One element from filtersConfig array
+	 * @param {Array} newValue array of selected option.values
+	 * @param {Object} filter One element from filtersConfig array
      * @param {String} newDisplayValue how the new value shall be shown to the user
-     * @param {Array} newValue array of selected option.values
      */
-    setFilterValue(newDisplayValue, newValue) {
+    setFilterValue(newValue, newDisplayValue) {
       this.value = newValue
       this.selectedCheckboxes = newValue || []
       this.displayValue = newDisplayValue || this.calcDisplayValue()
@@ -93,19 +93,19 @@ export default {
       $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
       var newDisplayValue = this.calcDisplayValue()
       var newValue = this.selectedCheckboxes.length === 0 ? undefined : this.selectedCheckboxes
-      this.setFilterValue(newDisplayValue, newValue)
+      this.setFilterValue(newValue, newDisplayValue)
     },
 
     /** deselect all options */
     clearFilter() {
       $('#'+this.id+' .dropdown-toggle').dropdown("toggle");
       this.selectedCheckboxes = []
-      this.setFilterValue('Any', undefined)
+      this.setFilterValue(undefined, 'Any')
     },
 
     /** When a filter is active, then style it accordingly */
     getActiveClass() {
-      return this.value === undefined || this.value.length === 0  ? { 'btn-default' : true } : { 'btn-primary' : true }
+      return !this.value || this.value.length === 0  ? { 'btn-default' : true } : { 'btn-primary' : true }
     },
 
     /** prevent automatic closing of bootstrap dropdown */

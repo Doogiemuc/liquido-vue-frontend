@@ -661,7 +661,7 @@ module.exports = {
 
   findPollsByStatusAndArea(status, areaURI) {
 	log.debug("findPollsByStatusAndArea()")
-    return axios.get('/polls/search/findByStatus?status='+status+'&areaURI='+areaURI)
+    return axios.get('/polls/search/findByStatusAndArea?status='+status+'&area='+areaURI)
       .then( res => { return res.data._embedded.polls })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatusAndArea", err:err}) })
   },

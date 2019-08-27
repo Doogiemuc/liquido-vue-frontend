@@ -4,7 +4,7 @@
       {{name}}: {{displayValue}} <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">
-      <li v-for="option in options"><a class="selectItem" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</a></li>
+      <li v-for="option in options" :key="option.value"><a class="selectItem" v-on:click="setFilterValue(option.value, option.displayValue)">{{option.displayValue}}</a></li>
       <li role="separator" class="selectDivider"></li>
       <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter()">Clear</button></li>
     </ul>
@@ -42,26 +42,34 @@ export default {
 
   methods: {
     /**
-     * set the value of this filter
-     * @param {Object} filter One element from filtersConfig array
-     * @param {String} newDisplayValue how the new value shall be shown to the user
+     * set the value of this filter. DisplayValue will betaken from options array
      * @param {any} newValue the new value that will be saved in this.value
+	 * @param {String} displayValue the value to show to the user. If undefined, will be taken from this.options[idx].displayValue
      */
-    setFilterValue(newDisplayValue, newValue) {
-      this.displayValue = newDisplayValue
-      this.value = newValue
+    setFilterValue(newValue, displayValue) {
+	  this.value = newValue
+	  if (displayValue === undefined) {
+		var opt = this.options.find(opt => opt.value === newValue) 
+		console.log("Setting undefined displayValue to ", opt)
+		if (opt !== undefined) {
+			this.displayValue = opt.displayValue
+		}
+	  } else {
+		console.log("Setting displayValue to ",displayValue)
+		this.displayValue = displayValue
+	  }
     },
 
     setSelectedOption(idx) {
       console.log("setSelectedOption", this.options)
-      this.setFilterValue(this.options[idx].displayValue, this.options[idx].value)
+      this.setFilterValue(this.options[idx].value)
     },
 
     /**
      * Reset filter. Will also clear search field. All options will be shown.
      */
     clearFilter() {
-      this.setFilterValue('Any', undefined)
+      this.setFilterValue(undefined, 'Any')
     },
 
     /** When a filter is active, then style it accordingly */

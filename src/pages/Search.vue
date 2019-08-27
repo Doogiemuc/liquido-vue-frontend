@@ -142,7 +142,7 @@ export default {
               // When "My Ideas" is clicked, then also set the value of the other CreatedBy filter
               //console.log("toggle ACTIVATE createdByYou", this)
               //"this" is the DoogieTableFilter component
-              this.setFilterValue('createdByEmail', currentUser.profile.name, currentUser.email)
+              this.setFilterValue('createdByEmail', currentUser.email, currentUser.profile.name)
             } else {
               //console.log("toggle DEactive - clearFilter createdById")
               this.clearFilter('createdByEmail')
@@ -313,7 +313,35 @@ export default {
       })
       .catch(err => { console.error("ERROR appending to search result: ", err) })
 
-    }
+	},
+	
+	/** Set currentFilterValues from initial query (if any is passed) */
+	handleInitQuery() {
+		if (this.initQuery) {
+			for (var filterId in this.initQuery) {
+				switch (filterId) {
+					case "areaId":
+						//TODO:  BUGFIX Can only set area, AFTER area has been loaded. :-(   
+						this.$refs.tableFilter.setFilterValue("category", this.initQuery[filterId])			// set areaId. Area name will be set automatically
+						break;
+					case "textSearch":
+						this.$refs.tableFilter.setFilterValue("textSearch", this.initQuery[filterId])   	// test seach has only one value
+						break;
+					case "statusList":
+						this.$refs.tableFilter.setFilterValue("status", this.initQuery[filterId])   		// newDisplayValue of MulitSelect will be automatically calculated
+						break;
+					case "createdByYou":
+						this.$refs.tableFilter.setFilterValue("createdByYou", this.initQuery[filterId])   	// newValue = true or false
+						break;
+				}
+			}
+			this.$nextTick(this.reloadFromServer)   // when new filter values have propagated through UI, then reload data from server
+		} else {
+			this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
+		}
+
+		this.listenToTableFilterChanges = true
+	},
 
   },
 
@@ -323,40 +351,20 @@ export default {
    * Filter for ideas by default. Load first set of ideas.
    */
   created() {
-    this.$root.api.getAllCategories().then(categories => {
-      this.filtersConfig[3].options = categories.map(cat => { return { value: cat.id, displayValue: cat.title } } )
-    })
-    this.$root.api.getAllUsers().then(users => {
-      this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
-    })
-	  this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
+	this.debouncedReload = _.debounce(this.reloadFromServer, 1000)    // create debounced version of reloadFromServer function
+	Promise.all([
+		this.$root.api.getAllCategories(),
+		this.$root.api.getAllUsers()
+	])
+	.then(([categories, users]) => {
+	  this.filtersConfig[3].options = categories.map(cat => { return { value: cat.id, displayValue: cat.title } } )
+	  this.filtersConfig[4].options = users.map(user => { return { value: user.email, displayValue: user.profile.name } } )
+	})
+	.then(this.handleInitQuery)   //handleInitQuery MUST be called, AFTER all filter options have been loaded
   },
 
   mounted() {
-  // set filterConfig from passed initial query
-  console.log("MOUNTED start")
-	if (this.initQuery) {
-		for (var filterId in this.initQuery) {
-			switch (filterId) {
-				case "areaId":
-					this.$refs.tableFilter.setFilterValue("category", this.initQuery[filterId])
-					break;
-				case "textSearch":
-					this.$refs.tableFilter.setFilterValue("textSearch", this.initQuery[filterId])   	// test seach has only one value
-					break;
-				case "statusList":
-					this.$refs.tableFilter.setFilterValue("status", null, this.initQuery[filterId])   	// newDisplayValue of MulitSelect will be automatically calculated
-					break;
-				case "createdByYou":
-					this.$refs.tableFilter.setFilterValue("createdByYou", this.initQuery[filterId])   	// newValue = true or false
-					break;
-			}
-		}
-		this.$nextTick(this.reloadFromServer)   // when new filter values have propagated through UI, then reload data from server
-	} else {
-		this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
-	}
-	this.listenToTableFilterChanges = true
+	
   },
 
   /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */

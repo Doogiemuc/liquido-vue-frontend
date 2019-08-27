@@ -83,13 +83,13 @@ export default {
     /**
      * Set the value of one filter. This will fire the filterChanged event.
      * @param {String} filterId id of one element from your filtersConfig array
+	 * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      * @param {String} newDisplayValue how the new value shall be shown to the user
-     * @param {any} newValue the new value that will be saved in this.currentFilters[fiter.id].value
      */
-    setFilterValue(filterId, newDisplayValue, newValue) {
+    setFilterValue(filterId, newValue, newDisplayValue) {
       if (!this.filterConfigsById[filterId]) throw new Error("Don't know any filter with id="+filterId)
       if (!this.$refs[filterId]) throw new Error("Can't find ref to filter with id="+filterId)
-      this.$refs[filterId][0].setFilterValue(newDisplayValue, newValue)
+      this.$refs[filterId][0].setFilterValue(newValue, newDisplayValue)
     },
 
     /** Clear the value of one filter */

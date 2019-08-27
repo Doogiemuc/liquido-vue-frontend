@@ -10,7 +10,7 @@
       <div role="separator" class="selectDivider"></div>
       <div class="selectListWrapper">
       <ul class="selectList">
-        <li v-for="option in getFilteredOptions" :key="option.value" v-on:click="setFilterValue(option.displayValue, option.value)">{{option.displayValue}}</li>
+        <li v-for="option in getFilteredOptions" :key="option.value" v-on:click="setFilterValue(option.value, option.displayValue)">{{option.displayValue}}</li>
       </ul>
       </div>
       <div role="separator" class="selectDivider"></div>
@@ -65,11 +65,10 @@ export default {
   methods: {
     /**
      * set the value of this filter
-     * @param {Object} filter One element from filtersConfig array
-     * @param {String} newDisplayValue how the new value shall be shown to the user
-     * @param {any} newValue the new value that will be saved in this.value
+	 * @param {any} newValue the new value that will be saved in this.value
+	 * @param {String} newDisplayValue how the new value shall be shown to the user
      */
-    setFilterValue(newDisplayValue, newValue) {
+    setFilterValue(newValue, newDisplayValue) {
       this.searchText = ""
       this.displayValue = newDisplayValue
       this.value = newValue
@@ -80,7 +79,7 @@ export default {
      */
     clearFilter() {
       this.searchText = ""
-      this.setFilterValue('Any', undefined)
+      this.setFilterValue(undefined, 'Any')
     },
 
     /** When a filter is active, then style it accordingly */

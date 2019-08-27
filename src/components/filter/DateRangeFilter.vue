@@ -44,7 +44,7 @@ export default {
      * @param {String} newDisplayValue textual representation of current start-end period of time, e.g.  "last two weeks"
      * @param {Object} newValue internal value, e.g. { start: startDate, end: endDate }
      */
-    setFilterValue(newDisplayValue, newValue) {
+    setFilterValue(newValue, newDisplayValue) {
       this.displayValue = newDisplayValue
       this.value = newValue
     },
@@ -53,7 +53,7 @@ export default {
      * Reset filter. Will also clear search field. All options will be shown.
      */
     clearFilter() {
-      this.setFilterValue("Anytime", undefined)
+      this.setFilterValue(undefined, "Anytime")
     },
 
  // "Points in time in the universe and our names for them. I'll never understand why we humans have such great problems with the concept of time." (R.Rackl 2018)
@@ -71,7 +71,7 @@ export default {
       var end = new Date()
       end.setHours(23,59,59,999)
       newValue.end = end
-      this.setFilterValue(newDisplayValue, newValue)
+      this.setFilterValue(newValue, newDisplayValue)
     },
 
     //TODO: datePicker for date ranges.
