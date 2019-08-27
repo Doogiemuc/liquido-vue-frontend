@@ -1,7 +1,9 @@
 {
 	"baseUrl": "http://localhost:3001/",
 	"backendBaseURL": "http://localhost:8080/liquido/v2",
-  "env": {},
+	"env": {
+		
+	},
 	"testFiles": "**/*.*",
 	"watchForFileChanges": true
 }

@@ -10,8 +10,8 @@
 export default {
   props: {
     id: { type: String, required: true },						// id of this filter
-		name: { type: String, required: false, default: function() { return this.id } },			    // name of the input field
-		placeholder: { type: String, required: false }
+	name: { type: String, required: false, default: function() { return this.id } },			    // name of the input field
+	placeholder: { type: String, required: false }
   },
 
   data () {

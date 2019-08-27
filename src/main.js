@@ -4,7 +4,7 @@
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 
-import Vue from 'vue'
+ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
@@ -162,7 +162,8 @@ const routes = [
   { path: '/proxies',
     component: function(resolve) {
       require(['./pages/Proxies_Show.vue'], resolve)
-    }
+	},
+	name: 'proxies'
   },
   { path: '/proxies/:categoryId',
     name: 'editProxy',
@@ -170,6 +171,12 @@ const routes = [
       require(['./pages/Proxy_Edit.vue'], resolve)
     },
     props: true
+  },
+  { path: '/delegations',
+    component: function(resolve) {
+      require(['./pages/Proxies_Delegations.vue'], resolve)
+	},
+	name: 'delegations'
   },
   
   // ======================= PageNotFound =======================
@@ -252,7 +259,7 @@ var isBackendAlive = function() {
 
 var checkDevelopmentMode = function() {
   if (process.env.NODE_ENV === "development") {
-    log.info("LIQUDIO is running in DEVELOPMENT mode!")
+    log.info("LIQUDIO is starting in DEVELOPMENT mode!")
     loglevel.setLevel("trace")   // trace == log everything
     log.debug("process.env", process.env)
   }

@@ -60,10 +60,12 @@ export default {
 
 
 	/** send a login code via SMS */
-	requestSmsCode(mobile) {
+	requestSmsCode(mobilephone) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-		console.log("sendSmsLoginCode", cleanMobilePhone)
 		return axios.get('/auth/requestSmsCode', { params: { mobile: cleanMobilePhone} } )
+		  .catch(err => {
+			  console.error("Cannot requestSmsCode for ", mobile, err)
+		  })
 	},
 
 	/**

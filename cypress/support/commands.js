@@ -30,17 +30,42 @@ Cypress.Commands.add('devLoginUI', (mobile) => {
 	cy.visit('/#/?devLoginMobilephone='+mobile)
 })
 
+Cypress.Commands.add('devLogin', (mobilephone) => {
+	return cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
+})
+
 /**
  * Quickly login a given user via mobilephone
  * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
- */
-Cypress.Commands.add('devLogin', (mobile) => {
+ */ 
+Cypress.Commands.add('loginWithSmsCode', (mobilephone, smsCode) => {
 	var auth = Cypress.env('auth')
-	//var mobilephone = Cypress.env('mobilephone_prefix') + mobileSuffix
-	return auth.loginWithSmsCode(mobile, Cypress.env('devLoginDummySmsCode')).then(user => {
-		console.log("devLogin "+user.email+" (id="+user.id+")")
+	return auth.loginWithSmsCode(mobilephone, smsCode).then(user => {
+		console.log("Cypress: devLogin "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
 		return user
 	})
+})
+
+/** Goto is like cy.visit but you can also pass URL params that will be uriencoded. */
+Cypress.Commands.add('goto', (urlOrOpts, config) => {
+	var opts 
+	if (Cypress._.isString(urlOrOpts)) {
+		if (config === undefind) {
+			return cy.visit(urlOrOpts)    // only string passed
+		} else {
+			opts = config
+			opts.url = urlOrOpts
+		}
+	} else {
+		opts = urlOrOpts
+	}
+
+	if (opts.params) {
+		var urlParams = Cypress.$.param(opts.params);
+		opts.url = opts.url+'?'+urlParams
+	}
+	
+	return cy.visit(opts)
 })
 

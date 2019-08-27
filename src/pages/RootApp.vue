@@ -43,7 +43,8 @@
               </a>
               <ul class="dropdown-menu">
 							  <li><router-link to="/userHome">User Home</router-link></li>
-                <li><router-link to="/proxies">Proxies</router-link></li>
+                <li><router-link to="/proxies">Your Proxies</router-link></li>
+				<li><router-link to="/delegations">Delegations</router-link></li>
                 <li><router-link to="/account">My Account</router-link></li>
                 <li><router-link id="addIdeaMenuItem" to="/ideas/add">Add new Idea</router-link></li>
                 <!-- li><router-link to="/messages">Messages</router-link></li -->
