@@ -342,8 +342,9 @@ module.exports = {
 	 * @param {boolean} projected wether to return the projected ("extended") JSON with area and createdBy expanded.
 	 * @return {object} the reloaded idea as HATEOAS JSON
 	 */
-	getLaw(lawIdOrURI, projected) {
-    var lawURI
+  getLaw(lawIdOrURI, projected) {
+	var lawURI
+	if (lawIdOrURI === undefined) throw new Error("Need lawId or an URI to get an idea/proposal/Law!")
     if (!isNaN(lawIdOrURI)) lawURI = axios.defaults.baseURL+'/laws/'+lawIdOrURI
     else lawURI = this.getURI(lawIdOrURI)
     if (projected) lawURI += "?projection=lawProjection"

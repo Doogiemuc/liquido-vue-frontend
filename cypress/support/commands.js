@@ -30,19 +30,25 @@ Cypress.Commands.add('devLoginUI', (mobile) => {
 	cy.visit('/#/?devLoginMobilephone='+mobile)
 })
 
+/** 
+ * Login a user via the devLogin URL shortcut 
+ * The app is then shown on the start page.
+ * This is quick and easy, but only available in DEVELOPMENT environemnt
+ */
 Cypress.Commands.add('devLogin', (mobilephone) => {
 	return cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
 })
 
 /**
- * Quickly login a given user via mobilephone
+ * Quickly login a given user via mobilephone by using the API.
+ * This accesses the low level API without any GUI interaction
  * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
  */ 
 Cypress.Commands.add('loginWithSmsCode', (mobilephone, smsCode) => {
 	var auth = Cypress.env('auth')
 	return auth.loginWithSmsCode(mobilephone, smsCode).then(user => {
-		console.log("Cypress: devLogin "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
+		console.log("Cypress: login as "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
 		return user
 	})
 })

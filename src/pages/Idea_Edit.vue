@@ -189,17 +189,37 @@ export default {
       }
       log.info("Saving new idea", newIdea);
       this.$root.api.saveNewIdea(newIdea)
-        .then(saveIdea => {
+        .then(savedIdea => {
           $('#saveIdeaButton').button('reset')
-          var minSupporters = this.$root.props['liquido.supporters.for.proposal']
+		  var minSupporters = this.$root.props['liquido.supporters.for.proposal']
+		  iziToast.success({
+			id: "CreateIdeaSuccess",
+            title: 'Idea created successfully',
+            message: '<p>&nbsp;</p><p>Your idea has been created successfully.</p><p>You now need at least '+minSupporters+' supporters that like to discuss your idea.</p>' + 
+			         '<p>&nbsp;</p><span id="newIdeaUri" class="hidden">'+savedIdea._links.self.href+'</span>',
+			position: 'center',
+			transitionIn: 'fadeInDown',
+			timeout: false,
+			buttons: [
+				['<button>Ok</button>', function (instance, toast) { 
+					instance.hide({}, toast)
+					that.$router.push('/ideas/'+savedIdea.id) 
+				}, true ]	// true to focus
+			]
+          })
+
+		/*
           swal({
             title: "SUCCESS",
-            text: "Your idea has been created successfully. You now need at least "+minSupporters+" supporters that like to discuss your idea.",
-            type: "success"
+			html: 'Your idea has been created successfully. You now need at least '+minSupporters+' supporters that like to discuss your idea. ' + 
+			      '<span id="newIdeaID" class="hidden">'+savedIdea.id+'</span>',
+			type: "success",
           },
           function () {
             that.$router.push('/userHome')
-          })
+		  })
+		  
+		  */
         })
         .catch(err => {
           console.error(err)
