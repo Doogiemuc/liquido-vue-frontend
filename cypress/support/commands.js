@@ -24,19 +24,15 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-/** Quickly login a user via UI. Will finish on start page */
-Cypress.Commands.add('devLoginUI', (mobile) => {
-	//var mobilephoneUrlEncoded = encodeURIComponent(Cypress.env('mobilephone_prefix') + mobileSuffix)
-	cy.visit('/#/?devLoginMobilephone='+mobile)
-})
-
 /** 
  * Login a user via the devLogin URL shortcut 
  * The app is then shown on the start page.
  * This is quick and easy, but only available in DEVELOPMENT environemnt
  */
 Cypress.Commands.add('devLogin', (mobilephone) => {
-	return cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
+	console.log("Cypress.devLogin "+mobilephone)
+	cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
+	cy.get('#userMenu').should('exist')
 })
 
 /**
@@ -48,7 +44,7 @@ Cypress.Commands.add('devLogin', (mobilephone) => {
 Cypress.Commands.add('loginWithSmsCode', (mobilephone, smsCode) => {
 	var auth = Cypress.env('auth')
 	return auth.loginWithSmsCode(mobilephone, smsCode).then(user => {
-		console.log("Cypress: login as "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
+		console.log("Cypress: loginWithSmsCode via API as "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
 		return user
 	})
 })

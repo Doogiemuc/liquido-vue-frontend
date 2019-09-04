@@ -13,20 +13,27 @@ function rand(min,max)   // Intervall [min, max[
 // Quick shortcut to access test fixture data
 var fix
 
-// The individual tests inside this spec.js file depend on each other and must run in this order.
-// Some of those tests generate data that is used in later steps.
-// This data is stored in Cypress.env
+/*
+ This cypress test case is a complete happy case run.
+ The individual tests inside this  file depend on each other and must run in this order.
+ Each test step can use the data created from the test steps before it. This data is kept in Cypress.env()
+
+ # Test data
+
+  - a new random user registers
+  - this user creates an idea
+*/ 
 describe('Liquido Happy Case Test', function() {
+	/* Import all fixtures into Cypress.env  and then add some dynamically created values
+	   https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data  */
 	before(function() {
-		/** Import all fixtures into Cypress.env  and then add some dynamically created values */
-		// https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data
 		cy.fixture('liquidoTestFixtures.json').then(fixtures => {
-			Cypress.env(fixtures)  // store in cypres environment
-			Cypress.env('auth', auth)   // Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
+			Cypress.env(fixtures)  			// store in cypres environment
+			fix = fixtures					// quick access to test fixtures
+			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
 			//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
-			fix = fixtures
-			console.log("Cypress.env initialized", fix)
-			cy.log("Cypress.env initialized", fix)
+			
+			console.log("Cypress.env initialized", Cypress.env())
 		})
 	})
 
@@ -38,39 +45,41 @@ describe('Liquido Happy Case Test', function() {
 	it('register as a new user', function() {
 		// GIVEN random new user data
 		let num = rand(1000,9999)
-		var randUsername     = fix.username_prefix + num
-		var randEMail        = randUsername + fix.email_suffix
-		var randMobilephone  = fix.mobilephone_prefix + num
-		var randWebsite      = 'www.fromCypressTest.org'
-
+		let randUsername = fix.username_prefix + num
+		Cypress.env('randUsername',    randUsername)
+		Cypress.env('randEMail',       randUsername + fix.email_suffix)
+		Cypress.env('randMobilephone', fix.mobilephone_prefix + num)
+		Cypress.env('randWebsite',     'www.fromCypressTest.org')
+		
 		// WHEN this user registers
 		cy.visit('/')
-
 		cy.get('#RegisterButton').click()
 		cy.get('#RegisterPage').should('exist')
-		cy.get('#emailInput').type(randEMail)
-		cy.get('#fullnameInput').type(randUsername)
-		cy.get('#mobilephoneInput').type(randMobilephone)
-		cy.get('#websiteInput').type(randWebsite).blur()
+		cy.get('#emailInput').type(Cypress.env('randEMail'))
+		cy.get('#fullnameInput').type(Cypress.env('randUsername'))
+		cy.get('#mobilephoneInput').type(Cypress.env('randMobilephone'))
+		cy.get('#websiteInput').type(Cypress.env('randWebsite')).blur()
 		cy.get('#RegisterButton').should('be.enabled').click()
 		cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
 
 		// THEN the user exists in the backend
-		cy.loginWithSmsCode(randMobilephone, fix.devLoginDummySmsCode).then(user => {
-			console.log("got user", user)
-			Cypress.env("user", user)
-			expect(user.profile.mobilephone).to.equal(randMobilephone)
+		cy.loginWithSmsCode(Cypress.env('randMobilephone'), fix.devLoginDummySmsCode).then(user => {
+			//console.log("got user", user)
+			//Cypress.env("user", user)
+			expect(user.profile.mobilephone).to.equal(Cypress.env('randMobilephone'))
+			cy.log("Successfully registerd new user "+ user.email)
 		})
 	})
 
-	it('add a new idea', function() {
+	it('add a new idea via UI', function() {
 		//GIVEN an idea with a random title
 		let num = rand(1000,9999)
 		Cypress.env('ideaTitle', fix.ideaTitle_prefix + num)
 		Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
 
-		//WHEN user adds a new idea
-		cy.devLogin(Cypress.env('user').profile.mobilephone)
+		//WHEN rand user adds a new idea
+		cy.devLogin(Cypress.env('randMobilephone'))
+		//TODO: check that user is logged in
 		cy.get('#LiquidoHome').should('exist')
 		cy.get('#IdeasArrow').click()
 		cy.get('#IdeasList').should('exist')
@@ -88,130 +97,96 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#saveIdeaButton').click()
 
 		//THEN the idea is saved successfully
-		cy.get('#CreateIdeaSuccess').should('exist')     // Success message
-
+		cy.get('#CreateIdeaSuccess').should('exist')     
 		// AND get the idea from the backend and store it in Cypress.env
-		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode)   // MUST login before making any direct api calls
+		//cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode)   // MUST login our ref to api before making any direct api calls
 		cy.get('#newIdeaUri').then(elems => {
 			var ideaURI = elems[0].textContent
-			var idea = api.getIdea(ideaURI).then(idea => {
-				console.log("savedIdea", idea)
+			return api.getIdea(ideaURI).then(idea => {				//BUGFIX: NEVER EVER again forget to "return" the inner Promise!!!
 				Cypress.env("idea", idea)
+				cy.log("Successfully created new idea ", idea) 
 			})
 		})
+		
 	})
 
-	it.only('add supporters to idea until it becomes a proposal (no GUI)', function() {
-		//GIVEN a newly created idea
-		var saveNewIdea = function() {
-			cy.log("Create new idea")
-			var newIdea = {
-				title: "Idea created by Test "+rand(1000,9999),
-				description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
-				area: "/areas/"+fix.area0_id
-			}
-			return cy.loginWithSmsCode(fix.mobilephone_prefix+"1", fix.devLoginDummySmsCode).then(user => {
-				return api.saveNewIdea(newIdea).then(idea => {
-					Cypress.env("idea", idea)
-					return idea
-				})
-			})
-		}
+	it('add supporters to idea until it becomes a proposal', function() {
+		//GIVEN an idea in Cypress.env
+		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").to.not.be.undefined
 
 		//WHEN adding enough supporters to that idea
-		var addSupportersToIdea = function(idea) {
+		var addSupportersToIdea = function() {
+			console.log("Adding supporters to idea ", Cypress.env('idea'))
+			// Run tasks as promise chain
 			// https://stackoverflow.com/questions/30853265/dynamic-chaining-in-javascript-promises
-			
-			console.log("START")
-			
+			// https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
+			let numSupporters = 10
 			var tasks = []
-			for(var i = 4; i<7; i++) {
-				tasks.push(function() {
-					console.log("START task "+i)
-					return auth.loginWithSmsCode(fix.mobilephone_prefix+i, fix.devLoginDummySmsCode).then(user => {
-						console.log("AddSupporterToIdea ",idea.title)
-						return api.addSupporterToIdea(idea).then(res => {
-							console.log("FINSIH task "+i)
-							return res
-						})
-					})
+			for(var i = 5; i<5+numSupporters; i++) {
+				tasks.push({
+					func: function(mobile) { 
+						//console.log("========== (1) TaskFunc: Login with SMS Code "+mobile)
+						return auth.loginWithSmsCode(mobile, fix.devLoginDummySmsCode)
+							.then((user) => {
+								//console.log("========== (2) user (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in with Sms Code.")
+								return api.addSupporterToIdea(Cypress.env('idea')).then(() => {
+									//console.log("========== (3) added "+user.email+" supporter to idea")
+								})
+							})
+					},
+					arg: fix.mobilephone_prefix+i
 				})
 			}
+			return tasks
+				.reduce(function (prev, task) {
+					return prev.then(() => task.func(task.arg))    // BUGFIX: the argument to .then() must be a function that returns a promise, not the function call itself!
+				}, Promise.resolve("START"))
+				.then(function (result) {
+					cy.log("Added " + numSupporters + " supporters to idea(id="+Cypress.env('idea').id+", title='"+Cypress.env('idea').title+"')")
+					console.log("======= FINISHED adding supporters")
+					return Promise.resolve("done resolve inside")
+				});
 			
-			
-			tasks.reduce((promiseChain, currentTask) => {
-				return promiseChain.then(currentTask);
-			}, Promise.resolve()).then(function(res) {
-				console.log("DONE", res)
-			})
-			
-			
-
-			/*
-			for(var i = 2; i<=11; i++) {
-				p = p.then(cy.loginWithSmsCode(fix.mobilephone_prefix+i, fix.devLoginDummySmsCode))
-				p = p.then(user => {
-					// console.log("----- addSupporterToIdea (idea.id="+idea.id+"), "+user.email+" "+user.profile.mobilephone)
-					console.log("..............", user)
-					return api.addSupporterToIdea(idea)
-				})
-			}
-			console.log("AFTER for loop")
-			/*
-			p.then(res => {
-				console.log("DONE", res)
-			})
-			*/
-			
-			/*
-			var requests = []
-			for(var i = 2; i<=11; i++) {
-				var req = 	cy.loginWithSmsCode(fix.mobilephone_prefix+i, fix.devLoginDummySmsCode).then(() => {
-					console.log("----- addSupporterToIdea (id="+idea.id+")")
-					return api.addSupporterToIdea(idea)
-				})
-				requests.push(req)
-			}
-			// This was tricky!!! Need to run all requests sequentially https://jrsinclair.com/articles/2019/how-to-run-async-js-in-parallel-or-sequential/
-			// login, add supporter and repeat
-			const starterPromise = Promise.resolve(null)
-			cy.wrap(
-				requests.reduce((chain, req) => chain.then(req), starterPromise)
-			)
-			*/
-
 		}
 
-		//THEN that idea should have become a proposal with correct status in UI
-		var checkThatIdeaHasBecomeProposalInUI = function() {
-			cy.visit('/#/proposals/'+Cypress.env('idea').id)
-			cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
-			
-			/* 
-			var idea = Cypress.env("idea")
-			console.log("checkThatIdeaHasBecomeProposal", idea)
-			return api.getIdea(idea.id).then(proposal => {
-				console.log("Received new proposal", proposal)
-				expect(proposal.status, "Idea has now become a proposal").to.equal('PROPOSAL')
-				return proposal
-			})
-			*/
-		}
-
-		// Run test as promise chain
-		//Promise.resolve(Cypress.env("idea"))
-		saveNewIdea()
-			.then(addSupportersToIdea)
-			.then(checkThatIdeaHasBecomeProposalInUI)
+		cy.visit('/')
+		// cy.wrap()  will wait until the promises return
+		//https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
+		cy.wrap(addSupportersToIdea())
+		cy.devLogin(Cypress.env('randMobilephone'))
+		//cy.wait(500)			// BUGFIX: Need to wait until "really" logged in
+		cy.visit('/#/proposals/'+Cypress.env('idea').id)
+		cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
+		cy.log("SUCCESS. Idea has become a proposal.")
 		
-		//Implementation note: This test does not really use the UI. It is blazingly fast!
+		
 	})
 
+	it('start a new poll', function() {
+		//GIVEN a poll title
+		var pollTitle = "Poll created by test "+rand(1000,9999)
+		// AND rand user is logged in
+		//console.log("pollTitle22", pollTitle)
+		//console.log("randmobilephone", Cypress.env('randMobilephone'))
+		cy.devLogin(Cypress.env('randMobilephone'))
+		// AND views his proposal
+		cy.visit('/#/proposals/'+Cypress.env('idea').id)
 
+		// WHEN he starts a new poll
+		cy.get('#startNewPollButton').click()
+		cy.get('#PollCreate').should('exist')
+		cy.get('#createNewPollButton').should('be.disabled')
+		cy.get('#pollTitleInput').type(pollTitle)
+		cy.get('#createNewPollButton').click()
+
+		// THEN the new poll should have that title
+		cy.get('#PollShow').should('exist')
+		cy.get('#pollTitle').should('have.text', pollTitle)
+		
+	})
 	
-
-	//TODO: join an existing poll
-	//TODO: vote in that poll
+	//TODO: Second proposal joins this poll
+	//TODO: (Mock) start voting phase and cast a vote in this poll
 
 
 })
@@ -229,4 +204,18 @@ var findIdea = function() {
 	})
 }
 
-//GIVEN a new idea
+//GIVEN a newly created idea
+var saveNewIdea = function() {
+	cy.log("Create new idea")
+	var newIdea = {
+		title: "Idea created by Test "+rand(1000,9999),
+		description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
+		area: "/areas/"+fix.area0_id
+	}
+	return cy.loginWithSmsCode(fix.mobilephone_prefix+"1", fix.devLoginDummySmsCode).then(user => {
+		return api.saveNewIdea(newIdea).then(idea => {
+			Cypress.env("idea", idea)
+			return idea
+		})
+	})
+}

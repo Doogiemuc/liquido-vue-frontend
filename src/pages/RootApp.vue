@@ -63,7 +63,7 @@
               DevLogin <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li v-for="devUser in devUsers"><a href="#" @click="devLogin(devUser.mobilephone)">{{devUser.name}} {{devUser.mobilephone}}</a></li>
+              <li v-for="devUser in devUsers" :key="devUser.email"><a href="#" @click="auth.devLogin(devUser.mobilephone)">{{devUser.name}} {{devUser.mobilephone}}</a></li>
             </ul>
           </div>
         </div>
@@ -97,11 +97,9 @@ var log = loglevel.getLogger("RootApp");
 
 export default {
   /*
-    This RootApp's data properties are available to all child components via e.g. this.$root.currentUser
+    This RootApp's data properties are available to all child components e.g. this.$root.currentUser
     All data properties are injected in mains.js
-    Also the methods below are available to all components as this.$root.someMethod()
   */
-
   computed: {
     liquidoVersion() { return this.props['liquido.version'] },
     nodeEnv()        { return process.env.NODE_ENV },
@@ -117,9 +115,7 @@ export default {
 
   methods: {
 
-    devLogin(mobilephone) {
-      return auth.devLogin(mobilephone)
-    },
+	  // Also these methods would be available to all components as this.$root.someMethod()
 
   },
 

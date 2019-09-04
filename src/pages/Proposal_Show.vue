@@ -23,8 +23,8 @@
 	      <div v-else-if="proposal.status === 'PROPOSAL'">
 	      	<p>Your idea reached its quorum and now became a proposal. It can now be discussed. You should carefully consider and respect the suggestions for improvements below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
 	        <ul class="startJoinList">
-	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch" @click="joinPoll">Join an existing poll</button> - Search for an existing poll in ELABORATION and then add your proposal to it as an alternative suggestion.</li>
-	        	<li><button type="button" class="btn btn-sm btn-default" style="width:20ch" @click="startNewPoll">Start a new poll</button> - Then you then need alternative suggestions before the voting phase of the new poll can start.</li>
+	        	<li><button type="button" class="btn btn-sm btn-default" id="joinPollButton" style="width:20ch" @click="joinPoll">Join an existing poll</button> - Search for an existing poll in ELABORATION and then add your proposal to it as an alternative suggestion.</li>
+	        	<li><button type="button" class="btn btn-sm btn-default" id="startNewPollButton" style="width:20ch" @click="startNewPoll">Start a new poll</button> - Then you then need alternative suggestions before the voting phase of the new poll can start.</li>
 			</ul>
 	      </div>
 	      <div v-else-if="proposal.status === 'ELABORATION'">

@@ -84,20 +84,29 @@ var globalPropertiesCache = undefined
 // I once had a nice caching interceptor. But do I globally need that?
 
 
+
 //==================================================================================================================
 // Public/Exported methods
 //==================================================================================================================
 
 module.exports = {
+  currentUser: undefined,			// just a cache for currentUser in auth.js
+  jsonWebToken: undefined,
 
   /** Set the JWT that will be used for all future requests */
   setJsonWebTokenHeader(jwt) {
     if (!jwt) {
-      axios.defaults.headers.common['Authorization'] = undefined
+	  axios.defaults.headers.common['Authorization'] = undefined
+	  this.jsonWebToken = undefined
     } else {
-      axios.defaults.headers.common['Authorization'] = "Bearer "+jwt
+	  axios.defaults.headers.common['Authorization'] = "Bearer "+jwt
+	  this.jsonWebToken = jwt
       //log.debug("apiClient authorized with JWT")
     }
+  },
+
+  setCurrentUser(user) {
+	  this.currentUser = user
   },
 
   /**
@@ -484,14 +493,14 @@ module.exports = {
    */
   addSupporterToIdea(idea) {
     if (!idea) return Promise.reject("Cannot add Supporter. Need idea!")
-    log.debug("Current user () now supports idea("+idea.id+") '"+idea.title)
     return axios({
       method:  'POST',
       url:     '/laws/'+idea.id+'/like',
     }).then(res => {
+	  log.info("Current user " + (this.currentUser ? this.currentUser.email : "!ERROR!") +  " now supports idea("+idea.id+") '"+idea.title)
       return ""  // backend returns status 204
     }).catch(err => {
-      log.error("Cannot addSupporter: "+supportersURI+": ", err)
+      log.error("Cannot addSupporter to idea(id="+idea.id+")", err)
       return Promise.reject(err)
     })
   },

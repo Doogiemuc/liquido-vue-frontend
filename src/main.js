@@ -208,7 +208,7 @@ router.beforeEach((to, from, next) => {
   } else
 
   if (process.env.NODE_ENV === "development" && to.query.devLoginMobilephone) {
-    log.debug("devLoginMobilephone", to.query.devLoginMobilephone)
+    log.info("==== devLoginMobilephone", to.query.devLoginMobilephone)
     auth.devLogin(to.query.devLoginMobilephone)
   }
 

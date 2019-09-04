@@ -15,21 +15,10 @@ const JWT_ITEM_KEY = 'liquido-jwt'
 var log = loglevel.getLogger('auth.js')
 
 export default {
-	jsonWebToken: undefined,      		// JWT
-	currentUser:  undefined,			// Currenely logged in user
+	currentUser: undefined,
 
 	isLoggedIn() {
-		return this.currentUser !== undefined
-	},
-
-	getJWT() {
-    	return this.jsonWebToken
-  	},
-
-	setJWT(jwt) {
-		this.jsonWebToken = jwt
-		apiClient.setJsonWebTokenHeader(jwt)
-		localStorage.setItem(JWT_ITEM_KEY, jwt)
+		return this.currentUser !== undefined && apiClient.jsonWebToken !== undefined
 	},
 
 	/**
@@ -38,10 +27,10 @@ export default {
 	register(newUser) {
 		log.info("Register as new user ", newUser)
 		return axios({
-		method: 'POST',
-		url: "/auth/register",
-		headers: { 'Content-Type' : 'application/json' },
-		data: newUser
+			method: 'POST',
+			url: "/auth/register",
+			headers: { 'Content-Type' : 'application/json' },
+			data: newUser
 		})
 		.then(res => { return res.data })
 	},
@@ -53,9 +42,13 @@ export default {
 	 */
 	fetchCurrentUser() {
 		if (this.currentUser) return Promise.resolve(this.currentUser)
-		this.jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
-		if (!this.jsonWebToken) throw new Error("Cannot fetchCurrentUser. Don't have JWT.")
-		return this.loginWithJWT(this.jsonWebToken)
+		var jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
+		if (jsonWebToken) {
+			log.debug("Got JWT from localStorage.")
+		} else {
+			throw new Error("Cannot fetchCurrentUser. Don't have JWT.")
+		}
+		return this.loginWithJWT(jsonWebToken)
 	},
 
 
@@ -76,7 +69,7 @@ export default {
 	 */
 	loginWithSmsCode(mobilephone, smsCode) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-		log.debug("Login via SMS for "+cleanMobilePhone+ " with sms code.")
+		log.debug("Login request with SMS code from "+cleanMobilePhone)
 		return axios.get('/auth/loginWithSmsCode', { params: { mobile: cleanMobilePhone, code: smsCode} } )
 		.then(res =>  {
 			return this.loginWithJWT(res.data)
@@ -90,18 +83,19 @@ export default {
 	/** When we've got a JWT, then store it globally and fetch user details */
 	loginWithJWT(jwt) {
 		if (!jwt) return Promise.reject("Need JWT")
-		this.setJWT(jwt)
+		apiClient.setJsonWebTokenHeader(jwt)
 		return apiClient.getMyUser()
-		.then(user => {
-			log.info("User logged in successfully.", user)
-			this.currentUser = user
-			return user
-		})
-		.catch(err => {
-			//TODO: refresh JWT if expired
-			log.error("Cannot find user details with JWT. Invalid JWT?")
-			return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
-		})
+			.then(user => {
+				log.info("User (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in successfully.")
+				this.currentUser = user
+				apiClient.setCurrentUser(user)
+				return user
+			})
+			.catch(err => {
+				//TODO: refresh JWT if expired
+				log.error("Cannot find user details with JWT. Invalid JWT?")
+				return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
+			})
 	},
 
 	/** send a link to login via email */
@@ -112,19 +106,16 @@ export default {
 
 	/** Logout the current user */
 	logout() {
-		log.info("LOGOUT", this.currentUser)
+		log.info("LOGOUT")
 		this.currentUser = undefined
-		this.jsonWebToken = undefined
 		localStorage.removeItem(JWT_ITEM_KEY)
 		apiClient.setJsonWebTokenHeader(undefined)
-		this.currentUser = undefined
+		apiClient.setCurrentUser(undefined)
 	},
 
 	/** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
 	devLogin(mobilephone) {
-		console.log(process.env)
 		if (process.env.NODE_ENV !== 'development') throw new Error("dev login is only allowed in NODE_ENV='development' !")
-		console.log("Development login of mobile phone "+mobilephone)
 		return this.loginWithSmsCode(mobilephone, process.env.devLoginDummySmsCode)
 	},
 

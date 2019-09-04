@@ -14,11 +14,11 @@
 					There <a href="#" @click="gotoProposalsInElaboration()">{{pollsInElaboration.length == 1 ? 'is one poll' : 'are '+pollsInElaboration.length+' polls'}} in this area</a> that you can join.
 				</p>
 				<p>
-					<input type="text" class="form-control" name="pollTitle" id="pollTitleId" v-model="pollTitle" placeholder="Poll title" >
+					<input type="text" class="form-control" name="pollTitle" id="pollTitleInput" v-model="pollTitle" placeholder="Poll title" >
 					<small>The poll's title can be edited by anyone who has a proposal in this poll. Please choose a short umbrella term that describes the general topic.</small>
 				</p>
 				
-				<p><button type="button" class="btn btn-primary pull-right" v-bind:disabled="disableSaveButton" @click="createNewPoll()">Create new poll</button></p>
+				<p><button type="button" class="btn btn-primary pull-right" id="createNewPollButton" v-bind:disabled="disableSaveButton" @click="createNewPoll()">Create new poll</button></p>
 			</div>
 		</div>
 
