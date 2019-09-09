@@ -1,5 +1,5 @@
 <template>
-	<div class="panel panel-default pollPanel">
+	<div class="panel panel-default pollPanel" :data-polluri="getPollURI">
 		<div class="panel-heading">
 			<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-default btn-xs pull-right">
 				<i class="fas fa-angle-double-right"></i>
@@ -34,13 +34,19 @@
 var moment = require('moment');
 
 export default {
-  props: {
+	props: {
 		'poll': { type: Object, required: true }
 	},
 
 	data () {
-    return {
-      pollPanelID: "Poll_"+this.poll.id+"_"+Date.now() // unique UID for this poll panel
+		return {
+      		pollPanelID: "Poll_"+this.poll.id+"_"+Date.now() // unique UID for this poll panel
+		}
+	},
+
+	computed: {
+		getPollURI() {
+			return this.$root.api.getURI(this.poll)
 		}
 	},
 

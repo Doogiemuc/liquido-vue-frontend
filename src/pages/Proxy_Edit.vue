@@ -188,7 +188,7 @@ export default {
             title: 'Error',
             message: "Couldn't remove proxy.<br/>Please try again later.",
             timout: 20000,
-          });
+          })
         })
       })
     },

@@ -61,7 +61,7 @@
 			</div>
 		</div>
 
-		<button v-if="poll.status==='VOTING'" type="button" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
+		<button v-if="poll.status==='VOTING'" type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
 			Cast vote <i class="fas fa-angle-double-right"></i>
 		</button>
 
@@ -132,9 +132,9 @@
 				<p>If you think that one of your proposals <b>in this area</b> matches this poll's topic, then you can add your proposal into this poll and put it to the vote.</p>
 				<div class="form-inline">
 					<div class="input-group">
-						<input id="dropdownMenu" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
+						<input id="proposalSearchInput" type="text" name="searchInput" placeholder="Search for your porposal's title" autocomplete="off" data-toggle="dropdown"
 						 class="form-control" style="width: 300px" v-model="searchVal">
-						<ul role="menu" aria-labelledby="dropdownMenu" class="dropdown-menu">
+						<ul role="menu" aria-labelledby="proposalSearchInput" class="dropdown-menu">
 							<li v-for="prop in matchingProposals" :key="prop.id"><a v-on:click="selectUserProposal(prop)">{{prop.title}}</a></li>
 						</ul>
 					</div>
@@ -308,7 +308,6 @@ export default {
 		},
 
 		acceptDelegations() {
-			var that = this
 			return this.fetchVoterToken().then(voterToken => {
 				this.$root.api.acceptDelegationRequests(this.poll.area, voterToken).then(res => {
 					log.info("Accepted delgation requests")
@@ -337,9 +336,22 @@ export default {
 			}})
 		},
 
+		/* join a users proposal into this poll */
 		joinPoll() {
-			return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(res => {
-				console.log("joined proposal into poll.", res)
+			return this.$root.api.joinPoll(this.selectedUserProposal, this.poll).then(poll => {
+				log.info("Successfully joined proposal into poll.", poll)
+				iziToast.success({
+					title: 'Joined poll sucessfully!',
+					message: 'Your proposal is now part of this poll.'
+				})
+				this.$router.go()  // reload the show poll page
+			})
+			.catch(err => {
+				log.error("Cannot join poll", err)
+				iziToast.error({
+					title: 'Error: Cannot join poll',
+					message: "Cannot join this poll.<br/>You May try again later.",
+				})
 			})
 		},
 

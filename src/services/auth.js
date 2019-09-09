@@ -15,6 +15,7 @@ const JWT_ITEM_KEY = 'liquido-jwt'
 var log = loglevel.getLogger('auth.js')
 
 export default {
+	//TODO: currently currentUser is mirrowed here AND in LiquidoApiClient.js  which is not nice. But I need it in both places
 	currentUser: undefined,
 
 	isLoggedIn() {
@@ -83,6 +84,7 @@ export default {
 	/** When we've got a JWT, then store it globally and fetch user details */
 	loginWithJWT(jwt) {
 		if (!jwt) return Promise.reject("Need JWT")
+		localStorage.setItem(JWT_ITEM_KEY, jwt)
 		apiClient.setJsonWebTokenHeader(jwt)
 		return apiClient.getMyUser()
 			.then(user => {

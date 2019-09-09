@@ -4,6 +4,7 @@
 
 import api from '../../../src/services/LiquidoApiClient.js'
 import auth from '../../../src/services/auth.js'
+import { AssertionError } from 'assert';
 
 function rand(min,max)   // Intervall [min, max[
 {
@@ -15,8 +16,10 @@ var fix
 
 /*
  This cypress test case is a complete happy case run.
- The individual tests inside this  file depend on each other and must run in this order.
+ The individual tests inside this file depend on each other and must run in this order. Only the whole spec is repeatable.
  Each test step can use the data created from the test steps before it. This data is kept in Cypress.env()
+
+ 
 
  # Test data
 
@@ -164,10 +167,8 @@ describe('Liquido Happy Case Test', function() {
 
 	it('start a new poll', function() {
 		//GIVEN a poll title
-		var pollTitle = "Poll created by test "+rand(1000,9999)
+		var pollTitle = "Poll created by test "+new Date().getTime()
 		// AND rand user is logged in
-		//console.log("pollTitle22", pollTitle)
-		//console.log("randmobilephone", Cypress.env('randMobilephone'))
 		cy.devLogin(Cypress.env('randMobilephone'))
 		// AND views his proposal
 		cy.visit('/#/proposals/'+Cypress.env('idea').id)
@@ -182,40 +183,142 @@ describe('Liquido Happy Case Test', function() {
 		// THEN the new poll should have that title
 		cy.get('#PollShow').should('exist')
 		cy.get('#pollTitle').should('have.text', pollTitle)
-		
+
+		//  AND store poll in Cypress.env()
+		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(user => {
+			return api.getProposal(Cypress.env('idea'), true).then(proposalProjection => {
+				console.log("created new poll", proposalProjection.poll)
+				Cypress.env('poll', proposalProjection.poll)
+			})
+		})
+
+		cy.log('Successfully started poll '+pollTitle)
 	})
 	
-	//TODO: Second proposal joins this poll
-	//TODO: (Mock) start voting phase and cast a vote in this poll
+	it('second proposal joins this poll', function() {
+		// GIVEN a proposal
+		var proposalTitle = "Second Proposal created by cypress "+new Date().getTime()
+		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(() => {
+			return createProposal(proposalTitle).then(prop => {
+				cy.wrap(prop).its('status').should('eq', 'PROPOSAL')
+				console.log("Created new proposal", prop)
+				Cypress.env('proposal2', prop)
+				//cy.log("SUCCESS: Created new Proposal: "+proposalTitle)
+			})
+		})		
 
+		//  WHEN joining the poll via UI
+		cy.devLogin(fix.user1_mobilephone)
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
 
+		cy.get('#proposalSearchInput').type(proposalTitle)
+		cy.get('#joinPollPanel .dropdown-menu > li > a:first()').should('have.text', proposalTitle)
+		cy.get('#joinPollPanel .dropdown-menu > li > a:first()').click()
+		cy.get('#joinPollPanel button').click()
+		
+		//  THEN the new proposal is shown on the poll's page
+		cy.get('div.lawPanel h4.lawTitle').should('contain.text', proposalTitle)
+		cy.log('SUCCESS: Second proposal joined the poll')
+	})
+
+	it('start voting phase', function() {
+		// GIVEN a poll
+		cy.devLogin(fix.user1_mobilephone)
+		expect(Cypress.env('poll')).to.be.defined
+
+		//  WHEN starting the voting phase of this poll
+		var backendBaseURL = Cypress.config('backendBaseURL')
+		console.log("JWT", api.jsonWebToken)
+		cy.request({
+			method: 'GET',
+			url: backendBaseURL+'/polls/'+Cypress.env('poll').id+'/devStartVotingPhase',
+			auth: {
+				bearer: api.jsonWebToken
+			}
+		}).then(res => {
+			expect(res.status).to.equal(200)
+			console.log("Started voting phase of poll", res)
+		})
+		
+		//  THEN the poll is shown in voting phase
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
+		cy.get('#castVoteButton').should('not.be.disabled')
+
+		//   AND the poll has status VOTING in the backend
+		cy.request({
+			method: 'GET',
+			url: backendBaseURL+'/polls/'+Cypress.env('poll').id,
+			headers: {
+				'Accept': 'application/json'
+			},
+			auth: {
+				bearer: api.jsonWebToken
+			}
+		}).then(res => {
+			console.log("====", res)
+			expect(res.status).to.equal(200)
+			expect(res.body.status).to.equal('VOTING')
+			cy.log("SUCCESS: Poll is now in voting phase")
+		})
+	})	
+    
+
+	// GIVEN a poll
+	//  WHEN casting a vote in this poll
+	//  THEN the user's ballot can be verified with checksum
+	
+	// GIVEN a poll
+	//  WHEN (simulated) casting a few more votes
+	//   AND the voting phase is finished
+	//  THEN the result of the poll is shown
+	//   AND the winning proposal is correct
 })
 
-//GIVEN: user 1 must have an idea
-var findIdea = function() {
+
+var findIdea = function(email) {
 	var query = {
 		status: "IDEA",
-		createdByEmail: fix.user1_email
+		createdByEmail: email
 	}
 	return api.findByQuery(query).then(page => {
-	var ideas = page._embedded.laws
-	expect(ideas).to.have.length.of.at.least(1)
-	return ideas[0]
+		var ideas = page._embedded.laws
+		expect(ideas).to.have.length.of.at.least(1)
+		return ideas[0]
 	})
 }
 
-//GIVEN a newly created idea
-var saveNewIdea = function() {
-	cy.log("Create new idea")
+var saveNewIdea = function(title) {
 	var newIdea = {
-		title: "Idea created by Test "+rand(1000,9999),
+		title: title,
 		description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
 		area: "/areas/"+fix.area0_id
 	}
-	return cy.loginWithSmsCode(fix.mobilephone_prefix+"1", fix.devLoginDummySmsCode).then(user => {
-		return api.saveNewIdea(newIdea).then(idea => {
-			Cypress.env("idea", idea)
-			return idea
+	return api.saveNewIdea(newIdea)
+}
+
+var addSupporters = function(numSupporters, idea) {
+	var phones = []
+	for(var i=10; i<10+numSupporters; i++) {
+		phones.push(fix.mobilephone_prefix+i)
+	}
+	return phones
+		.map(mobile => {
+			//console.log("==== preparing task for "+mobile)
+			//MUST return a function that returns a Promise! Do not call auth and api methods yet!
+			return () => { return auth.loginWithSmsCode(mobile, fix.devLoginDummySmsCode)
+			 .then(() => { return api.addSupporterToIdea(idea) } ) }
 		})
+		.reduce((prev, next) => {
+			//console.log("==== calling task for")
+			return prev.then(next)
+		}, Promise.resolve("FIRST"))
+	 
+}
+
+var createProposal = function(title) {
+	console.log("==== Creating new proposal: title='"+title+"'")
+	return saveNewIdea(title).then(idea => {
+		//console.log("==== saved new idea", idea.title, "now going to add supporters")
+		return addSupporters(11, idea).then(() => api.getIdea(idea))  // reload idea in new status and return that
 	})
 }
