@@ -8,10 +8,14 @@ test/e2e/reports
 test/e2e/logs
 test/e2e_prod/reports
 test/e2e_prod/logs/
+cypress/screenshots
+cypress/videos
 config/credentials.js
 scratchpad/
 package-lock.json
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
+.vscode/
 *.pui
 *.prj

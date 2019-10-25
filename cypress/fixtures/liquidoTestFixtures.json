@@ -13,7 +13,7 @@
   "user2_mobilephone": "+49 12345 2",
   "user2_email": "testuser2@liquido.de",
 
-  "ideaTitle_prefix": "Cypress Idea ",
+  "ideaTitle_prefix": "Cypress Idea that will become proposal ",
   "ideaDescription_prefix": "New Idea created from cypress test case ",
 
   "devLoginDummySmsCode": "998877"

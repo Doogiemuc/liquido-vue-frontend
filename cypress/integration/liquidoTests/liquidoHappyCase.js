@@ -1,5 +1,10 @@
 /**
- * Start to finish HAPPY CASE for Liquido
+ * Start to finish HAPPY CASE for Liquido.
+ * This is the shortest simplest possible user flow 
+ * from registering a new user
+ * until a finished poll.
+ * 
+ * For further use cases and edge cases see the regression test set.
  */
 
 import api from '../../../src/services/LiquidoApiClient.js'
@@ -35,9 +40,22 @@ describe('Liquido Happy Case Test', function() {
 			fix = fixtures					// quick access to test fixtures
 			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
 			//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
-			
 			console.log("Cypress.env initialized", Cypress.env())
 		})
+
+		// Make one initial request against the backend to check if it is alive
+		console.log("Is backend alive?")
+		cy.request({ 
+			url: Cypress.config('backendBaseURL')+'/_ping',
+			timeout: 1000
+		}).then(res => {
+			if (res.status !== 200) {
+				console.error("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
+				cy.log("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
+				Cypress.runner.stop();
+			}
+		})
+		
 	})
 
 	/** Print name of current test to console */
@@ -82,7 +100,7 @@ describe('Liquido Happy Case Test', function() {
 
 		//WHEN rand user adds a new idea
 		cy.devLogin(Cypress.env('randMobilephone'))
-		//TODO: check that user is logged in
+		
 		cy.get('#LiquidoHome').should('exist')
 		cy.get('#IdeasArrow').click()
 		cy.get('#IdeasList').should('exist')
@@ -115,7 +133,7 @@ describe('Liquido Happy Case Test', function() {
 
 	it('add supporters to idea until it becomes a proposal', function() {
 		//GIVEN an idea in Cypress.env
-		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").to.not.be.undefined
+		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").toBeNonEmptyObject
 
 		//WHEN adding enough supporters to that idea
 		var addSupportersToIdea = function() {
@@ -228,7 +246,7 @@ describe('Liquido Happy Case Test', function() {
 
 		//  WHEN starting the voting phase of this poll
 		var backendBaseURL = Cypress.config('backendBaseURL')
-		console.log("JWT", api.jsonWebToken)
+		//console.log("JWT", api.jsonWebToken)
 		cy.request({
 			method: 'GET',
 			url: backendBaseURL+'/polls/'+Cypress.env('poll').id+'/devStartVotingPhase',
@@ -255,23 +273,119 @@ describe('Liquido Happy Case Test', function() {
 				bearer: api.jsonWebToken
 			}
 		}).then(res => {
-			console.log("====", res)
 			expect(res.status).to.equal(200)
 			expect(res.body.status).to.equal('VOTING')
 			cy.log("SUCCESS: Poll is now in voting phase")
 		})
-	})	
-    
+	})
 
-	// GIVEN a poll
-	//  WHEN casting a vote in this poll
-	//  THEN the user's ballot can be verified with checksum
-	
-	// GIVEN a poll
-	//  WHEN (simulated) casting a few more votes
-	//   AND the voting phase is finished
-	//  THEN the result of the poll is shown
-	//   AND the winning proposal is correct
+	it('cast vote for this idea', function() {
+		// GIVEN a poll and an idea
+		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('idea')).toBeNonEmptyObject
+
+		//  WHEN casting a vote in this poll
+		cy.devLogin(Cypress.env('randMobilephone'))
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
+		cy.get('#PollShow').should('exist')
+		cy.get('#castVoteButton').click()
+
+		//  AND sort the ballot (move one proposal to the right)
+		cy.get('#SortBallot').should('exist')
+		//drag'n'drop with cypress  https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/testing-dom__drag-drop/cypress/integration/drag_n_drop_spec.js
+		// Cast vote for the "idea" that was created above. So that this idea is the winner in the end
+		cy.get('#leftContainer > div.lawPanel[data-proposaluri="'+Cypress.env('idea')._links.self.href+'"]')
+			.trigger('mousedown', { which: 1 })
+		cy.get('#rightContainer')
+			.trigger('mousemove', { offsetX: 10, offsetY: 10 })   // move to 10,10px from top left (padding) edge of the DOM element
+			.trigger('mouseup', {force: true})
+		cy.get('#castVoteButton').click()
+		cy.get('#CastVote').should('exist')
+
+		//  AND fetch voterToken
+		cy.get('#fetchVoterTokenButton').click()
+		cy.get('#voterToken').should('not.be.empty')
+		cy.get('#castVoteButton').click()
+
+		// THEN should show success and return checksum
+		cy.get('.sweet-alert').should('have.class', 'voteSuccess')
+		cy.get('button.confirm').click()
+		cy.get('#checksum').then(checksumElems => {
+			let checksum = checksumElems[0].textContent
+			expect(checksum).not.to.be.empty
+			Cypress.env('checksum', checksum)
+		})
+
+		//  AND ballot should be shown in poll
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
+		cy.get('#yourBallot').should('exist')
+
+		cy.log("Vote casted SUCCESSFULLY.") 
+	})
+
+	it("finish poll and verify winning proposal", function() {
+		// GIVEN a poll and idea and a checksum
+		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('idea')).toBeNonEmptyObject
+		expect(Cypress.env('checksum')).toBeNonEmptyString
+
+		// WHEN finish this poll
+		cy.request({
+			method: 'GET',
+			url: Cypress.config('backendBaseURL')+'/polls/'+Cypress.env('poll').id+'/devFinishVotingPhase',
+			headers: {
+				'Accept': 'application/json'
+			},
+			auth: {
+				bearer: api.jsonWebToken
+			}
+		}).then(res => {
+			expect(res.status).to.equal(200)
+			expect(res.winner).toBeNonEmptyObject
+		})
+
+		// THEN poll result should have the correct winner
+		cy.devLogin(Cypress.env('randMobilephone'))
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
+		cy.get('#PollResult').should('exist')
+		console.log(Cypress.env('idea'))
+		//cy.get('#PollResult').debug()
+		cy.get('#PollResult div.panel').should('have.attr', 'data-proposaluri', Cypress.env('idea')._links.self.href)
+	})
+
+	it("ballot's checksum is valid", function() {
+		// GIVEN a finished poll and a ballot's checksum
+		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('checksum')).toBeNonEmptyString
+		
+		// WHEN validating the checksum on the poll's page
+		cy.devLogin(Cypress.env('randMobilephone'))
+		cy.visit('/#/polls/'+Cypress.env('poll').id)
+		cy.get('#PollResult').should('exist')
+		cy.get('#checksumInput').type(Cypress.env('checksum'))
+		cy.get('#checksumInputButton').click()
+
+		// THEN the checksum should be valid
+		cy.get('.alert-danger').should('not.exist')
+		cy.get('.alert-success').should('exist')
+	})
+
+	it('Winning law is shown on the laws page', function() {
+		// GIVEN a poll and the winning law
+		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('idea')).toBeNonEmptyObject
+
+		// WHEN navigating to the law's page
+		cy.devLogin(Cypress.env('randMobilephone'))
+		cy.visit('/#/laws')
+		
+		// THEN this law is shown 
+		cy.get('.lawListCondensedTable tr[data-lawuri="'+Cypress.env('idea')._links.self.href+'"]')
+	})
+
+
+	//TODO: cleanup  (so that tests could also be run against prod)
+	//      Clear Cypress.env   idea, poll and proposal2 
 })
 
 

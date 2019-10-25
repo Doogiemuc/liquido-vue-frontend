@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="CastVote">
 
     <h1><i class="fas fa-balance-scale"></i> Cast your vote</h1>
 
@@ -34,7 +34,7 @@
 
             <!--input type="text" class="form-control" name="tokenSecret" id="tokenSecretInput" v-model="tokenSecret" placeholder="tokenSecret"></input -->
 
-            <div class="well well-sm monspaceFont">{{voterToken || '&nbsp;'}}</div>
+            <div class="well well-sm monspaceFont" id="voterToken">{{voterToken || '&nbsp;'}}</div>
 
             <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken" :disabled="disableFetchVoterTokenButton">
               Fetch voter token<span v-if="step1_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
@@ -84,7 +84,7 @@
               <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
               <p>Here we cast you vote completely anonymously. When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. Do not reveal that this is <em>your</em> checksum!</p>
-              <div class="well well-sm monspaceFont">{{checksum || '&nbsp;'}}</div>
+              <div class="well well-sm monspaceFont" id="checksum">{{checksum || '&nbsp;'}}</div>
               <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
                 Cast vote anonymously<span v-if="step3_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
               </button>
@@ -247,7 +247,8 @@ export default {
           log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
 
           swal({
-            title: "SUCCESS",
+			title: "SUCCESS",
+			customClass: "voteSuccess",
             text: "Your vote was casted successfully.",
             type: "success"
           },

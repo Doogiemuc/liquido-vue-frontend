@@ -1,23 +1,24 @@
 <template>
-  <div class="container">
+  <div class="container" id="SortBallot">
 
     <h1><i class="fas fa-poll"></i> Sort proposals into your ballot</h1>
 
     <div class="panel panel-default">
-      <div class="panel-body"">
+      <div class="panel-body">
         <p>In LIQUIDO you do not just vote for or against one proposal. Instead you sort proposals into your personally preferred order in your ballot. Simply drag some proposals from the left into your ballot on the right. You do not have to sort all the proposals into your ballot. You can just pick the ones you want to cast a vote for. Sort the proposals into your preferred order with the proposal that you like best at the top.</p>
-
-        <div id="castVoteButtonWrapper" class="pull-right"
-          data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
-          data-content="Drag at least one proposal from the left into your ballot on the right.">
-          <button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
-            v-bind:disabled="this.ballotIsEmpty"
-            @click="clickCastVoteButton">
-              Cast vote <i class="fas fa-angle-double-right"></i>
-          </button>
-        </div>
       </div>
     </div>
+
+	<div id="castVoteButtonWrapper" class="pull-right"
+          data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
+          data-content="Drag at least one proposal from the left into your ballot on the right.">
+        
+		<button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
+			v-bind:disabled="this.ballotIsEmpty"
+			@click="clickCastVoteButton">
+				Cast vote <i class="fas fa-angle-double-right"></i>
+		</button>
+	</div>
 
     <table class="table pollTable">
       <tbody>
@@ -36,6 +37,7 @@
           <td width="49%" id="leftContainer">
 
             <law-panel v-for="proposal in notVotedForProposals"
+			  :key="proposal.id"
               :law="proposal"
               :showTimeline="false"
               :fixedHeight="100"
@@ -66,6 +68,7 @@
             </div>
             <!-- already voted for proposals -->
             <law-panel v-for="proposal in votedForProposals"
+			  :key="proposal.id"
               :law="proposal"
               :showTimeline="false"
               :fixedHeight="100"

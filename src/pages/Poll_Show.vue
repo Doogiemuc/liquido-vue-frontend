@@ -44,7 +44,7 @@
 			</div>
 		</div>
 
-		<div v-if="ownBallot" class="panel panel-default">
+		<div v-if="ownBallot" class="panel panel-default" id="yourBallot">
 			<div class="panel-heading">
 				<h4>Your current ballot in this poll</h4>
 			</div>
@@ -80,7 +80,7 @@
 		</div>
 
 
-		<div v-if="poll.status === 'FINISHED'">
+		<div v-if="poll.status === 'FINISHED'"  id="PollResult">
 			<h3>Winning proposal</h3>
 			<law-panel
 				:law="poll._embedded.winner"
@@ -116,7 +116,7 @@
 			<p>Here you can check, if your ballot was counted correctly in this poll. If you voted in this poll, you should have received a checksum for your ballot that you can verify here.</p>
 			<div class="form form-inline">
 				<input type="text" class="form-control" name="checksum" id="checksumInput" v-model="checksum" placeholder="">
-				<button type="button" class="btn btn-default" v-bind:disabled="disableChecksumButton" @click="verifyChecksum">Verify checksum</button>
+				<button type="button" class="btn btn-default" id="checksumInputButton" v-bind:disabled="disableChecksumButton" @click="verifyChecksum">Verify checksum</button>
 			</div>
 			<div v-if="checksumValidity === 'valid'" class="alert alert-success checksumAlert" role="alert">This checksum is valid and your ballot was counted in this poll.</div>
 			<div v-if="checksumValidity === 'invalid'" class="alert alert-danger checksumAlert" role="alert">This checksum is <b>not</b> valid</div>
