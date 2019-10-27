@@ -32,30 +32,57 @@ var fix
   - this user creates an idea
 */ 
 describe('Liquido Happy Case Test', function() {
-	/* Import all fixtures into Cypress.env  and then add some dynamically created values
-	   https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data  */
-	before(function() {
-		cy.fixture('liquidoTestFixtures.json').then(fixtures => {
-			Cypress.env(fixtures)  			// store in cypres environment
-			fix = fixtures					// quick access to test fixtures
-			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
-			//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
-			console.log("Cypress.env initialized", Cypress.env())
-		})
+	
+	// Yes Mocha allows multiple before() calls. They will be executed in sequence as defind here.  Nice!
 
-		// Make one initial request against the backend to check if it is alive
-		console.log("Is backend alive?")
+	/** Make one initial request against the backend to check if it is alive at all */
+	before(function() {
 		cy.request({ 
 			url: Cypress.config('backendBaseURL')+'/_ping',
 			timeout: 1000
 		}).then(res => {
-			if (res.status !== 200) {
+			if (res.status === 200) {
+				console.log("Backend is alive at "+Cypress.config('backendBaseURL'))
+			} else {
 				console.error("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
 				cy.log("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
 				Cypress.runner.stop();
 			}
 		})
-		
+		//Cypress.Cookies.preserveOnce('session_id', 'remember_token')
+	})
+
+
+	/** Load test fixturesand then make it easily available as variable "fix" and in Cypress.env
+	    https://docs.cypress.io/api/commands/fixture.html#Accessing-Fixture-Data  */
+	before(function() {
+		cy.fixture('liquidoTestFixtures.json').then(fixtures => {
+			Cypress.env(fixtures)  			// store in cypres environment
+			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. Looks like an ugly hack, but works fine
+			fix = fixtures					// quick access to test fixtures
+		})
+	})
+
+	/** Load one area */
+	before(function() {
+		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(user => {
+			console.log("7")
+			cy.request({
+				method: 'GET',
+				url: Cypress.config('backendBaseURL')+'/areas',
+				headers: {
+					'Accept': 'application/json'
+				},
+				auth: {
+					bearer: api.jsonWebToken
+				}
+			}).then(res => {
+				let area = res.body._embedded.areas[0]
+				Cypress.env('area0', area)
+				fix.area0 = area
+				console.log("Cypress.env initialized", Cypress.env())
+			})
+		})
 	})
 
 	/** Print name of current test to console */
@@ -113,7 +140,7 @@ describe('Liquido Happy Case Test', function() {
 			win.tinyMCE.activeEditor.setContent(Cypress.env('ideaDescription'))
 			win.tinyMCE.activeEditor.save()   // BUGFIX: Must manually save TinyMCE's content back to the textare to trigger all necessary events. *sic*
 		})
-		cy.get('#ideaAreaSelect').select(Cypress.env('area0_title'))
+		cy.get('#ideaAreaSelect').select(fix.area0.title)
 		//AND saves that idea
 		cy.get('#saveIdeaButton').click()
 
@@ -249,7 +276,7 @@ describe('Liquido Happy Case Test', function() {
 		//console.log("JWT", api.jsonWebToken)
 		cy.request({
 			method: 'GET',
-			url: backendBaseURL+'/polls/'+Cypress.env('poll').id+'/devStartVotingPhase',
+			url: backendBaseURL+'/dev/polls/'+Cypress.env('poll').id+'/startVotingPhase',
 			auth: {
 				bearer: api.jsonWebToken
 			}
@@ -330,9 +357,10 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('checksum')).toBeNonEmptyString
 
 		// WHEN finish this poll
+		cy.devLogin(Cypress.env('randMobilephone'))
 		cy.request({
 			method: 'GET',
-			url: Cypress.config('backendBaseURL')+'/polls/'+Cypress.env('poll').id+'/devFinishVotingPhase',
+			url: Cypress.config('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+'/finishVotingPhase',
 			headers: {
 				'Accept': 'application/json'
 			},
@@ -383,6 +411,23 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('.lawListCondensedTable tr[data-lawuri="'+Cypress.env('idea')._links.self.href+'"]')
 	})
 
+	it('CLEANUP', function() {
+		if (Cypress.env('poll') !== undefined) {
+			console.log("DELETING poll that was created from test (poll.id="+Cypress.env('poll').id+")")
+			cy.loginWithSmsCode(fix.adminMobilephone, fix.devLoginDummySmsCode).then(user => {
+				cy.request({
+					method: 'DELETE',
+					url: Cypress.config('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id,
+					headers: {
+						'Accept': 'application/json'
+					},
+					auth: {
+						bearer: api.jsonWebToken
+					}
+				})
+			})
+		}
+	})
 
 	//TODO: cleanup  (so that tests could also be run against prod)
 	//      Clear Cypress.env   idea, poll and proposal2 
@@ -405,11 +450,16 @@ var saveNewIdea = function(title) {
 	var newIdea = {
 		title: title,
 		description: "This is just a random idea that has automatically been created by a test case on "+new Date(),
-		area: "/areas/"+fix.area0_id
+		area: "/areas/"+fix.area0.id
 	}
 	return api.saveNewIdea(newIdea)
 }
 
+/**
+ * Add many supporters to one idea
+ * @param {Number} numSupporters number of supporters to add. Keep in mind that there must be enough different users in the DB
+ * @param {Object} idea an idea or proposal
+ */
 var addSupporters = function(numSupporters, idea) {
 	var phones = []
 	for(var i=10; i<10+numSupporters; i++) {
@@ -417,14 +467,13 @@ var addSupporters = function(numSupporters, idea) {
 	}
 	return phones
 		.map(mobile => {
-			//console.log("==== preparing task for "+mobile)
-			//MUST return a function that returns a Promise! Do not call auth and api methods yet!
+			// return one "task" for each mobile. Each "task" is a function that returns a promise (chain). The auth and api methods are not yet called here! The will be called below when the promise resolves.
 			return () => { return auth.loginWithSmsCode(mobile, fix.devLoginDummySmsCode)
 			 .then(() => { return api.addSupporterToIdea(idea) } ) }
 		})
 		.reduce((prev, next) => {
 			//console.log("==== calling task for")
-			return prev.then(next)
+			return prev.then(next)			// This chains the promises one after another
 		}, Promise.resolve("FIRST"))
 	 
 }

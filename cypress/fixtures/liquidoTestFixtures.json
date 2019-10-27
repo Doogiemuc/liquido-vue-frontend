@@ -4,8 +4,6 @@
   "email_suffix": "@liquido.de",
   "website": "www.liquido.de",
 
-  "area0_id": 21, 
-  "area0_title": "Area 0",
   "user1_mobilephone": "+49 12345 1",
   "user1_email": "testuser1@liquido.de",
   "user1_name": "Donald Duck",
@@ -16,5 +14,6 @@
   "ideaTitle_prefix": "Cypress Idea that will become proposal ",
   "ideaDescription_prefix": "New Idea created from cypress test case ",
 
+  "adminMobilephone": "+491234567890",
   "devLoginDummySmsCode": "998877"
 }
