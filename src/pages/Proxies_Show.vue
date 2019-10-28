@@ -15,17 +15,14 @@
 		<div class="col-sm-6" v-for="area in categories" :key="area.id">
 			<div v-if="proxyInfo[area.id] && delegations[area.id]" class="panel panel-default proxyPanel">
 				<div class="panel-heading">
-					<a class="editIcon pull-right" @click="editProxy(area)"><i class="fas fa-edit" aria-hidden="true"></i></a>
 					<h4>{{area.title}} - {{area.description}}</h4>
 				</div>
 				<ul class="list-group">
 					<li class="list-group-item">
 						<div class="row smallFont">
 							<div class="col-md-6">
-								<div v-if="myProxy(area)">
-									<a href="#" @click="editProxy(area)">
-										<img :src="myProxy(area).profile.picture" class="avatarImg pull-left"/>
-									</a>
+								<div v-if="myProxy(area)" class="clickableProxy" @click="editProxy(area)">
+									<img :src="myProxy(area).profile.picture" class="avatarImg pull-left"/>
 									<b v-if="proxyInfo[area.id].directProxyDelegation.delegationRequest">
 										Requested delegation to
 									</b>
@@ -37,15 +34,13 @@
 									&lt;{{myProxy(area).email }}&gt;
 								</div>
 								<div v-else>
-									<a href="#" @click="editProxy(area)">
-										<img src="/static/img/placeholder.png" class="avatarImg pull-left placeholderImg"/> Assign a proxy
-									</a>
+									<button @click="editProxy(area)" class="btn btn-xs btn-default assignProxyButton">Assign proxy</button>
 								</div>
 							</div>
 							<div class="col-md-6">
 								<div v-if="showTopProxy(area)">
 									<img :src="proxyInfo[area.id].topProxy.profile.picture" class="avatarImg pull-left"/>
-									<b>Top proxy</b><br/>
+									<b>Your top proxy</b><br/>
 									{{proxyInfo[area.id].topProxy.profile.name}}<br/>
 									&lt;{{ proxyInfo[area.id].topProxy.email }}&gt;
 								</div>
@@ -54,15 +49,21 @@
 					</li>
 					<li class="list-group-item">
 						<ul class="fa-ul userProxyInfo">
-							<li><i class="fas fa-fw fa-forward"></i>&nbsp;You are the proxy for {{delegations[area.id].delegationCount}} voter(s) in this area.</li>
-							<li v-if="delegations[area.id].delegationRequests.length > 0">
-								<i class="fas fa-fw fa-forward"></i>&nbsp;
-								<a href="#" @click="acceptDelegationRequest(area)">Accept {{delegations[area.id].delegationRequests.length}} delegation request{{delegations[area.id].delegationRequests.length > 1 ? "s" : ""}}</a>
+							<li v-if="delegationCount(area) == 0 && delegationRequests(area) == 0">
+								<i class="fas fa-fw fa-share-square"></i>&nbsp;You received no delegations yet.
 							</li>
 							<li v-else>
-								<i class="fas fa-fw fa-forward"></i>&nbsp;Currently no furhter delegation requests.
+								<i class="fas fa-fw fa-share-square"></i>
+								<span v-if="delegationCount(area) > 0">
+									You received {{delegations[area.id].delegationCount}} delegations in this area.
+								</span>
+								<a v-if="delegationRequests(area) > 0" href="#" @click="acceptDelegationRequest(area)">
+									Accept {{delegationRequests(area)}} delegation request.
+								</a>
 							</li>
-							<li v-if="delegations[area.id].isPublicProxy"><i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;You are a public proxy in this area.</li>
+							<li v-if="delegations[area.id].isPublicProxy">
+								<i class="far fa-fw fa-check-circle" aria-hidden="true"></i>&nbsp;You are a public proxy in this area.
+							</li>
 							<li v-else>
 								<a href="#" @click="becomePublicProxy(area)">
 									<i class="far fa-fw fa-circle" aria-hidden="true"></i>&nbsp;Become a public proxy
@@ -105,7 +106,15 @@ export default {
   methods: {
     getAllCategories() {
       return this.$root.api.getAllCategories().then(categories => this.categories = categories)
-    },
+	},
+	
+	delegationCount(area) {
+		return this.delegations[area.id].delegationCount
+	},
+
+	delegationRequests(area) {
+		return this.delegations[area.id].delegationRequests.length
+	},
 
     /**
      * Fetch voter token for this area and cache it.
@@ -222,24 +231,18 @@ export default {
 }
 </script>
 
-<style>
-	.proxyPanelBody {
-		padding: 10px;
-		font-size: 12px;
-		height: 80px;
+<style scoped>
+	.proxyPanel {
+		min-height: 160px;  /* Necessary for all col-sm6 floats to be of equal height */
 	}
 	.proxyPanel .panel-heading {
 		padding: 5px 15px;
 	}
-	.proxyPanel:hover .editIcon {
-		visibility: visible;
-	}
-	.editIcon {
-		visibility: hidden;
-		font-size: 16px;
-		vertical-align: middle;
-		color: #AAA;
+	.proxyPanel .clickableProxy {
 		cursor: pointer;
+	}
+	.proxyPanel .clickableProxy:hover {
+		background: lightgray;
 	}
 	.proxyPanel .avatarImg {
 		width: 50px;
@@ -254,6 +257,12 @@ export default {
 		opacity: 1;
 		filter: alpha(opacity=100); /* For IE8 and earlier */
 	}
+	.assignProxyButton {
+		width: 50px;
+		height: 50px;
+		white-space: normal;
+	}
+
 	.panel-heading h4 {
 		margin-top: 0;
 		margin-bottom: 0;

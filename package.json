@@ -2,7 +2,10 @@
   "name": "liquido-vue-frontend",
   "version": "0.21.0",
   "description": "Web frontend for my Liquid Democracy app implemented in NodeJS with Vue",
-  "keywords": ["Liquid Democracy", "eVoting"],
+  "keywords": [
+    "Liquid Democracy",
+    "eVoting"
+  ],
   "homepage": "https://github.com/Doogiemuc/liquido-vue-frontend",
   "license": "CC-BY-NC-4.0",
   "author": "Robert Rackl",
@@ -18,8 +21,8 @@
     "test_chrome_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env chrome_local",
     "test_iron_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
     "test_e2e_with_devServer": "node test/e2e/runner.js",
-	"test_all": "npm run unit && npm run e2e_with_devServer",
-	"happyCase": "cypress run --spec ./cypress/integration/liquidoTests/liquidoHappyCase.js"
+    "test_all": "npm run unit && npm run e2e_with_devServer",
+    "happyCase": "cypress run --spec ./cypress/integration/liquidoTests/liquidoHappyCase.js"
   },
   "repository": {
     "type": "git",
@@ -43,8 +46,7 @@
     "url-template": "^2.0.8",
     "vue": "^2.5.17",
     "vue-router": "^2.8.1",
-    "vuelidate": "^0.2.0",
-    "whatwg-fetch": "^2.0.4"
+    "vuelidate": "^0.7.3"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.7",

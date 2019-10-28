@@ -1,36 +1,46 @@
 <template>
 	<div class="container" id="LiquidoHome">
 		<h1>Liquido</h1>
-		<p class="lead">A modern aproach for interactive, representative and direct democracy.</p>
+		<p class="lead">A liquid aproach to direct democracy.</p>
 		<hr>
 		<div class="row">
 			<div class="col-sm-6">
 				<h3>Democracy</h3>
-				<p>Most states nowadays have a democratically elected government which is a good thing. There are differnent
-				 forms of democracy. Indirect democracy where people elect a parliamt. And direct democracy where every voter
-				 can directly cast his vote in an election without any intermediate.</p>
-				<h3>Proxy Voting</h3>
-				<p>A very modern form of democracy is <em>proxy voting</em> where a member may delegate his or her voting power to a
-					representative. It is possible that many voters delegate their vote to the same proxy. For example one may delegate
-					one's vote to an expert in a certain area, or to a political party as in most current systems. Then this proxy
-					can vote with his own vote and all the votes that have been delegated to him. Delegation can be transitive,
-					meaning that a proxy can in turn delegate all his votes to another parent proxy. This way a tree hierarchy
-					of proxies evolves where the voting power culminates at the top.</p>
-					<p>In Liquido a member may revoke the delegation of his voting power from a proxy at any time. Then this voter
-					 can (and should!) cast a vote on his own. This way the tree of delegations always changes. It's kind of <em>liquid</em>.</p>
+				<blockquote>(Greek: δημοκρατία dēmokratía, literally "rule by people") is a form of government in which the people have the authority to choose their governing legislature.
+					Generally there are two types of democracy, direct or representative. In a direct democracy, the people directly deliberate and decide on legislature.
+					In a representative democracy the people elect representatives to deliberate and decide on legislature, such as in parliamentary or presidential democracy. Combining those basic types is done in liquid democracy.
+					<footer class="pull-right"><a href="https://en.wikipedia.org/wiki/Democracy">https://en.wikipedia.org/wiki/Democracy</a></footer>
+				</blockquote>
+			</div>
+			<div class="col-sm-6">
+				<h3>Liquido</h3>
+				<p>is a web based implementation of Liquid Democracy with no central authority. The whole democratic process is decentralized:</p>
+				<ul>
+					<li>Anyone may suggest an <b>idea</b>.</li>
+					<li>When an idea reaches its quorum, it becomes a <b>proposal</b>.</li>
+					<li>When a <b>poll</b> is created, then further alternative proposals may join this poll.</li>
+					<li>All proposals in the poll can now be further discussed and continuusly elaborated.</li>
+					<li>After a few days the <b>voting phase</b> of the poll starts automatically.</li>
+					<li>In Liquido you don't just vote for one of several propsals, instead you <b>sort proposals</b> into your personally preferred order.</li>
+					<li>When the voting phase of a poll is finished, then the winning proposal is calculated with the well researched <a href="https://en.wikipedia.org/wiki/Ranked_pairs">Ranked Pairs</a> electoral system.</li>
+				</ul>
 			</div>
 
 			<div class="col-sm-6">
-				<h3>Liquido</h3>
-				<ul>
-					<li>In Liquido it is always possible to cast a vote yourself. No matter if you have delegated your vote to a proxy.
-					  Even if the proxy has already casted his vote, it is possible to overrride this decission as long as the voting phase of a poll
-					  is still open.</li>
-					<li>Ideas must first reach a certain number of supporters before they can become a proposal.</li>
-					<li>Proposals can then be joined to polls.</li>
-					<li>Voters cast their votes into polls as long as the voting phase is open</li>
-					<li>The proposal with the most votes becomes a law.</li>
-				</ul>
+				<h3>Liquid Democracy</h3>
+				<blockquote>(also known as delegative democracy) is a form of democracy whereby an electorate has the option of vesting voting power in delegates rather than voting directly themselves. 
+					Voters can either vote directly or delegate their vote to other participants; voters may also select different delegates for different issues.
+					<footer class="pull-right"><a href="https://en.wikipedia.org/wiki/Liquid_democracy" class="quoteSource">https://en.wikipedia.org/wiki/Liquid_democracy</a></footer>
+				</blockquote>
+			</div>
+			<div class="col-sm-6">	
+				<h3>Tree of proxies</h3>
+				<p>Delegation can be transitive. A proxy can in turn delegate all his collected rights to vote to another parent proxy. This way a tree of proxies evolves 
+					where the voting power culminates at the top.</p>
+				<p> But in Liquido a voter may always cast a vote on his own, possibly overruling an already casted vote of his proxy in this poll.
+					A proxie's vote will never overrule a personally casted vote.
+					And a voter may revoke his delegation at any time.</p>
+				<p>This way the tree of delegations is in a constant state of change - it's kind of <em>liquid</em>.</p>
 
 				<p>&nbsp;</p>
 				<p v-if="$root.currentUser === undefined" class="text-center">
@@ -50,6 +60,14 @@ export default {
 </script>
 
 <style scoped>
+blockquote {
+	font-size: 14px;
+	padding: 5px 0 5px 10px;
+	margin-bottom: 0;
+}
+.quoteSource {
+	float: right;
+}
 .loginButton {
 	margin-right: 3em;
 }

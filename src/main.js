@@ -8,7 +8,7 @@
 import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
-import RegisterPage from './pages/RegisterPage'
+import AccountRegister from './pages/Account_Register'
 import LoginPage from './pages/LoginPage'
 import LogoutPage from './pages/LogoutPage'
 import PageNotFound from './pages/PageNotFound'
@@ -27,7 +27,7 @@ const routes = [
   },
   { path: '/register',
     name: 'register',
-    component: RegisterPage,
+    component: AccountRegister,
     meta: { requiresAuth: false }
   },
   { path: '/login',
@@ -41,9 +41,11 @@ const routes = [
     meta: { requiresAuth: false }
   },
 
+  // from here on we asyncronously require components for lazy loading. WebPack code split points
+
   // =================== Category / Area ================
   { path: '/categories',
-    component: function(resolve) {                // asyncronously require components for lazy loading, WebPack code split point
+    component: function(resolve) {                
       require(['./pages/Categories_List.vue'], resolve)
     }
   },
@@ -152,12 +154,18 @@ const routes = [
     props: true
   },
 
- // ======================= User Home =======================
+  // ======================= User =======================
   { path: '/userHome',
     component: function(resolve) {
       require(['./pages/UserHome.vue'], resolve)
     }
   },
+  { path: '/account',
+	component: function(resolve) {
+		require(['./pages/Account_Edit.vue'], resolve)
+	}
+  },
+
   // ======================= Proxies =======================
   { path: '/proxies',
     component: function(resolve) {
@@ -171,12 +179,6 @@ const routes = [
       require(['./pages/Proxy_Edit.vue'], resolve)
     },
     props: true
-  },
-  { path: '/delegations',
-    component: function(resolve) {
-      require(['./pages/Proxies_Delegations.vue'], resolve)
-	},
-	name: 'delegations'
   },
   
   // ======================= PageNotFound =======================

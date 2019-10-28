@@ -42,14 +42,13 @@
                 <img v-bind:src="currentUser.profile.picture" class="avatarImg">
               </a>
               <ul class="dropdown-menu">
-							  <li><router-link to="/userHome">User Home</router-link></li>
-                <li><router-link to="/proxies">Your Proxies</router-link></li>
-				<li><router-link to="/delegations">Delegations</router-link></li>
+                <li><router-link to="/userHome">User Home</router-link></li>
+                <li><router-link to="/proxies">Proxy Delegations</router-link></li>
                 <li><router-link to="/account">My Account</router-link></li>
                 <li><router-link id="addIdeaMenuItem" to="/ideas/add">Add new Idea</router-link></li>
                 <!-- li><router-link to="/messages">Messages</router-link></li -->
                 <li class="divider"></li>
-                <li><router-link to="/logout">Logout via URL</router-link></li>
+                <li><router-link to="/logout">Logout</router-link></li>
               </ul>
 
             </li>
@@ -73,9 +72,8 @@
     <router-view></router-view>
 
     <footer>
-
       <div class="container text-right">
-        <small>{{nodeEnv}} {{liquidoVersion}}</small>&nbsp;
+        <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
         <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
           <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
         </a>
@@ -101,7 +99,8 @@ export default {
     All data properties are injected in mains.js
   */
   computed: {
-    liquidoVersion() { return this.props['liquido.version'] },
+	liquidoWebAppVersion() { return "V"+process.env.liquidoWebAppVersion },
+    liquidoBackendInfo()   { return "backend@"+this.props['liquido.backend.version'] + ' ' + process.env.backendBaseURL },
     nodeEnv()        { return process.env.NODE_ENV },
     currentUser()    { return auth.currentUser },
     devUsers()       { return process.env.devUsers },

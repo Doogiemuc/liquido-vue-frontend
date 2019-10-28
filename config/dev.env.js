@@ -12,7 +12,10 @@ module.exports = merge(prodEnv, {
     '{ "mobilephone": "+49 123452", "name": "User2"},'+
     '{ "mobilephone": "+49 123453", "name": "User3"},'+
     '{ "mobilephone": "+49 123454", "name": "User4"},'+
-    '{ "mobilephone": "+49 123455", "name": "User5"},'+
+	'{ "mobilephone": "+49 123455", "name": "User5"},'+
+	'{ "mobilephone": "+49 123456", "name": "User6"},'+
+	'{ "mobilephone": "+49 123457", "name": "User7"},'+
+	'{ "mobilephone": "+49 123458", "name": "User8"},'+
   ']',
 
   // User with this mobilephone is automatically logged in at startup. Set to 'undefined' to disable this feature.

@@ -198,12 +198,14 @@ module.exports = {
 // Users
 //==================================================================================================================
 
+  /** Fetch all users (paged) */
   getAllUsers() {
     return axios.get('/users').then(
       res => { return res.data._embedded.users }
     )
   },
 
+  /** Find user by email */
   findUserByEmail(email) {
     return axios.get('/users/search/findByEmail?email='+email)
      .then(res => {
@@ -212,6 +214,20 @@ module.exports = {
     .catch(err => {
       return Promise.reject({msg: "Cannot findUserByEmail", email: email, err: err})
     })
+  },
+
+  /** Update existing user */
+  saveUser(user) {
+	log.info("Save user "+user.email)
+	return axios({
+		method: 'PUT',   // PUT is idempotent. POST is not.   Go learn REST :-)  Just kidding. Also took me a year to grasp the difference :-)
+		url: this.getURI(user),
+		headers: { 'Content-Type' : 'application/json' },
+		data: user
+	})
+	.catch(err => {
+		return Promise.reject({msg: "Cannot save user ", email: user.email, err: err})
+	})
   },
 
 //==================================================================================================================

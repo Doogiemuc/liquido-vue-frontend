@@ -36,6 +36,8 @@ export default {
 		.then(res => { return res.data })
 	},
 
+	//edit account data is in LiquidoApiClient.js because it needs authentication
+
 	/**
 	 * Lazy fetch currentUser.
 	 * @return cached currentUser or try to login with stored JWT
