@@ -38,14 +38,14 @@ describe('Liquido Happy Case Test', function() {
 	/** Make one initial request against the backend to check if it is alive at all */
 	before(function() {
 		cy.request({ 
-			url: Cypress.config('backendBaseURL')+'/_ping',
+			url: Cypress.env('backendBaseURL')+'/_ping',
 			timeout: 1000
 		}).then(res => {
 			if (res.status === 200) {
-				console.log("Backend is alive at "+Cypress.config('backendBaseURL'))
+				console.log("Backend is alive at "+Cypress.env('backendBaseURL'))
 			} else {
-				console.error("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
-				cy.log("Cannot ping liquido backend at"+Cypress.config('backendBaseURL'))
+				console.error("Cannot ping liquido backend at"+Cypress.env('backendBaseURL'))
+				cy.log("Cannot ping liquido backend at"+Cypress.env('backendBaseURL'))
 				Cypress.runner.stop();
 			}
 		})
@@ -69,7 +69,7 @@ describe('Liquido Happy Case Test', function() {
 			console.log("7")
 			cy.request({
 				method: 'GET',
-				url: Cypress.config('backendBaseURL')+'/areas',
+				url: Cypress.env('backendBaseURL')+'/areas',
 				headers: {
 					'Accept': 'application/json'
 				},
@@ -272,7 +272,7 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('poll')).to.be.defined
 
 		//  WHEN starting the voting phase of this poll
-		var backendBaseURL = Cypress.config('backendBaseURL')
+		var backendBaseURL = Cypress.env('backendBaseURL')
 		//console.log("JWT", api.jsonWebToken)
 		cy.request({
 			method: 'GET',
@@ -360,7 +360,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.devLogin(Cypress.env('randMobilephone'))
 		cy.request({
 			method: 'GET',
-			url: Cypress.config('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+'/finishVotingPhase',
+			url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+'/finishVotingPhase',
 			headers: {
 				'Accept': 'application/json'
 			},
@@ -417,7 +417,7 @@ describe('Liquido Happy Case Test', function() {
 			cy.loginWithSmsCode(fix.adminMobilephone, fix.devLoginDummySmsCode).then(user => {
 				cy.request({
 					method: 'DELETE',
-					url: Cypress.config('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id,
+					url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id,
 					headers: {
 						'Accept': 'application/json'
 					},

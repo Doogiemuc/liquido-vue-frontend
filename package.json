@@ -22,7 +22,8 @@
     "test_iron_local": "./node_modules/.bin/nightwatch --config ./test/e2e_prod/nightwatch.conf.js --env iron_local",
     "test_e2e_with_devServer": "node test/e2e/runner.js",
     "test_all": "npm run unit && npm run e2e_with_devServer",
-    "happyCase": "cypress run --spec ./cypress/integration/liquidoTests/liquidoHappyCase.js"
+	"happyCase": "cypress run --spec ./cypress/integration/liquidoTests/liquidoHappyCase.js",
+	"test_prod": "cypress run --env backendBaseURL=http://ec2-34-255-196-76.eu-west-1.compute.amazonaws.com:80/liquido/v2 --config baseUrl=http://ec2-34-255-196-76.eu-west-1.compute.amazonaws.com --spec ./cypress/integration/liquidoTests/liquidoHappyCase.js"
   },
   "repository": {
     "type": "git",
