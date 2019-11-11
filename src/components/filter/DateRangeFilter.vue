@@ -5,9 +5,9 @@
       {{name}}: {{displayValue}} <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">
-      <li><a v-on:click="setDateRangeToPastDays(0)">Today</a></li>
-      <li><a v-on:click="setDateRangeToPastDays(7)">Last 7 days</a></li>
-      <li><a v-on:click="setDateRangeToPastDays(14)">Last 14 days</a></li>
+      <li><a v-on:click="setDateRangeToPastDays(0)" class="selectItem">Today</a></li>
+      <li><a v-on:click="setDateRangeToPastDays(7)" class="selectItem">Last 7 days</a></li>
+      <li><a v-on:click="setDateRangeToPastDays(14)" class="selectItem">Last 14 days</a></li>
       <li role="separator" class="selectDivider"></li>
       <li><button type="button" class="btn btn-default btn-xs clearButton" v-on:click="clearFilter()">Clear</button></li>
     </ul>
@@ -101,6 +101,9 @@ export default {
   .clearButton {
     float: right;
     margin-right: 5px;
+  }
+  .selectItem {
+  	cursor: pointer;
   }
 </style>
 

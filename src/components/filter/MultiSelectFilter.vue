@@ -22,10 +22,10 @@
  */
 export default {
   props: {
-    id: { type: String, required: true },						// id of this filter
-	name: { type: String, required: true },			    // filter name to display to the user. Will be concatenated with displayValue
-	options: { type: Array, required: true },				// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
-                                                    // Option.values may also be objects. This component will hold on of these values as its v-model
+    id: { type: String, required: true },			// id of this filter
+	name: { type: String, required: true },			// filter name to display to the user. Will be concatenated with displayValue
+	options: { type: Array, required: true },		// (possibly long) list of options [{ value: 5, displayValue: "Fünf" }, {...}, ... ]
+													// Option.values may also be objects. This component will hold on of these values as its v-model
   },
 
   data () {
@@ -51,6 +51,7 @@ export default {
      * @param {String} newDisplayValue how the new value shall be shown to the user
      */
     setFilterValue(newValue, newDisplayValue) {
+	  console.log("setDisplayValue", newValue, newDisplayValue)
       this.value = newValue
       this.selectedCheckboxes = newValue || []
       this.displayValue = newDisplayValue || this.calcDisplayValue()
@@ -84,7 +85,8 @@ export default {
         displayValue = selectedOption1 && selectedOption2 ? (selectedOption1.displayValue+","+selectedOption2.displayValue) : "2/"+this.options.length
       } else {
         displayValue = this.selectedCheckboxes.length  +'/'+this.options.length
-      }
+	  }
+	  console.log("calcDisplayValue", displayValue)
       return displayValue
     },
 

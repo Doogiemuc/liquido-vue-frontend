@@ -86,5 +86,8 @@ export default {
     float: right;
     margin-right: 5px;
   }
+  .selectItem {
+  	cursor: pointer;
+  }
 </style>
 

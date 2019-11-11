@@ -52,12 +52,10 @@ export default {
     DoogieTableFilters,
     TableSupportButton,
   },
-  
 
   props: {
   	initQuery: { type: Object, required: false }
   },
-
 
   data () {
     var that = this
@@ -245,7 +243,7 @@ export default {
           message: 'Thank you for supporting this.',
         });
       })
-		},
+    },
 
     /** When user clicks on the title of an idea, then open that idea */
     cellClicked(idea, col) {
@@ -337,7 +335,7 @@ export default {
 			}
 			this.$nextTick(this.reloadFromServer)   // when new filter values have propagated through UI, then reload data from server
 		} else {
-			this.$refs.tableFilter.setFilterValue("status", null, ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
+			this.$refs.tableFilter.setFilterValue("status", ["IDEA"])   // This will trigger an immideate initial reload.  (Vue refs are only available in mounted and inside v-for they are arrays!)
 		}
 
 		this.listenToTableFilterChanges = true
