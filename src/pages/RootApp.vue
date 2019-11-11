@@ -20,7 +20,7 @@
           </ul>
           <ul v-if="currentUser" class="nav navbar-nav nav-search-icon">
             <li>
-              <router-link v-if="currentUser" id="SearchButton" active-class="active" to="/search">
+              <router-link v-if="currentUser" id="SearchButton" active-class="active" title="Search" to="/search">
                 <i class="fas fa-search"></i>
               </router-link>
             </li>
@@ -36,10 +36,14 @@
             <!-- button type="button" @click="$router.push('/ideas/add')" class="btn btn-default navbar-btn">
               <i class="fas fa-plus"></i>
             </button -->
+            <li>
+              <router-link to="/userHome" class="avatarImgLink">
+			    <img v-bind:src="currentUser.profile.picture" class="avatarImg">
+              </router-link>
+            </li>
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle userDropdown">
                 {{userNameShort}}<i class="caret"></i>
-                <img v-bind:src="currentUser.profile.picture" class="avatarImg">
               </a>
               <ul class="dropdown-menu">
                 <li><router-link to="/userHome">User Home</router-link></li>
@@ -50,7 +54,6 @@
                 <li class="divider"></li>
                 <li><router-link to="/logout">Logout</router-link></li>
               </ul>
-
             </li>
           </ul>
 
@@ -139,14 +142,25 @@ export default {
     font-size: 25px;
   }
 
+/*
   .userDropdown {
     padding-top: 10px;
     padding-bottom: 0px;
+  }
+*/
+
+  .avatarImgLink {
+    padding: 10px 0 0 0;
+    margin: 0;
   }
 
   .avatarImg {
     width: 32px;
     height: 32px;
+  }
+
+  .avatarImg:hover {
+    opacity: 0.8;
   }
 
   .userNameEllipsis {

@@ -21,8 +21,8 @@ module.exports = merge(prodEnv, {
   // User with this mobilephone is automatically logged in at startup. Set to 'undefined' to disable this feature.
   autoLoginMobilephone: undefined,
 
-  // Secret Sms Code that always works to login ANY user
-  devLoginDummySmsCode: '"998877"',
+  // Only for development: Dummy Sms Token that always works to login ANY user
+  devLoginDummySmsToken: '"998877"',
 
   //TODO: let voter choose tokenSecret for maximum security. This dummy one is from TestFixtures.java
   tokenSecret: '"userTokenSecret"'

@@ -9,8 +9,22 @@
 
       <!-- left column: public and general things -->
       <div class="col-sm-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+             <h4>Welcome to LIQUIDO!</h4>
+          </div>
+          <div class="panel-body">
+            <p>Great see you. It looks like you are new here. Here are some ways to start:</p>
+			<ul>
+				<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
+				<li>And you can <a href="/#/polls">vote in a currently open poll.</a></li>
+			</ul>
+			<p>Use the grey arrows above to navigate within LIQUIDO. The newsfeed on the right shows relevant updates for you.</p>
+          </div>
+        </div>
 
-        <law-list :laws="supportedProposals" lawListTitle="Proposals supported by you"></law-list>
+
+        <law-list v-if="supportedProposals.length > 0"  :laws="supportedProposals" lawListTitle="Proposals supported by you"></law-list>
 
       </div>
 
@@ -102,7 +116,7 @@ export default {
   data () {
     return {
       openForVotingPolls: [],     // polls that are currently in their voting phase
-	    supportedProposals: [],     // proposals that this user liked
+	  supportedProposals: [],     // proposals that this user liked
       reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
     }
   },

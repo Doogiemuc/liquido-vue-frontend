@@ -4,7 +4,9 @@
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 
- import Vue from 'vue'
+console.log("Welcome to LIQUDIDO")
+
+import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
@@ -34,7 +36,11 @@ const routes = [
     name: 'login',
     component: LoginPage,
     meta: { requiresAuth: false },
-    props: true
+    props: (route) => ({ 					 // pass vue route parameters or alternatively URL query parameter "email" and "token" as prop to LoginPage component
+		initEmail: route.query.email || route.params.initEmail,
+		initMobilePhone: route.params.initMobilePhone,
+		token: route.query.token
+	}) 
   },
   { path: '/logout',
     component: LogoutPage,

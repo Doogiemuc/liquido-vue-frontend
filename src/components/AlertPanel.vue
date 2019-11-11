@@ -2,7 +2,7 @@
   <div class="alert alert-dismissible fade" role="alert">
     <button type="button" class="close" aria-label="Close" ><span @click="clearAlert" aria-hidden="true">&times;</span></button>
     <h4>{{title}}</h4>
-    <p>{{message}}</p>
+    <p v-html="message"></p>
     <div id="detailsWrapper" class="collapse">
       <textarea id="detailsMessage">{{detailMessage}}</textarea>
     </div>
@@ -26,7 +26,7 @@
 export default {
   props: {
 		title: { type: String, required: true },
-    // caller MUST set class attribute on component: alert-success, alert-info, alert-warning, alert-danger
+		// caller MUST set class attribute on component: alert-success, alert-info, alert-warning, alert-danger
 	},
 
 	data() {

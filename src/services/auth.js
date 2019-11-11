@@ -40,42 +40,39 @@ export default {
 
 	/**
 	 * Lazy fetch currentUser.
-	 * @return cached currentUser or try to login with stored JWT
-	 *         otherwiese reject promise
+	 * @return cached currentUser or try to login with stored JWT, otherwiese reject promise
 	 */
 	fetchCurrentUser() {
 		if (this.currentUser) return Promise.resolve(this.currentUser)
 		var jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
 		if (jsonWebToken) {
 			log.debug("Got JWT from localStorage.")
+			return this.storeJwt(jsonWebToken)
 		} else {
-			throw new Error("Cannot fetchCurrentUser. Don't have JWT.")
+			return Promise.reject("Cannot fetchCurrentUser. Don't have JWT.")
 		}
-		return this.loginWithJWT(jsonWebToken)
 	},
 
 
-	/** send a login code via SMS */
-	requestSmsCode(mobilephone) {
+	/** Request a one time token for login that will be sent via SMS */
+	requestSmsToken(mobilephone) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-		return axios.get('/auth/requestSmsCode', { params: { mobile: cleanMobilePhone} } )
-		  .catch(err => {
-			  console.error("Cannot requestSmsCode for ", mobile, err)
-		  })
+		return axios.get('/auth/requestSmsToken', { params: { mobile: cleanMobilePhone} } )
+		  .catch(err => { log.error("Cannot requestSmsToken for "+mobilephone, err) })
 	},
 
 	/**
-	 * Login with a SMS code. Will also store JWT to localStorage
+	 * Login with a token that was sent via SMS. Will also store JWT to localStorage
 	 * @param {String} mobilephone valid mobile phone number
-	 * @param {String} smsCode 6-digit SMS code that was sent to the user's mobile phone
+	 * @param {String} smsToken 6-digit SMS code that was sent to the user's mobile phone
 	 * @return user info JSON
 	 */
-	loginWithSmsCode(mobilephone, smsCode) {
+	loginWithSmsToken(mobilephone, smsToken) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-		log.debug("Login request with SMS code from "+cleanMobilePhone)
-		return axios.get('/auth/loginWithSmsCode', { params: { mobile: cleanMobilePhone, code: smsCode} } )
+		log.debug("Login request with SMS token from "+cleanMobilePhone)
+		return axios.get('/auth/loginWithSmsToken', { params: { mobile: cleanMobilePhone, token: smsToken} } )
 		.then(res =>  {
-			return this.loginWithJWT(res.data)
+			return this.storeJwt(res.data)
 		})
 		.catch(err => {
 			log.error("Cannot login  user", err)
@@ -83,8 +80,12 @@ export default {
 		})
 	},
 
-	/** When we've got a JWT, then store it globally and fetch user details */
-	loginWithJWT(jwt) {
+	/** 
+	 * When we've got a JWT, then store it globally and fetch user details 
+	 * @pararm {String} Json Web Token
+	 * @return User info JSON
+	 */
+	storeJwt(jwt) {
 		if (!jwt) return Promise.reject("Need JWT")
 		localStorage.setItem(JWT_ITEM_KEY, jwt)
 		apiClient.setJsonWebTokenHeader(jwt)
@@ -102,10 +103,25 @@ export default {
 			})
 	},
 
-	/** send a link to login via email */
-	requestMagicEmailLink() {
-		//TODO: implement login via E-Mail
-		return Promise.resolve("/WithToken?token=ABCDEF")
+	/** Request a one time token for login that will be sent via email */
+	requestLoginEmail(email) {
+		return axios.get('/auth/requestEmailToken', { params: { email: email } } )
+		  .catch(err => { 
+			  log.error("Cannot requestEmailToken for "+email, err) 
+			  return Promise.reject(err)
+		  })
+	},
+
+	loginWithEmailToken(email, token) {
+		log.debug("Login with email token "+email)
+		return axios.get('/auth/loginWithEmailToken', { params: { email: email, token: token} } )
+		  .then(res =>  {
+			return this.storeJwt(res.data)
+		  })
+		  .catch(err => {
+			log.error("Cannot login with email token", err)
+			return Promise.reject("Cannot login with email token"+err)
+		  })
 	},
 
 	/** Logout the current user */
@@ -120,7 +136,7 @@ export default {
 	/** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
 	devLogin(mobilephone) {
 		if (process.env.NODE_ENV !== 'development') throw new Error("dev login is only allowed in NODE_ENV='development' !")
-		return this.loginWithSmsCode(mobilephone, process.env.devLoginDummySmsCode)
+		return this.loginWithSmsToken(mobilephone, process.env.devLoginDummySmsToken)
 	},
 
 	/** remove everything except numbers and the plus sign from mobilephone */
