@@ -6,13 +6,24 @@
 
 <template>
 	<div class="container" id="PollShow">
-		<h1><i class="fas fa-poll"></i>
+
+		<div class="alert alert-danger" v-if="pollErrorMsg">
+			<h3>Error</h3>
+			<p v-html="pollErrorMsg"></p>
+			<p>
+				<router-link to="/polls" class="btn btn-primary" role="button">
+					Goto polls <i class="fas fa-angle-double-right"></i>
+				</router-link>
+			</p>
+		</div>
+
+		<h1 v-if="poll"><i class="fas fa-poll"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
 			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
 		</h1>
 
-		<div v-if="poll.status === 'ELABORATION'" class="panel panel-default">
+		<div v-if="poll && poll.status === 'ELABORATION'" class="panel panel-default">
 			<div class="panel-heading">
 				<h4 id="pollTitle">{{poll.title}}</h4>
 			</div>
@@ -24,7 +35,7 @@
 			</div>
 		</div>
 
-		<div v-if="poll.status === 'VOTING'" class="panel panel-default">
+		<div v-if="poll && poll.status === 'VOTING'" class="panel panel-default">
 			<div class="panel-heading">
 				<h4>{{poll.title}}</h4>
 			</div>
@@ -34,7 +45,7 @@
 			</div>
 		</div>
 
-		<div v-if="poll.status === 'FINISHED'" class="panel panel-default">
+		<div v-if="poll && poll.status === 'FINISHED'" class="panel panel-default">
 			<div class="panel-heading">
 				<h4>{{poll.title}}</h4>
 			</div>
@@ -44,7 +55,7 @@
 			</div>
 		</div>
 
-		<div v-if="ownBallot" class="panel panel-default" id="yourBallot">
+		<div v-if="poll && ownBallot" class="panel panel-default" id="yourBallot">
 			<div class="panel-heading">
 				<h4>Your current ballot in this poll</h4>
 			</div>
@@ -61,11 +72,11 @@
 			</div>
 		</div>
 
-		<button v-if="poll.status==='VOTING'" type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
+		<button v-if="poll && poll.status==='VOTING'" type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
 			Cast vote <i class="fas fa-angle-double-right"></i>
 		</button>
 
-		<div class="row" v-if="poll.status !== 'FINISHED'">
+		<div class="row" v-if="poll && poll.status !== 'FINISHED'">
 			<div class="col-sm-12">
 				<h3>Alternative proposals in this poll</h3>
 			</div>
@@ -80,9 +91,17 @@
 		</div>
 
 
-		<div v-if="poll.status === 'FINISHED'"  id="PollResult">
+		<div v-if="poll && poll.status === 'FINISHED'" id="PollResult">
 			<h3>Winning proposal</h3>
-			<law-panel
+			<div v-if="!poll._embedded.winner" class="panel panel-default">
+				<div class="panel-heading">
+					<h4>No winning proposal</h4>
+				</div>
+				<div class="panel-body ballot-body">
+					<p>This poll does not have a unique winning proposal.</p>
+				</div>
+			</div>
+			<law-panel v-else
 				:law="poll._embedded.winner"
 				:showTimeline="false"
 				:readOnly="true">
@@ -124,7 +143,7 @@
 
 		<br/>
 
-		<div v-if="canJoinPoll" id="joinPollPanel" class="panel panel-default">
+		<div v-if="poll && canJoinPoll" id="joinPollPanel" class="panel panel-default">
 			<div class="panel-heading">
 			<h4 class="panelTitle">Join this poll</h4>
 			</div>
@@ -174,6 +193,7 @@ export default {
 			selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 			checksum: undefined,
 			checksumValidity: undefined,
+			pollErrorMsg: undefined,
 		}
 	},
 
@@ -234,8 +254,8 @@ export default {
 		this.loadPoll()
 			.then(this.loadOwnBallot)
 			.then(this.loadUsersProposalsInArea)
-			//.then(this.loadDelegations)		 //MAYBE: Could load delegations since I already have the user's voterToken
-			
+			//.then(this.loadDelegations)		 //MAYBE: Could load delegations here since I already have the user's voterToken
+			.catch(err => { log.error(err) })			
 	},
 
 	mounted() {
@@ -244,7 +264,15 @@ export default {
 
 	methods: {
 		loadPoll() {
-			return this.$root.api.getPoll(this.pollId).then(poll => { this.poll = poll })
+			return this.$root.api.getPoll(this.pollId).then(poll => { 
+				this.poll = poll 
+			}).catch(err => {
+				let msg = "Cannot find poll(id="+this.pollId+")"
+				log.error(msg)
+				this.pollErrorMsg = msg
+				this.poll = undefined
+				return Promise.reject(msg)
+			})
 		},
 
 		/**
@@ -284,6 +312,7 @@ export default {
 		 * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
 		 */
 		loadOwnBallot() {
+			console.log("========== load own ballot")
 			if (this.poll.status === 'VOTING') {
 				return this.fetchVoterToken().then(voterToken => {
 					this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
@@ -435,6 +464,9 @@ export default {
 	}
 	.checksumAlert {
 		margin-top: 1em;
+	}
+	.alert-danger {
+		margin-top: 2rem;
 	}
 </style>
 

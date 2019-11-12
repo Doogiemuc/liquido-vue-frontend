@@ -1,162 +1,177 @@
 <template>
-  <div v-if="!this.proposal" class="container">
-	<h1>Proposal</h1>
-	<div v-if="proposal === null" class="container">
+<div class="container" id="ProposalShow">
+
+	<div v-if="!proposal">
 		<span v-html="loadingMessage"></span>
 	</div>
-  </div>
-  <div v-else class="container" id="ProposalShow">
-  	<h1>{{statusLoc}}</h1>
-
-	<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
-
-    <div v-if="createdByCurrentUser" class="panel panel-default">
-	    <div class="panel-heading">
-			<h4 class="panelTitle">This is your {{nameByStatus}}</h4>
-	    </div>
-	    <div class="panel-body">
-	    	<div v-if="proposal.status === 'IDEA'">
-	    		<p>Your idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then your idea
-	    		will become a proposal that can be further discussed.</p>
-	    		<p><button type="button" class="btn btn-sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
-	    	</div>
-	      <div v-else-if="proposal.status === 'PROPOSAL'">
-	      	<p>Your idea reached its quorum and now became a proposal. It can now be discussed. You should carefully consider and respect the suggestions for improvements below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
-	        <ul class="startJoinList">
-	        	<li><button type="button" class="btn btn-sm btn-default" id="joinPollButton" style="width:20ch" @click="joinPoll">Join an existing poll</button> - Search for an existing poll in ELABORATION and then add your proposal to it as an alternative suggestion.</li>
-	        	<li><button type="button" class="btn btn-sm btn-default" id="startNewPollButton" style="width:20ch" @click="startNewPoll">Start a new poll</button> - Then you then need alternative suggestions before the voting phase of the new poll can start.</li>
-			</ul>
-	      </div>
-	      <div v-else-if="proposal.status === 'ELABORATION'">
-	        <p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
-	        Once the voting phase starts, you cannot edit your proposal anymore.</p>
-	        <p><button type="button" class="btn btn-sm btn-default" @click="editProposal()">Edit your proposal</button></p>
-	      </div>
-	      <div v-else-if="proposal.status === 'VOTING'">
-	      	<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
- 				<i class="fas fa-angle-double-right"></i>
-	  		</button>
-	        <p>Voting has started. Good luck in the poll.</p>
-	      </div>
-	    </div>
-	</div>
-	<div v-else class="panel panel-default" id="infoPanel">
-	    <div class="panel-body">
-	    	<div v-if="proposal.status === 'IDEA'">
-	    		<p>This idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
-	    		will become a proposal that can be discussed.</p>
-	    	</div>
-	    	<div v-else-if="proposal.status === 'PROPOSAL'">
-	  			<p>This idea got enough supporters so it became a proposal. It can now be discussed further. You may suggest
-	  			improvements to the proposal's author below.</p>
-	  		</div>
-	  		<div v-else-if="proposal.status === 'ELABORATION'">
-	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Back to poll
- 					<i class="fas fa-angle-double-right"></i>
-	  			</button>
-	  			<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
-	  		</div>
-	  		<div v-else-if="proposal.status === 'VOTING'">
-	  			<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
- 						<i class="fas fa-angle-double-right"></i>
-	  			</button>
-	  			<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
-	  		</div>
-	  	</div>
+  
+	<div class="alert alert-danger" v-if="proposalErrorMsg">
+		<h3>Error</h3>
+		<p v-html="proposalErrorMsg"></p>
+		<p>
+			<router-link :to="errorLink" class="btn btn-primary" role="button">
+				Goto {{ideaOrProposal}} <i class="fas fa-angle-double-right"></i>
+			</router-link>
+		</p>
 	</div>
 
-	<div v-if="showComments">
-		<h4 >Suggestions for improvement</h4>
+    <div v-if="proposal">
+		<h1>{{titleLoc}}</h1>
 
-    	<div v-for="comment in comments" :key="comment.id" class="media">
-	  
-			<div class="media-left">
-				<img :src="comment.createdBy.profile.picture" />
+		<law-panel v-if="proposal" :law="proposal" :readOnly="showAsReadOnly" :showTimeline="proposal.status !== 'IDEA'" class="proposalPanel"></law-panel>
+
+		<div v-if="createdByCurrentUser" class="panel panel-default">
+			<div class="panel-heading">
+				<h4 class="panelTitle">This is your {{nameByStatus}}</h4>
 			</div>
-			<div class="media-body">
-
-				<div class="comment">
-					<span class="pull-right">
-						<span v-if="comment.replies.length === 0">
-						<span v-on:click="showReplyInput(comment)"><i class="fas fa-reply replyHoverIcon" ></i>&nbsp;</span>&nbsp;&nbsp;
-					</span>
-					<span v-if="comment.upvotedByCurrentUser">
-						<i class="fas fa-thumbs-up alreayUpvoted"></i> {{comment.upVotes}}&nbsp;
-						<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{comment.downVotes}}
-					</span>
-					<span v-if="comment.downvotedByCurrentUser">
-						<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{comment.upVotes}}&nbsp;
-						<i class="fas fa-thumbs-down alreayDownvoted"></i> {{comment.downVotes}}
-					</span>
-					<span v-if="!comment.upvotedByCurrentUser && !comment.downvotedByCurrentUser" class="commentIcon">
-						<span v-on:click="upvoteComment(comment)"><i class="fas fa-thumbs-up"></i> {{comment.upVotes}}</span>&nbsp;
-						<span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
-					</span>
-					</span>
-					<small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
-					<p>{{comment.comment}}</p>
+			<div class="panel-body">
+				<div v-if="proposal.status === 'IDEA'">
+					<p>Your idea now needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then your idea
+					will become a proposal that can be further discussed.</p>
+					<p><button type="button" class="btn btn-sm btn-default" @click="$router.push('/ideas/'+proposal.id+'/edit')">Edit your idea</button></p>
 				</div>
+			<div v-else-if="proposal.status === 'PROPOSAL'">
+				<p>Your idea reached its quorum and now became a proposal. It can now be discussed. You should carefully consider and respect the suggestions for improvements below. They come from your potential voters. <router-link :to="'/ideas/'+proposal.id+'/edit'">Update your proposal</router-link> to reflect the latest consens. Then you can either </p>
+				<ul class="startJoinList">
+					<li><button type="button" class="btn btn-sm btn-default" id="joinPollButton" style="width:20ch" @click="joinPoll">Join an existing poll</button> - Search for an existing poll in ELABORATION and then add your proposal to it as an alternative suggestion.</li>
+					<li><button type="button" class="btn btn-sm btn-default" id="startNewPollButton" style="width:20ch" @click="startNewPoll">Start a new poll</button> - Then you then need alternative suggestions before the voting phase of the new poll can start.</li>
+				</ul>
+			</div>
+			<div v-else-if="proposal.status === 'ELABORATION'">
+				<p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
+				Once the voting phase starts, you cannot edit your proposal anymore.</p>
+				<p><button type="button" class="btn btn-sm btn-default" @click="editProposal()">Edit your proposal</button></p>
+			</div>
+			<div v-else-if="proposal.status === 'VOTING'">
+				<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+					<i class="fas fa-angle-double-right"></i>
+				</button>
+				<p>Voting has started. Good luck in the poll.</p>
+			</div>
+			</div>
+		</div>
+		<div v-else class="panel panel-default" id="infoPanel">
+			<div class="panel-body">
+				<div v-if="proposal.status === 'IDEA'">
+					<p>This idea needs at least {{$root.props['liquido.supporters.for.proposal']}} supporters to reach its quorum. Then it
+					will become a proposal that can be discussed.</p>
+				</div>
+				<div v-else-if="proposal.status === 'PROPOSAL'">
+					<p>This idea got enough supporters so it became a proposal. It can now be discussed further. You may suggest
+					improvements to the proposal's author below.</p>
+				</div>
+				<div v-else-if="proposal.status === 'ELABORATION'">
+					<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Back to poll
+						<i class="fas fa-angle-double-right"></i>
+					</button>
+					<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
+				</div>
+				<div v-else-if="proposal.status === 'VOTING'">
+					<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+							<i class="fas fa-angle-double-right"></i>
+					</button>
+					<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
+				</div>
+			</div>
+		</div>
 
-				<div v-for="reply in comment.replies" :key="reply.id" class="media reply">
-					<div class="media-left">
-						<img class="replyUserImg" :src="reply.createdBy.profile.picture" />
-					</div>
-					<div class="media-body">
+		<div v-if="showComments">
+			<h4 >Suggestions for improvement</h4>
+
+			<div v-for="comment in comments" :key="comment.id" class="media">
+		
+				<div class="media-left">
+					<img :src="comment.createdBy.profile.picture" />
+				</div>
+				<div class="media-body">
+
+					<div class="comment">
 						<span class="pull-right">
-							<span v-if="reply.upvotedByCurrentUser">
-								<i class="fas fa-thumbs-up alreayUpvoted"></i> {{reply.upVotes}}&nbsp;
-								<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{reply.downVotes}}
-							</span>
-							<span v-else-if="reply.downvotedByCurrentUser">
-								<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{reply.upVotes}}&nbsp;
-								<i class="fas fa-thumbs-down alreayDownvoted"></i> {{reply.downVotes}}
-							</span>
-							<span v-else class="commentIcon">
-								<span v-on:click="upvoteComment(reply)"><i class="fas fa-thumbs-up"></i> {{reply.upVotes}}</span>&nbsp;
-								<span v-on:click="downvoteComment(reply)"><i class="fas fa-thumbs-down"></i> {{reply.downVotes}}</span>
-							</span>
+							<span v-if="comment.replies.length === 0">
+							<span v-on:click="showReplyInput(comment)"><i class="fas fa-reply replyHoverIcon" ></i>&nbsp;</span>&nbsp;&nbsp;
 						</span>
-						<small class="text-muted">{{reply.createdBy.profile.name}} commented {{getFromNow(reply.createdAt)}}</small>
-						<p>{{reply.comment}}</p>
+						<span v-if="comment.upvotedByCurrentUser">
+							<i class="fas fa-thumbs-up alreayUpvoted"></i> {{comment.upVotes}}&nbsp;
+							<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{comment.downVotes}}
+						</span>
+						<span v-if="comment.downvotedByCurrentUser">
+							<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{comment.upVotes}}&nbsp;
+							<i class="fas fa-thumbs-down alreayDownvoted"></i> {{comment.downVotes}}
+						</span>
+						<span v-if="!comment.upvotedByCurrentUser && !comment.downvotedByCurrentUser" class="commentIcon">
+							<span v-on:click="upvoteComment(comment)"><i class="fas fa-thumbs-up"></i> {{comment.upVotes}}</span>&nbsp;
+							<span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
+						</span>
+						</span>
+						<small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
+						<p>{{comment.comment}}</p>
 					</div>
-				</div>
 
-				<div v-if="discussionIsOpen && (comment.replies.length > 0 || comment.showReplyInput)" class="media reply">
-					<div class="media-left">
-						<img class="replyUserImg" :src="currentUser.profile.picture" />
-					</div>
-					<div class="media-body">
-						<div class="input-group col-xs-12 col-md-6">
-							<input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
-								v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Your reply" >
-							<span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
+					<div v-for="reply in comment.replies" :key="reply.id" class="media reply">
+						<div class="media-left">
+							<img class="replyUserImg" :src="reply.createdBy.profile.picture" />
+						</div>
+						<div class="media-body">
+							<span class="pull-right">
+								<span v-if="reply.upvotedByCurrentUser">
+									<i class="fas fa-thumbs-up alreayUpvoted"></i> {{reply.upVotes}}&nbsp;
+									<i class="fas fa-thumbs-down alreadyVotedInactive"></i> {{reply.downVotes}}
+								</span>
+								<span v-else-if="reply.downvotedByCurrentUser">
+									<i class="fas fa-thumbs-up alreadyVotedInactive"></i> {{reply.upVotes}}&nbsp;
+									<i class="fas fa-thumbs-down alreayDownvoted"></i> {{reply.downVotes}}
+								</span>
+								<span v-else class="commentIcon">
+									<span v-on:click="upvoteComment(reply)"><i class="fas fa-thumbs-up"></i> {{reply.upVotes}}</span>&nbsp;
+									<span v-on:click="downvoteComment(reply)"><i class="fas fa-thumbs-down"></i> {{reply.downVotes}}</span>
+								</span>
+							</span>
+							<small class="text-muted">{{reply.createdBy.profile.name}} commented {{getFromNow(reply.createdAt)}}</small>
+							<p>{{reply.comment}}</p>
 						</div>
 					</div>
+
+					<div v-if="discussionIsOpen && (comment.replies.length > 0 || comment.showReplyInput)" class="media reply">
+						<div class="media-left">
+							<img class="replyUserImg" :src="currentUser.profile.picture" />
+						</div>
+						<div class="media-body">
+							<div class="input-group col-xs-12 col-md-6">
+								<input type="text" class="form-control input-sm" name="reply" :id="'replyTo'+comment.id"
+									v-model="replyText[comment.id]" v-on:keyup.enter="replyToSuggestion(comment)" placeholder="Your reply" >
+								<span class="input-group-addon" v-on:click="replyToSuggestion(comment)"><i class="fas fa-reply commentIcon" title="reply to suggestion"></i></span>
+							</div>
+						</div>
+					</div>
+
 				</div>
-
+				<hr class="commentSeparator" />
 			</div>
-    		<hr class="commentSeparator" />
 		</div>
-	</div>
 
-	<div v-if="showComments && discussionIsOpen" class="media">
-      <div class="media-left">
-        <img :src="currentUser.profile.picture" />
-      </div>
-      <div class="media-body">
-        <div class="input-group col-xs-12 col-md-8">
-			<input type="text" id="suggestImprovementInput" class="form-control" v-model="suggestionText"
-				v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
-				<span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
+		<div v-if="showComments && discussionIsOpen" class="media">
+			<div class="media-left">
+				<img :src="currentUser.profile.picture" />
 			</div>
-      </div>
-      <hr/>
-    </div>
+			<div class="media-body">
+				<div class="input-group col-xs-12 col-md-8">
+					<input type="text" id="suggestImprovementInput" class="form-control" v-model="suggestionText"
+						v-on:keyup.enter="addNewSuggestion()" placeholder="Suggest a new improvement">
+						<span class="input-group-addon" v-on:click="addNewSuggestion()" id="save-suggestion"><i class="fas fa-comment commentIcon" title="reply to suggestion"></i></span>
+					</div>
+			</div>
+			<hr/>
+		</div>
 
-  </div>
+    </div>
+</div>
+  
 </template>
 
 <script>
+/**
+ * This page is used to show ideas and proposals (in elaboration, voting, ...)
+ */
 import moment from 'moment'
 import LawPanel from '../components/LawPanel'
 
@@ -171,7 +186,8 @@ export default {
 			proposal: null,
 			comments: null,
 			replyText: [],
-			suggestionText: ""
+			suggestionText: "",
+			proposalErrorMsg: undefined,
 		}
 	},
 
@@ -181,19 +197,26 @@ export default {
 
 
 	computed: {
-		//TODO: localize translations
-		statusLoc() {
+		titleLoc() {
 			switch(this.proposal.status) {
 				case "IDEA":        return "Idea"
 				case "PROPOSAL":    return "Proposal"
 				case "ELABORATION": return "Proposal in elaboration"
 				case "VOTING":      return "Proposal in voting"
-				case "LAW":         return "Law"
+				case "LAW":         return "Law"                   // in this case Law_Show page is used
 				case "DROPPED":     return "Dropped law"
 				case "RETENTION":   return "Law in retention"
 				case "RETRACTED":   return "Rectracted law"
 			}
 			return "<???>";
+		},
+
+		errorLink() {
+			return this.$route.path.startsWith("/ideas") ? "/ideas" : "/proposals"
+		},
+
+		ideaOrProposal() {
+			return this.$route.path.startsWith("/ideas") ? "idea" : "proposal"
 		},
 
 		showAsReadOnly() {
@@ -314,8 +337,8 @@ export default {
 			if (this.proposal.status !== 'IDEA') this.reloadComments()
 		})
 		.catch(err => {
-			this.loadingMessage = "<h3>Error: Could not load proposal with id="+this.proposalId+"</h3><p><pre>"+JSON.stringify(err)+"</pre></p>"
-			//TODO: use AlertPanel
+			this.loadingMessage = ""
+			this.proposalErrorMsg = "<p>Could not load "+this.ideaOrProposal+"(id="+this.proposalId+")"  // will show AlertPanel
 		})
 
 	},

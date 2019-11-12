@@ -65,7 +65,7 @@ describe('Liquido Happy Case Test', function() {
 
 	/** Load one area */
 	before(function() {
-		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(user => {
+		cy.loginWithSmsToken(fix.user1_mobilephone, fix.devLoginDummySmsToken).then(user => {
 			console.log("7")
 			cy.request({
 				method: 'GET',
@@ -111,7 +111,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
 
 		// THEN the user exists in the backend
-		cy.loginWithSmsCode(Cypress.env('randMobilephone'), fix.devLoginDummySmsCode).then(user => {
+		cy.loginWithSmsToken(Cypress.env('randMobilephone'), fix.devLoginDummySmsToken).then(user => {
 			//console.log("got user", user)
 			//Cypress.env("user", user)
 			expect(user.profile.mobilephone).to.equal(Cypress.env('randMobilephone'))
@@ -147,10 +147,10 @@ describe('Liquido Happy Case Test', function() {
 		//THEN the idea is saved successfully
 		cy.get('#CreateIdeaSuccess').should('exist')     
 		// AND get the idea from the backend and store it in Cypress.env
-		//cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode)   // MUST login our ref to api before making any direct api calls
+		//cy.loginWithSmsToken(fix.user1_mobilephone, fix.devLoginDummySmsToken)   // MUST login our ref to api before making any direct api calls
 		cy.get('#newIdeaUri').then(elems => {
-			var ideaURI = elems[0].textContent
-			return api.getIdea(ideaURI).then(idea => {				//BUGFIX: NEVER EVER again forget to "return" the inner Promise!!!
+			var ideaURI = elems[0].textContent						//Even the selector by ID returns an Array of DOM elements!
+			return api.getIdea(ideaURI).then(idea => {				//BUGFIX: NEVER EVER again forget to "return" the inner Promise!!! :-)
 				Cypress.env("idea", idea)
 				cy.log("Successfully created new idea ", idea) 
 			})
@@ -161,8 +161,10 @@ describe('Liquido Happy Case Test', function() {
 	it('add supporters to idea until it becomes a proposal', function() {
 		//GIVEN an idea in Cypress.env
 		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").toBeNonEmptyObject
+		expect(Cypress.env('idea').status, "Idea should have status IDEA").to.equal('IDEA')
 
-		//WHEN adding enough supporters to that idea
+		
+		/*
 		var addSupportersToIdea = function() {
 			console.log("Adding supporters to idea ", Cypress.env('idea'))
 			// Run tasks as promise chain
@@ -173,10 +175,10 @@ describe('Liquido Happy Case Test', function() {
 			for(var i = 5; i<5+numSupporters; i++) {
 				tasks.push({
 					func: function(mobile) { 
-						//console.log("========== (1) TaskFunc: Login with SMS Code "+mobile)
-						return auth.loginWithSmsCode(mobile, fix.devLoginDummySmsCode)
+						//console.log("========== (1) TaskFunc: Login via SMS mobile="+mobile)
+						return auth.loginWithSmsToken(mobile, fix.devLoginDummySmsToken)
 							.then((user) => {
-								//console.log("========== (2) user (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in with Sms Code.")
+								//console.log("========== (2) user (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in via SMS.")
 								return api.addSupporterToIdea(Cypress.env('idea')).then(() => {
 									//console.log("========== (3) added "+user.email+" supporter to idea")
 								})
@@ -187,7 +189,7 @@ describe('Liquido Happy Case Test', function() {
 			}
 			return tasks
 				.reduce(function (prev, task) {
-					return prev.then(() => task.func(task.arg))    // BUGFIX: the argument to .then() must be a function that returns a promise, not the function call itself!
+					return prev.then(() => task.func(task.arg))    
 				}, Promise.resolve("START"))
 				.then(function (result) {
 					cy.log("Added " + numSupporters + " supporters to idea(id="+Cypress.env('idea').id+", title='"+Cypress.env('idea').title+"')")
@@ -196,27 +198,40 @@ describe('Liquido Happy Case Test', function() {
 				});
 			
 		}
+		*/
 
-		cy.visit('/')
-		// cy.wrap()  will wait until the promises return
-		//https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
-		cy.wrap(addSupportersToIdea())
-		cy.devLogin(Cypress.env('randMobilephone'))
-		//cy.wait(500)			// BUGFIX: Need to wait until "really" logged in
-		cy.visit('/#/proposals/'+Cypress.env('idea').id)
-		cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
+		//WHEN adding enough supporters to that idea
+		cy.wrap(addSupporters(10, Cypress.env('idea')).then(() => {
+			// THEN the idea has now become a proposal
+			cy.devLogin(Cypress.env('randMobilephone'))
+			//cy.wait(500)			// BUGFIX: Need to wait until "really" logged in
+			cy.visit('/#/proposals/'+Cypress.env('idea').id)
+			// AND has the proposal icon
+			cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
+			
+			// AND the proposal has status PROPOSAL when reloaded from the server
+			api.getIdea(Cypress.env('idea')).then(proposal => {
+				expect(proposal.status, "Former Idea should have status PROPOSAL").to.equal('PROPOSAL')
+				Cypress.env('proposal', proposal)
+				
+			})
+		}))
+
+		// the above cy.wrap()  will wait until the promises returns. Cypress complains if you put the cy.log into the above promise chain.
+		// https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
 		cy.log("SUCCESS. Idea has become a proposal.")
-		
-		
 	})
 
 	it('start a new poll', function() {
 		//GIVEN a poll title
 		var pollTitle = "Poll created by test "+new Date().getTime()
+		// AND a proposal
+		expect(Cypress.env('proposal'), "Proposal should be stored in Cypress.env()").toBeNonEmptyObject
+		expect(Cypress.env('proposal').status, "Idea should have status PROPOSAL").to.equal('PROPOSAL')
 		// AND rand user is logged in
 		cy.devLogin(Cypress.env('randMobilephone'))
 		// AND views his proposal
-		cy.visit('/#/proposals/'+Cypress.env('idea').id)
+		cy.visit('/#/proposals/'+Cypress.env('proposal').id)
 
 		// WHEN he starts a new poll
 		cy.get('#startNewPollButton').click()
@@ -230,8 +245,8 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#pollTitle').should('have.text', pollTitle)
 
 		//  AND store poll in Cypress.env()
-		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(user => {
-			return api.getProposal(Cypress.env('idea'), true).then(proposalProjection => {
+		cy.loginWithSmsToken(fix.user1_mobilephone, fix.devLoginDummySmsToken).then(user => {
+			return api.getProposal(Cypress.env('proposal'), true).then(proposalProjection => {
 				console.log("created new poll", proposalProjection.poll)
 				Cypress.env('poll', proposalProjection.poll)
 			})
@@ -243,7 +258,7 @@ describe('Liquido Happy Case Test', function() {
 	it('second proposal joins this poll', function() {
 		// GIVEN a proposal
 		var proposalTitle = "Second Proposal created by cypress "+new Date().getTime()
-		cy.loginWithSmsCode(fix.user1_mobilephone, fix.devLoginDummySmsCode).then(() => {
+		cy.loginWithSmsToken(fix.user1_mobilephone, fix.devLoginDummySmsToken).then(() => {
 			return createProposal(proposalTitle).then(prop => {
 				cy.wrap(prop).its('status').should('eq', 'PROPOSAL')
 				console.log("Created new proposal", prop)
@@ -269,7 +284,7 @@ describe('Liquido Happy Case Test', function() {
 	it('start voting phase', function() {
 		// GIVEN a poll
 		cy.devLogin(fix.user1_mobilephone)
-		expect(Cypress.env('poll')).to.be.defined
+		expect(Cypress.env('poll')).toBeNonEmptyObject
 
 		//  WHEN starting the voting phase of this poll
 		var backendBaseURL = Cypress.env('backendBaseURL')
@@ -301,15 +316,16 @@ describe('Liquido Happy Case Test', function() {
 			}
 		}).then(res => {
 			expect(res.status).to.equal(200)
-			expect(res.body.status).to.equal('VOTING')
+			expect(res.body.status, "Poll should now be in status VOTING").to.equal('VOTING')
 			cy.log("SUCCESS: Poll is now in voting phase")
 		})
 	})
 
-	it('cast vote for this idea', function() {
-		// GIVEN a poll and an idea
+	it('cast vote for this proposal', function() {
+		// GIVEN a poll and an proposal
 		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('idea')).toBeNonEmptyObject
+		expect(Cypress.env('proposal')).toBeNonEmptyObject
+		expect(Cypress.env('proposal').status).to.equal('PROPOSAL')
 
 		//  WHEN casting a vote in this poll
 		cy.devLogin(Cypress.env('randMobilephone'))
@@ -321,7 +337,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#SortBallot').should('exist')
 		//drag'n'drop with cypress  https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/testing-dom__drag-drop/cypress/integration/drag_n_drop_spec.js
 		// Cast vote for the "idea" that was created above. So that this idea is the winner in the end
-		cy.get('#leftContainer > div.lawPanel[data-proposaluri="'+Cypress.env('idea')._links.self.href+'"]')
+		cy.get('#leftContainer > div.lawPanel[data-proposaluri="'+Cypress.env('proposal')._links.self.href+'"]')
 			.trigger('mousedown', { which: 1 })
 		cy.get('#rightContainer')
 			.trigger('mousemove', { offsetX: 10, offsetY: 10 })   // move to 10,10px from top left (padding) edge of the DOM element
@@ -411,10 +427,11 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('.lawListCondensedTable tr[data-lawuri="'+Cypress.env('idea')._links.self.href+'"]')
 	})
 
-	it('CLEANUP', function() {
+
+	it.skip('CLEANUP', function() {
 		if (Cypress.env('poll') !== undefined) {
 			console.log("DELETING poll that was created from test (poll.id="+Cypress.env('poll').id+")")
-			cy.loginWithSmsCode(fix.adminMobilephone, fix.devLoginDummySmsCode).then(user => {
+			cy.loginWithSmsToken(fix.adminMobilephone, fix.devLoginDummySmsToken).then(user => {
 				cy.request({
 					method: 'DELETE',
 					url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id,
@@ -456,9 +473,10 @@ var saveNewIdea = function(title) {
 }
 
 /**
- * Add many supporters to one idea
- * @param {Number} numSupporters number of supporters to add. Keep in mind that there must be enough different users in the DB
+ * Add supporters to one idea. Keep in mind that there must be enough supporteres in the DB.
+ * @param {Number} numSupporters number of supporters to add
  * @param {Object} idea an idea or proposal
+ * @return A Promise that will resolve when supporteres are adeed
  */
 var addSupporters = function(numSupporters, idea) {
 	var phones = []
@@ -468,14 +486,17 @@ var addSupporters = function(numSupporters, idea) {
 	return phones
 		.map(mobile => {
 			// return one "task" for each mobile. Each "task" is a function that returns a promise (chain). The auth and api methods are not yet called here! The will be called below when the promise resolves.
-			return () => { return auth.loginWithSmsCode(mobile, fix.devLoginDummySmsCode)
-			 .then(() => { return api.addSupporterToIdea(idea) } ) }
+			return () => { 
+				return auth.loginWithSmsToken(mobile, fix.devLoginDummySmsToken)
+			 		.then(() => { 
+				 		console.log("====== add suporter "+mobile+" to "+idea.title)
+				 		return api.addSupporterToIdea(idea) 
+					 })
+				}
 		})
 		.reduce((prev, next) => {
-			//console.log("==== calling task for")
-			return prev.then(next)			// This chains the promises one after another
+			return prev.then(next)			// This chains the promises one after another // Do I need this BUGFIX??? the argument to .then() must be a function that returns a promise, not the function call itself!
 		}, Promise.resolve("FIRST"))
-	 
 }
 
 var createProposal = function(title) {

@@ -28,10 +28,10 @@ if (process.env.backendBaseURL) {
   axios.defaults.baseURL = process.env.backendBaseURL
   anonymousClient.defaults.baseURL = process.env.backendBaseURL
 } else
-if (window.Cypress) {   // when running under Cypress TEST
+if (window.Cypress) {   // when running under Cypress TEST, then set backendBaseURL from Cypress.env()
   console.log("Running apiClient under Cypress TEST")
-  axios.defaults.baseURL = window.Cypress.config('backendBaseURL')
-  anonymousClient.defaults.baseURL = window.Cypress.config('backendBaseURL')
+  axios.defaults.baseURL = window.Cypress.env('backendBaseURL')
+  anonymousClient.defaults.baseURL = window.Cypress.env('backendBaseURL')
   log = console     //BUGFIX to show loglevel output in Cypress test runner's console
 } else {
   throw new Error("LiqudioApiClient: baseURL MUST be defined!")
@@ -223,6 +223,12 @@ module.exports = {
 	})
   },
 
+	/** fetch HATEOAS details of currently logged in user */
+	getMyUser() {
+		return axios.get('/my/user', { headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
+	},
+	
+
 //==================================================================================================================
 // Global Properties from backend DB
 //==================================================================================================================
@@ -281,13 +287,8 @@ module.exports = {
   },
 
 //==================================================================================================================
-// User data and Proxies
+// Checksums and Proxies
 //==================================================================================================================
-
-  /** fetch HATEOAS details of currently logged in user */
-  getMyUser() {
-    return axios.get('/my/user', { headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
-  },
 
   /** get the checksum of a public proxy */
   getPublicChecksum(area, proxy) {
@@ -362,9 +363,12 @@ module.exports = {
 	 */
   getLaw(lawIdOrURI, projected) {
 	var lawURI
-	if (lawIdOrURI === undefined) throw new Error("Need lawId or an URI to get an idea/proposal/Law!")
-    if (!isNaN(lawIdOrURI)) lawURI = axios.defaults.baseURL+'/laws/'+lawIdOrURI
-    else lawURI = this.getURI(lawIdOrURI)
+	try {
+		if (!isNaN(lawIdOrURI)) lawURI = axios.defaults.baseURL+'/laws/'+lawIdOrURI
+		else lawURI = this.getURI(lawIdOrURI)
+	} catch (err) {
+		return Promise.reject({msg: "Cannot getLaw(id="+lawIdOrURI+")", lawIdOrURI: lawIdOrURI, err: err})
+	}
     if (projected) lawURI += "?projection=lawProjection"
 		log.debug("getLaw()", lawURI)
     return axios.get(lawURI).then(res => res.data)
@@ -692,9 +696,13 @@ module.exports = {
    */
   getPoll(pollIdOrUri) {
     log.debug("getPoll", pollIdOrUri)
-    var pollURI
-    if (!isNaN(pollIdOrUri)) pollURI = axios.defaults.baseURL+'/polls/'+pollIdOrUri
-    else pollURI = this.getURI(pollIdOrUri)
+	var pollURI
+	try {
+		if (!isNaN(pollIdOrUri)) pollURI = axios.defaults.baseURL+'/polls/'+pollIdOrUri
+		else pollURI = this.getURI(pollIdOrUri)
+	} catch (err) {
+		return Promise.reject({msg: "Cannot getPoll(id="+pollIdOrUri+")", pollIdOrUri: pollIdOrUri, err: err})
+	}
     return axios.get(pollURI)
       .then( res => { return res.data })
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot getPoll()", err: err, pollIdOrUri: pollIdOrUri}) })

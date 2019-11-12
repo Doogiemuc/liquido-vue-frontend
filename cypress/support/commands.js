@@ -41,9 +41,9 @@ Cypress.Commands.add('devLogin', (mobilephone) => {
  * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
  */ 
-Cypress.Commands.add('loginWithSmsCode', (mobilephone, smsCode) => {
+Cypress.Commands.add('loginWithSmsToken', (mobilephone, smsToken) => {
 	var auth = Cypress.env('auth')
-	return auth.loginWithSmsCode(mobilephone, smsCode).then(user => {
+	return auth.loginWithSmsToken(mobilephone, smsToken).then(user => {
 		console.log("Cypress: loginWithSmsCode via API as "+user.email+" "+user.profile.mobilephone+" (id="+user.id+")")
 		return user
 	})

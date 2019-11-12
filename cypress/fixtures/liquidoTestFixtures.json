@@ -15,5 +15,5 @@
   "ideaDescription_prefix": "New Idea created from cypress test case ",
 
   "adminMobilephone": "+491234567890",
-  "devLoginDummySmsCode": "998877"
+  "devLoginDummySmsToken": "998877"
 }
