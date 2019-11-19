@@ -38,12 +38,15 @@
 				</ul>
 			</div>
 			<div v-else-if="proposal.status === 'ELABORATION'">
-				<p>Your proposal is now part of a <router-link :to="'/polls/'+proposal.poll.id">Poll</router-link>. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
+				<p>Your proposal is now part of a Poll. Users can still suggest improvements to your proposal. Take a look at them. Feel free to comment. And ideally edit and improve your proposal for your voters until voting starts.
 				Once the voting phase starts, you cannot edit your proposal anymore.</p>
-				<p><button type="button" class="btn btn-sm btn-default" @click="editProposal()">Edit your proposal</button></p>
+				<button type="button" class="btn btn-sm btn-default" @click="$router.push('/proposals/'+proposal.id+'/edit')">Edit your proposal</button>
+				<button type="button" id="goToPollButton" class="btn btn-primary btn-sm pull-right" @click="goToPoll()">Go to poll
+					<i class="fas fa-angle-double-right"></i>
+				</button>
 			</div>
 			<div v-else-if="proposal.status === 'VOTING'">
-				<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+				<button type="button" id="goToPollButton" class="btn btn-primary btn-sm pull-right" @click="goToPoll()">Go to poll
 					<i class="fas fa-angle-double-right"></i>
 				</button>
 				<p>Voting has started. Good luck in the poll.</p>
@@ -61,13 +64,13 @@
 					improvements to the proposal's author below.</p>
 				</div>
 				<div v-else-if="proposal.status === 'ELABORATION'">
-					<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Back to poll
+					<button type="button" id="goToPollButton" class="btn btn-primary btn-sm pull-right" @click="goToPoll()">Go to poll
 						<i class="fas fa-angle-double-right"></i>
 					</button>
 					<p>This proposal is part of a poll in elaboration phase. It can still be discussed. You may suggest	improvements to the proposal's author below.</p>
 				</div>
 				<div v-else-if="proposal.status === 'VOTING'">
-					<button type="button" id="goToPollButton" class="btn btn-default btn-sm pull-right" @click="goToPoll()">Go to poll
+					<button type="button" id="goToPollButton" class="btn btn-primary btn-sm pull-right" @click="goToPoll()">Go to poll
 							<i class="fas fa-angle-double-right"></i>
 					</button>
 					<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
@@ -103,7 +106,7 @@
 							<span v-on:click="downvoteComment(comment)"><i class="fas fa-thumbs-down"></i> {{comment.downVotes}}</span>
 						</span>
 						</span>
-						<small class="text-muted">{{comment.createdBy.profile.name}} suggested {{getFromNow(comment.createdAt)}}</small>
+						<small class="text-muted">{{comment.createdBy.profile.name}} - {{getFromNow(comment.createdAt)}}</small>
 						<p>{{comment.comment}}</p>
 					</div>
 
@@ -170,7 +173,7 @@
 
 <script>
 /**
- * This page is used to show ideas and proposals (in elaboration, voting, ...)
+ * This page is used to show ideas AND proposals (in elaboration, voting, ...)
  */
 import moment from 'moment'
 import LawPanel from '../components/LawPanel'

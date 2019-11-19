@@ -36,7 +36,7 @@ if (window.Cypress) {   // when running under Cypress TEST, then set backendBase
 } else {
   throw new Error("LiqudioApiClient: baseURL MUST be defined!")
 }
-log.debug("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
+//log.debug("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
@@ -563,7 +563,7 @@ module.exports = {
 
   /** get proposals with recent comments. Only proposals can be discussed */
   getRecentlyDiscussed() {
-    return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded.laws)
+    return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded ? res.data._embedded.laws : [])
   },
 
   /**

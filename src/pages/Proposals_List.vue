@@ -4,7 +4,7 @@
   <p>When an idea reaches its quorum, then it becomes a proposal. A proposal can be further discussed and improved. The creator of a proposal can either start a new poll
     or he can join his proposal into an already existing poll.</p>
   <button type="button" class="btn btn-xs btn-default pull-right" @click="showUsersOwnProposals">Your proposals <i class="fa fa-angle-double-right"></i></button>
-  <p>You can search for ideas and proposals on the <router-link to="search">search page</router-link>.
+  <p>You can search for ideas and proposals on the <a href="#" @click.prevent="searchIdeasAndProposals">search page</a>.
   
   <div class="row">
     <div class="col-sm-6">
@@ -39,10 +39,17 @@ export default {
   },
 
   methods: {
+	searchIdeasAndProposals() {
+		var query = {
+			statusList: ["IDEA", "PROPOSAL", "ELABORATION", "VOTING" ],
+		}
+		this.$router.push( { name: 'search', params: { initQuery: query }})
+	},
+
   	/* Jump to search page and show all proposals that were created by this user */
 	showUsersOwnProposals() {
 		var query = {
-			statusList: ["PROPOSAL", "ELABORATION" ],
+			statusList: ["PROPOSAL", "ELABORATION", "VOTING"],
 			createdByYou: true
 		}
 		this.$router.push( { name: 'search', params: { initQuery: query }})

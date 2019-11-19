@@ -5,11 +5,12 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4>Your ballot (with proposals as sorted by you)</h4>
+        <h4>Your ballot</h4>
       </div>
       <div class="panel-body ballot-body">
-        <ol>
-          <li v-for="proposal in voteOrderProposals" :key="proposal.id">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+		<p>This is the ballot you are going to cast. It contains the proposals in the order you just sorted them.</p>
+        <ol class="noBullet">
+          <li v-for="(proposal, index) in voteOrderProposals" :key="proposal.id">#{{index+1}}: "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
         </ol>
       </div>
     </div>
@@ -19,7 +20,7 @@
     <!-- Cast vote - Step 1 - Fetch voter token -->
     <div id="getVoterTokenPanel" class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Fetch your voter token</h3>
+        <h3 class="panel-title">1. Fetch your voter token</h3>
       </div>
       <div class="panel-body">
         <ul class="fa-ul">
@@ -73,7 +74,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Anonymously cast your vote</h3>
+        <h3 class="panel-title">2. Anonymously cast your vote</h3>
       </div>
       <div class="panel-body">
         <div id="steps">
@@ -361,6 +362,10 @@ export default {
     font-size: 10px;
     font-family: monospace;
     overflow: scroll;
+  }
+
+  .noBullet {
+	  list-style: none;
   }
 
   .dimmed {

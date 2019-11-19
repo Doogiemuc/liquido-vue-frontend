@@ -6,7 +6,7 @@
         {{law.title}}
       </h4>
       <router-link v-if="!readOnly" :to="getLinkToLaw()">
-  			<h4 class="lawTitle">
+          <h4 class="lawTitle">
           <i class="fa" :class="iconForLaw" aria-hidden="true"></i>&nbsp;{{law.title}}
         </h4>
       </router-link>

@@ -18,6 +18,10 @@ module.exports = merge(prodEnv, {
 	'{ "mobilephone": "+49 123458", "name": "User8"},'+
   ']',
 
+  // Mobile phone number of admin users. Must match value in backend application.properties
+  // This is used in NODE_ENV==="development" to get a list of users
+  adminMobilePhone: '"+491234567890"',
+
   // User with this mobilephone is automatically logged in at startup. Set to 'undefined' to disable this feature.
   autoLoginMobilephone: undefined,
 

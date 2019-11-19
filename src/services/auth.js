@@ -136,6 +136,7 @@ export default {
 	/** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
 	devLogin(mobilephone) {
 		if (process.env.NODE_ENV !== 'development') throw new Error("dev login is only allowed in NODE_ENV='development' !")
+		log.debug("devLogin for mobilephone ", mobilephone)
 		return this.loginWithSmsToken(mobilephone, process.env.devLoginDummySmsToken)
 	},
 

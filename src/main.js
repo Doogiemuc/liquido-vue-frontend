@@ -4,7 +4,12 @@
  * Here we initialize Vue, setup our URL-routing and register global Vue components.
  */
 
-console.log("Welcome to LIQUDIDO")
+// A nice banner just for fun.  Created with  http://patorjk.com/software/taag/#p=display&h=0&f=Standard&t=LIQUIDO
+console.log(" _       ___    ___    _   _   ___   ____     ___  \n"+
+"| |     |_ _|  / _ \\  | | | | |_ _| |  _ \\   / _ \\ \n"+
+"| |      | |  | | | | | | | |  | |  | | | | | | | |\n"+
+"| |___   | |  | |_| | | |_| |  | |  | |_| | | |_| |\n"+
+"|_____| |___|  \\__\\_\\  \\___/  |___| |____/   \\___/ ")
 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -109,6 +114,13 @@ const routes = [
     },
     props: true
   },
+  { path: '/proposals/:ideaId/edit',  // proposals can be edited just like ideas, as long as they are in elaboration
+    component: function(resolve) {
+      require(['./pages/Idea_Edit.vue'], resolve)
+    },
+    props: true
+  },
+
 
   // ======================= Laws =======================
   { path: '/laws',
@@ -241,6 +253,15 @@ router.beforeEach((to, from, next) => {
 })
 //Nice quick short demo for vue-router and auth: https://codepen.io/takatama/pen/zoNeWP
 
+// Global configuration of our dismissable alert lib
+iziToast.settings({
+	layout: 2,
+	timout: 10000,
+	animateInside: false,
+	position: 'topRight',
+	transitionIn: 'fadeInLeft',
+})
+
 // ==============================================================================
 // Here we start the frontend app.
 // A lot of things are happening here
@@ -251,59 +272,81 @@ router.beforeEach((to, from, next) => {
 // (the loading spinner) and will show a header and page content.
 // ==============================================================================
 
-var isBackendAlive = function() {
-  return apiClient.ping()
-  .then(() => {
-    log.info("Backend is alive at "+process.env.backendBaseURL)
-    return Promise.resolve("Backend is ok")
-  })
-  .catch(err => {
-    var errorMsg = "FATAL ERROR: Backend is NOT available at "+process.env.backendBaseURL + ": "+err
-    console.error(errorMsg)
-    $('#loadingCircle').replaceWith('<div class="alert alert-danger">ERROR: Backend is not available at '+process.env.backendBaseURL+'<br/>Please try again later.</div>')
-    return Promise.reject(errorMsg)
-  })
-}
 
 var checkDevelopmentMode = function() {
-  if (process.env.NODE_ENV === "development") {
-    log.info("LIQUDIO is starting in DEVELOPMENT mode!")
-    loglevel.setLevel("trace")   // trace == log everything
-    log.debug("process.env", process.env)
-  }
-  return Promise.resolve()
+	if (process.env.NODE_ENV === "development") {
+		log.info("LIQUDIO is starting in DEVELOPMENT mode!")
+		loglevel.setLevel("trace")   // trace == log everything
+	}
+	return Promise.resolve()	
+}
+
+var isBackendAlive = function() {
+	return apiClient.ping()
+		.then(() => {
+			log.info("Backend is alive at "+process.env.backendBaseURL)
+			return Promise.resolve("Backend is ok")
+		})
+		.catch(err => {
+			var errorMsg = "FATAL ERROR: Backend is NOT available at "+process.env.backendBaseURL + ": "+err
+			console.error(errorMsg)
+			$('#loadingCircle').replaceWith('<div class="alert alert-danger">ERROR: Backend is not available at '+process.env.backendBaseURL+'<br/>Please try again later.</div>')
+			return Promise.reject(errorMsg)
+		})
+}
+
+var getPropsAndDevUsers = function() {
+	let props = apiClient.getGlobalProperties()
+	let users = new Promise(function(resolve, reject) {
+		if (process.env.NODE_ENV === "development" && process.env.adminMobilePhone) {
+			log.debug("getAllUsers for DEV login")
+			auth.devLogin(process.env.adminMobilePhone)
+			.then(apiClient.getAllUsers)
+			.then(users => {
+				auth.logout()
+				resolve(users) 
+			})
+			
+		} else {
+			resolve([])
+		}
+	})
+	return Promise.all([props, users])
+}
+
+var startApp = function([props, devUsers]) {
+	var rootApp = new Vue({
+		el: '#app',
+		router,
+		data: {
+			api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
+			auth: auth,                           // authentication, login, logout and caches currentUser
+			props: props,                         // application wide properties (read from backend DB)
+			devUsers: devUsers                    // some users that can be quickly logged in in DEV
+		},
+		...RootApp
+	}).$mount()
+	log.info("##### LIQUIDO web app has started ##### env="+process.env.NODE_ENV)
+	return rootApp
 }
 
 var autoLoginDevUser = function(rootApp) {
-  if (process.env.NODE_ENV == "development" && process.env.devLoginMobilephone !== undefined) {
-    auth.devLogin(process.env.devLoginMobilephone)
-  }
-  return Promise.resolve()
+	if (process.env.NODE_ENV == "development" && process.env.devLoginMobilephone !== undefined) {
+	  auth.devLogin(process.env.devLoginMobilephone)
+	}
+	return Promise.resolve()
 }
 
-var startApp = function(props) {
-  var rootApp = new Vue({
-    el: '#app',
-    router,
-    data: {
-      api: apiClient,                       // API client for Liquido Backend available to all Vue compents as this.$root.api
-      auth: auth,                           // authentication, login, logout and caches currentUser
-      props: props,                         // application wide properties (read from backend DB)
-    },
-    ...RootApp
-  }).$mount()
-  log.info("##### LIQUIDO web app has started ##### env="+process.env.NODE_ENV)
-  return rootApp
-}
+
 
 //Here comes JS Promises at its best :-)
 checkDevelopmentMode()
   .then(isBackendAlive)
-  .then(apiClient.getGlobalProperties)
+  .then(getPropsAndDevUsers)
   .then(startApp)
   .then(autoLoginDevUser)
   .catch(err => {
-    console.error("Fatal rrror during LIQUIDO startup", err)
+    console.error("Fatal error during LIQUIDO startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger" id="backendNotAlive">ERROR while loading Liquido App. Please try again later.</p>')
   })
 

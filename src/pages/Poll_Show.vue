@@ -66,8 +66,8 @@
 					<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
 					<span v-if="poll.status == 'VOTING'">You may still change your mind and update	the vote order in your ballot as long as the poll is in its voting phase. Simply click on the cast vote button again.</span>
 				</p>
-				<ol>
-					<li v-for="proposal in voteOrder" :key="proposal.id">"{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+				<ol class="noBullet">
+					<li v-for="(proposal, index) in voteOrder" :key="proposal.id">#{{index+1}}: "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
 				</ol>
 			</div>
 		</div>
@@ -312,7 +312,6 @@ export default {
 		 * Will set this.ownBallot when loaded. May still be undefind if user has not voted yet!
 		 */
 		loadOwnBallot() {
-			console.log("========== load own ballot")
 			if (this.poll.status === 'VOTING') {
 				return this.fetchVoterToken().then(voterToken => {
 					this.$root.api.getOwnBallot(this.poll, voterToken).then(ballot => {
@@ -452,6 +451,9 @@ export default {
 		overflow: hidden;
 		padding: 5px;
 		margin: 0;
+	}
+	.noBullet {
+	  list-style: none;
 	}
 	.winner {
 		background: #DFD;

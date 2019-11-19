@@ -8,7 +8,7 @@
 	If you want to support an idea, then click its like button.</p>
 
 	<button type="button" class="btn btn-xs btn-default pull-right" @click="showUsersOwnIdeas">Your ideas <i class="fa fa-angle-double-right"></i></button>
-	<p>You can search for ideas and proposals on the <router-link to="search">search page</router-link>.
+	<p>You can search for ideas and proposals on the <a href="#" @click.prevent="searchIdeasAndProposals">search page</a>.
 
 	<div class="row">
 	<div class="col-sm-6">
@@ -39,25 +39,30 @@ export default {
 	},
 
 	methods: {
-	/* Jump to search page and show all ideas that were created by the current user */
-	showUsersOwnIdeas() {
-		var query = {
-			statusList: ["IDEA" ],
-			createdByYou: true
+		searchIdeasAndProposals() {
+			var query = {
+				statusList: ["IDEA", "PROPOSAL", "ELABORATION", "VOTING"],
+			}
+			this.$router.push( { name: 'search', params: { initQuery: query }})
+		},
+		
+		/* Jump to search page and show all ideas that were created by the current user */
+		showUsersOwnIdeas() {
+			var query = {
+				statusList: ["IDEA" ],
+				createdByYou: true
+			}
+			this.$router.push( { name: 'search', params: { initQuery: query }})
 		}
-		this.$router.push( { name: 'search', params: { initQuery: query }})
-	}
 	},
 
 	created () {
 		this.$root.api.getRecentIdeas().then(recentIdeas => {
-		this.recentIdeas = recentIdeas
-	})
-	this.$root.api.findSupportedBy(this.$root.currentUser, "IDEA").then(supportedIdeas => {
-		this.supportedIdeas = supportedIdeas
-	})
-
-
+			this.recentIdeas = recentIdeas
+		})
+		this.$root.api.findSupportedBy(this.$root.currentUser, "IDEA").then(supportedIdeas => {
+			this.supportedIdeas = supportedIdeas
+		})
 	},
 
 }

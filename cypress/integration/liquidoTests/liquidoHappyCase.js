@@ -66,7 +66,6 @@ describe('Liquido Happy Case Test', function() {
 	/** Load one area */
 	before(function() {
 		cy.loginWithSmsToken(fix.user1_mobilephone, fix.devLoginDummySmsToken).then(user => {
-			console.log("7")
 			cy.request({
 				method: 'GET',
 				url: Cypress.env('backendBaseURL')+'/areas',
@@ -162,43 +161,6 @@ describe('Liquido Happy Case Test', function() {
 		//GIVEN an idea in Cypress.env
 		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").toBeNonEmptyObject
 		expect(Cypress.env('idea').status, "Idea should have status IDEA").to.equal('IDEA')
-
-		
-		/*
-		var addSupportersToIdea = function() {
-			console.log("Adding supporters to idea ", Cypress.env('idea'))
-			// Run tasks as promise chain
-			// https://stackoverflow.com/questions/30853265/dynamic-chaining-in-javascript-promises
-			// https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
-			let numSupporters = 10
-			var tasks = []
-			for(var i = 5; i<5+numSupporters; i++) {
-				tasks.push({
-					func: function(mobile) { 
-						//console.log("========== (1) TaskFunc: Login via SMS mobile="+mobile)
-						return auth.loginWithSmsToken(mobile, fix.devLoginDummySmsToken)
-							.then((user) => {
-								//console.log("========== (2) user (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in via SMS.")
-								return api.addSupporterToIdea(Cypress.env('idea')).then(() => {
-									//console.log("========== (3) added "+user.email+" supporter to idea")
-								})
-							})
-					},
-					arg: fix.mobilephone_prefix+i
-				})
-			}
-			return tasks
-				.reduce(function (prev, task) {
-					return prev.then(() => task.func(task.arg))    
-				}, Promise.resolve("START"))
-				.then(function (result) {
-					cy.log("Added " + numSupporters + " supporters to idea(id="+Cypress.env('idea').id+", title='"+Cypress.env('idea').title+"')")
-					console.log("======= FINISHED adding supporters")
-					return Promise.resolve("done resolve inside")
-				});
-			
-		}
-		*/
 
 		//WHEN adding enough supporters to that idea
 		cy.wrap(addSupporters(10, Cypress.env('idea')).then(() => {
@@ -428,7 +390,8 @@ describe('Liquido Happy Case Test', function() {
 	})
 
 
-	it.skip('CLEANUP', function() {
+	it('CLEANUP', function() {
+		// Cleanup
 		if (Cypress.env('poll') !== undefined) {
 			console.log("DELETING poll that was created from test (poll.id="+Cypress.env('poll').id+")")
 			cy.loginWithSmsToken(fix.adminMobilephone, fix.devLoginDummySmsToken).then(user => {
@@ -443,11 +406,13 @@ describe('Liquido Happy Case Test', function() {
 					}
 				})
 			})
+			Cypress.env('poll', undefined)
 		}
+		Cypress.env('idea', undefined)
+		Cypress.env('proposal', undefined)
+		Cypress.env('area0', undefined)
 	})
 
-	//TODO: cleanup  (so that tests could also be run against prod)
-	//      Clear Cypress.env   idea, poll and proposal2 
 })
 
 

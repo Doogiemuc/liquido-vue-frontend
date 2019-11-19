@@ -43,7 +43,7 @@
             </li>
             <li class="dropdown">
               <a href="#" data-toggle="dropdown" class="dropdown-toggle userDropdown">
-                {{userNameShort}}<i class="caret"></i>
+                <span v-html="userNameShort"></span><i class="caret"></i>
               </a>
               <ul class="dropdown-menu">
                 <li><router-link to="/userHome">User Home</router-link></li>
@@ -65,7 +65,7 @@
               DevLogin <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li v-for="devUser in devUsers" :key="devUser.email"><a href="#" @click="auth.devLogin(devUser.mobilephone)">{{devUser.name}} {{devUser.mobilephone}}</a></li>
+              <li v-for="devUser in devUsers" :key="devUser.email"><a href="#" @click="auth.devLogin(devUser.profile.mobilephone)">{{devUser.profile.name}} {{devUser.profile.mobilephone}}</a></li>
             </ul>
           </div>
         </div>
@@ -101,12 +101,13 @@ export default {
     This RootApp's data properties are available to all child components e.g. this.$root.currentUser
     All data properties are injected in mains.js
   */
+
+
   computed: {
 	liquidoWebAppVersion() { return "V"+process.env.liquidoWebAppVersion },
     liquidoBackendInfo()   { return "backend@"+this.props['liquido.backend.version'] + ' ' + process.env.backendBaseURL },
     nodeEnv()        { return process.env.NODE_ENV },
     currentUser()    { return auth.currentUser },
-    devUsers()       { return process.env.devUsers },
     showDevLogin()   { return process.env.NODE_ENV === 'development' && this.currentUser === undefined },
     userNameShort() {
       if (!this.currentUser) return ""
@@ -122,15 +123,8 @@ export default {
   },
 
   created() {
-    // Global configuration of our dismissable alert lib
-    iziToast.settings({
-      layout: 2,
-      timout: 10000,
-      animateInside: false,
-      position: 'topRight',
-      transitionIn: 'fadeInLeft',
-    })
-
+    
+	console.log(this.devUsers)
   },
 
 }
