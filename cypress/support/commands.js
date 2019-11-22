@@ -25,19 +25,22 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 /** 
- * Login a user via the devLogin URL shortcut 
- * The app is then shown on the start page.
+ * Login a user via the UI. This uses the devLoginMobilephne URL shortcut
+ * When the call returns, then the app is then shown on the start page.
  * This is quick and easy, but only available in DEVELOPMENT environemnt
  */
-Cypress.Commands.add('devLogin', (mobilephone) => {
+Cypress.Commands.add('urlLogin', (mobilephone) => {
 	console.log("Cypress.devLogin "+mobilephone)
 	cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
 	cy.get('#userMenu').should('exist')
 })
 
 /**
- * Quickly login a given user via mobilephone by using the API.
- * This accesses the low level API without any GUI interaction
+ * Quickly login a given user for tests. This accesses the low level API without any GUI interaction
+ * 
+ * Keep in mind that this logs in the user in the auth instance of the TEST.
+ * This is a different auth instance than the one used by the Vue web app!
+ * 
  * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
  */ 

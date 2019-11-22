@@ -262,24 +262,19 @@ iziToast.settings({
 	transitionIn: 'fadeInLeft',
 })
 
-// ==============================================================================
-// Here we start the frontend app.
-// A lot of things are happening here
-//
-// First we make a dummy request to the backend to check whether it's there at all. If not we show an error.
-// IF we are in development mode, then we load the first user by default and log him in.
-// Then we start the vue-router RootApp.vue which will replace the content of index.html
-// (the loading spinner) and will show a header and page content.
-// ==============================================================================
+/* ==============================================================================
 
+ Here we start the frontend app. A lot of important things are happening here:
 
-var checkDevelopmentMode = function() {
-	if (process.env.NODE_ENV === "development") {
-		log.info("LIQUDIO is starting in DEVELOPMENT mode!")
-		loglevel.setLevel("trace")   // trace == log everything
-	}
-	return Promise.resolve()	
-}
+ 1) isBackendAlive: ping the backend to check it we can reach it
+ 2.1) checkDevelopmentMode: if NODE_ENV === "development" then configure trace level
+	and load all users for devLogin dropdown menu     
+	@return list of users if in development mode
+ 2.2) get Properties from Backend
+ 3) start Rootapp.vue with the return values from 2.1 and 2.2.
+	It will replace the content of index.html (the loading spinner) and will show a header and page content.
+	
+ ============================================================================== */
 
 var isBackendAlive = function() {
 	return apiClient.ping()
@@ -295,23 +290,17 @@ var isBackendAlive = function() {
 		})
 }
 
-var getPropsAndDevUsers = function() {
-	let props = apiClient.getGlobalProperties()
-	let users = new Promise(function(resolve, reject) {
-		if (process.env.NODE_ENV === "development" && process.env.adminMobilePhone) {
-			log.debug("getAllUsers for DEV login")
-			auth.devLogin(process.env.adminMobilePhone)
-			.then(apiClient.getAllUsers)
-			.then(users => {
-				auth.logout()
-				resolve(users) 
-			})
-			
-		} else {
-			resolve([])
-		}
-	})
-	return Promise.all([props, users])
+var checkDevelopmentMode = function() {
+	if (process.env.NODE_ENV === "development") {
+		log.info("LIQUDIO is starting in DEVELOPMENT mode! ")
+		loglevel.setLevel("trace")   				// trace == log everything
+		return apiClient.devGetAllUsers()			// No login! /dev/users Endpoint must be publicly available. Which is only the case in DEV and TEST!
+	}
+	return Promise.resolve([])	
+}
+
+var getProps = function() {
+	return apiClient.getGlobalProperties()
 }
 
 var startApp = function([props, devUsers]) {
@@ -330,21 +319,19 @@ var startApp = function([props, devUsers]) {
 	return rootApp
 }
 
+/*  No more automatic login of user.  This is unhandy during testing.
 var autoLoginDevUser = function(rootApp) {
 	if (process.env.NODE_ENV == "development" && process.env.devLoginMobilephone !== undefined) {
 	  auth.devLogin(process.env.devLoginMobilephone)
 	}
 	return Promise.resolve()
 }
+*/
 
-
-
-//Here comes JS Promises at its best :-)
-checkDevelopmentMode()
-  .then(isBackendAlive)
-  .then(getPropsAndDevUsers)
+// Here comes JS Promises at its best :-)
+isBackendAlive()
+  .then(() => Promise.all([getProps(), checkDevelopmentMode()]))
   .then(startApp)
-  .then(autoLoginDevUser)
   .catch(err => {
     console.error("Fatal error during LIQUIDO startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger" id="backendNotAlive">ERROR while loading Liquido App. Please try again later.</p>')

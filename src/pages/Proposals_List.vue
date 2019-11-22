@@ -60,7 +60,8 @@ export default {
     this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
       this.recentProposals = proposals.slice(0,10)
     })
-    //TODO: "trending" may also mean: a lot of (recent?) likes. Don't just count comments
+	
+	// Trending proposals are proposals that were recently discussed
     this.$root.api.getRecentlyDiscussed().then(recentlyDiscussedProposals => {
       this.recentlyDiscussed = recentlyDiscussedProposals
     })

@@ -372,7 +372,7 @@ export default {
 					title: 'Joined poll sucessfully!',
 					message: 'Your proposal is now part of this poll.'
 				})
-				this.$router.go()  // reload the show poll page
+				this.$router.go()      // reload the show poll page   (BUGFIX: user needs to stay logged in after a reload!)
 			})
 			.catch(err => {
 				log.error("Cannot join poll", err)

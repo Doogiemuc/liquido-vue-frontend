@@ -4,13 +4,6 @@
   "email_suffix": "@liquido.de",
   "website": "www.liquido.de",
 
-  "user1_mobilephone": "+49 12345 1",
-  "user1_email": "testuser1@liquido.de",
-  "user1_name": "Donald Duck",
-
-  "user2_mobilephone": "+49 12345 2",
-  "user2_email": "testuser2@liquido.de",
-
   "ideaTitle_prefix": "Cypress Idea that will become proposal ",
   "ideaDescription_prefix": "New Idea created from cypress test case ",
 

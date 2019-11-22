@@ -15,7 +15,7 @@ const JWT_ITEM_KEY = 'liquido-jwt'
 var log = loglevel.getLogger('auth.js')
 
 export default {
-	//TODO: currently currentUser is mirrowed here AND in LiquidoApiClient.js  which is not nice. But I need it in both places
+	//TODO: currently currentUser is mirrowed here AND in LiquidoApiClient.js which is not nice. currentUser should only be handled HERE!
 	currentUser: undefined,
 
 	isLoggedIn() {

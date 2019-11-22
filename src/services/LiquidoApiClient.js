@@ -83,7 +83,7 @@ var globalPropertiesCache = undefined
 //==================================================================================================================
 
 module.exports = {
-  currentUser: undefined,			// just a cache for currentUser in auth.js
+  currentUser: undefined,			// just a cache for currentUser in auth.js   //TODO: remove this here. Currnet user should only be in auth.js
   jsonWebToken: undefined,
 
   /** Set the JWT that will be used for all future requests */
@@ -510,7 +510,7 @@ module.exports = {
       method:  'POST',
       url:     '/laws/'+idea.id+'/like',
     }).then(res => {
-	  log.info("Current user " + (this.currentUser ? this.currentUser.email : "!ERROR!") +  " now supports idea("+idea.id+") '"+idea.title)
+	  log.info("Current user " + (this.currentUser ? this.currentUser.email : "!ERROR!") +  " now supports idea(id="+idea.id+") '"+idea.title+"'")
       return ""  // backend returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter to idea(id="+idea.id+")", err)
@@ -823,6 +823,16 @@ module.exports = {
 		  checksum: checksum
 	  }})
 	  .then(res => { return res.data })
+  },
+
+  //==================================================================================================================
+  // These calls towards the backend are only available in development environment
+  //==================================================================================================================
+
+  devGetAllUsers() {
+	return axios.get('/dev/users').then(
+		res => { return res.data._embedded.users }
+	)	  
   }
 
 }
