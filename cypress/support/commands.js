@@ -30,7 +30,7 @@
  * This is quick and easy, but only available in DEVELOPMENT environemnt
  */
 Cypress.Commands.add('urlLogin', (mobilephone) => {
-	console.log("Cypress.devLogin "+mobilephone)
+	console.log("Cypress: login via url: "+mobilephone)
 	cy.visit('/#/?devLoginMobilephone='+encodeURIComponent(mobilephone))
 	cy.get('#userMenu').should('exist')
 })

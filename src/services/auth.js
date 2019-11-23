@@ -47,6 +47,7 @@ export default {
 		var jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
 		if (jsonWebToken) {
 			log.debug("Got JWT from localStorage.")
+			//TODO: check format of JWT
 			return this.storeJwt(jsonWebToken)
 		} else {
 			return Promise.reject("Cannot fetchCurrentUser. Don't have JWT.")
