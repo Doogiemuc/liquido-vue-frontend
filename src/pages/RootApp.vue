@@ -65,7 +65,7 @@
               DevLogin <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li v-for="devUser in devUsers" :key="devUser.email"><a href="#" @click="auth.devLogin(devUser.profile.mobilephone)">{{devUser.profile.name}} {{devUser.profile.mobilephone}}</a></li>
+              <li v-for="devUser in devUsers" :key="devUser.email"><a href="#" @click="devLogin(devUser.profile.mobilephone)">{{devUser.profile.name}} {{devUser.profile.mobilephone}}</a></li>
             </ul>
           </div>
         </div>
@@ -118,7 +118,11 @@ export default {
 
   methods: {
 
-	  // Also these methods would be available to all components as this.$root.someMethod()
+	  // Also these methods are available to all components as this.$root.someMethod()
+
+	  devLogin(mobilephone) {
+		  auth.devLogin(mobilephone, process.env.devLoginToken)
+	  }
 
   },
 

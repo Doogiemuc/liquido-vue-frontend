@@ -15,7 +15,7 @@ const JWT_ITEM_KEY = 'liquido-jwt'
 var log = loglevel.getLogger('auth.js')
 
 export default {
-	//TODO: currently currentUser is mirrowed here AND in LiquidoApiClient.js which is not nice. currentUser should only be handled HERE!
+	//TODO: currently currentUser is mirrowed here AND in LiquidoApiClient.js which is not nice. currentUser should only be handled => HERE <= !
 	currentUser: undefined,
 
 	isLoggedIn() {
@@ -47,7 +47,6 @@ export default {
 		var jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
 		if (jsonWebToken) {
 			log.debug("Got JWT from localStorage.")
-			//TODO: check format of JWT
 			return this.storeJwt(jsonWebToken)
 		} else {
 			return Promise.reject("Cannot fetchCurrentUser. Don't have JWT.")
@@ -76,8 +75,8 @@ export default {
 			return this.storeJwt(res.data)
 		})
 		.catch(err => {
-			log.error("Cannot login  user", err)
-			return Promise.reject("Cannot login user"+err)
+			log.error("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
+			return Promise.reject({msg: "Cannot loginWithSmsToken mobilephone="+mobilephone, err: err})
 		})
 	},
 
@@ -87,7 +86,7 @@ export default {
 	 * @return User info JSON
 	 */
 	storeJwt(jwt) {
-		if (!jwt) return Promise.reject("Need JWT")
+		if (!jwt) return Promise.reject({msg: "Cannot store undefined JWT!"})
 		localStorage.setItem(JWT_ITEM_KEY, jwt)
 		apiClient.setJsonWebTokenHeader(jwt)
 		return apiClient.getMyUser()
@@ -134,11 +133,26 @@ export default {
 		apiClient.setCurrentUser(undefined)
 	},
 
-	/** Quick login for development. This is called from main.js when NODE_ENV === 'development' */
-	devLogin(mobilephone) {
-		if (process.env.NODE_ENV !== 'development') throw new Error("dev login is only allowed in NODE_ENV='development' !")
+	/** 
+	 * Quick login for development. 
+	 * Still MUST provide valid token.
+	 * 
+	 * GET /dev/loginWithSmsToken?mobile=%2B49123451389&token=123456
+	 * 
+	 * @return the loggin in user as JSON
+	 */
+	devLogin(mobilephone, token) {
 		log.debug("devLogin for mobilephone ", mobilephone)
-		return this.loginWithSmsToken(mobilephone, process.env.devLoginDummySmsToken)
+		if (!token) return Promise.reject("ERROR: Need valid token for devLogin!")
+		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
+		return axios.get('/dev/getJWT', { params: { mobile: cleanMobilePhone, token: token} } )
+			.then(res =>  {
+				return this.storeJwt(res.data)
+			})
+			.catch(err => {
+				log.error("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
+				return Promise.reject({msg: "Cannot loginWithSmsToken mobilephone="+mobilephone, err: err})
+			})
 	},
 
 	/** remove everything except numbers and the plus sign from mobilephone */

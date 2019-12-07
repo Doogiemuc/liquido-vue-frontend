@@ -83,7 +83,7 @@ var globalPropertiesCache = undefined
 //==================================================================================================================
 
 module.exports = {
-  currentUser: undefined,			// just a cache for currentUser in auth.js   //TODO: remove this here. Currnet user should only be in auth.js
+  currentUser: undefined,			// just a cache for currentUser in auth.js   //TODO: remove this here. Currnet user should only be in auth.js   Its only used in upvoteComment anyway!!
   jsonWebToken: undefined,
 
   /** Set the JWT that will be used for all future requests */
@@ -819,7 +819,7 @@ module.exports = {
    * @return true, if a ballot with that checksum exists in this poll
    */
   verifyChecksum(pollId, checksum) {
-	  return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
+	return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
 		  checksum: checksum
 	  }})
 	  .then(res => { return res.data })
@@ -829,10 +829,10 @@ module.exports = {
   // These calls towards the backend are only available in development environment
   //==================================================================================================================
 
-  devGetAllUsers() {
-	return axios.get('/dev/users').then(
-		res => { return res.data._embedded.users }
-	)	  
+  devGetAllUsers(token) {
+	return axios.get('/dev/users?token='+token)
+	.then(res => res.data._embedded.users)
   }
+
 
 }

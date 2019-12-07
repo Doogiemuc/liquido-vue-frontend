@@ -229,7 +229,7 @@ router.beforeEach((to, from, next) => {
 
   if (process.env.NODE_ENV === "development" && to.query.devLoginMobilephone) {
     log.info("==== devLoginMobilephone", to.query.devLoginMobilephone)
-    auth.devLogin(to.query.devLoginMobilephone)
+    auth.devLogin(to.query.devLoginMobilephone, to.query.token)
   }
 
   // IF to requires authentication and not yet logged in
@@ -294,7 +294,7 @@ var checkDevelopmentMode = function() {
 	if (process.env.NODE_ENV === "development") {
 		log.info("LIQUDIO is starting in DEVELOPMENT mode! ")
 		loglevel.setLevel("trace")   				// trace == log everything
-		return apiClient.devGetAllUsers()			// No login! /dev/users Endpoint must be publicly available. Which is only the case in DEV and TEST!
+		return apiClient.devGetAllUsers(process.env.devLoginToken)			// No login! /dev/users Endpoint must be publicly available. Which is only the case in DEV and TEST!
 	}
 	return Promise.resolve([])	
 }

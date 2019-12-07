@@ -1,11 +1,11 @@
 <template>
 	<div class="panel panel-default pollPanel" :data-polluri="getPollURI">
 		<div class="panel-heading">
-			<router-link :to="{ path: '/polls/'+poll.id }" role="button" class="btn btn-primary btn-xs pull-right">
-				<i class="fas fa-angle-double-right"></i>
-			</router-link>
-			<router-link :to="'/polls/'+poll.id">
-				<h4><i class="fas fa-balance-scale-left"></i>&nbsp;{{poll.title}}</h4>
+			<router-link :to="'/polls/'+poll.id" class="pollLink">
+				<button class="btn btn-primary btn-xs pull-right">
+					<i class="fas fa-angle-double-right"></i>
+				</button>
+				<h4 class="pollTitle"><i class="fas fa-balance-scale-left"></i>&nbsp;{{poll.title}}</h4>
 			</router-link>
 		</div>
 		<div class="panel-body poll-list" :id="pollPanelID">
