@@ -1,7 +1,7 @@
 <template>
   <div class="container" id="SortBallot">
 
-    <h1><i class="fas fa-poll"></i> Sort proposals into your ballot</h1>
+    <h1><i class="fas fa-vote-yea"></i> Sort proposals into your ballot</h1>
 
     <div class="panel panel-default">
       <div class="panel-body">
@@ -12,7 +12,7 @@
 	<div id="castVoteButtonWrapper" class="pull-right"
           data-container="body" data-toggle="popover" data-placement="top" data-trigger="manual"
           data-content="Drag at least one proposal from the left into your ballot on the right.">
-        
+
 		<button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
 			v-bind:disabled="this.ballotIsEmpty"
 			@click="clickCastVoteButton">

@@ -17,10 +17,14 @@
 			</p>
 		</div>
 
-		<h1 v-if="poll"><i class="fas fa-poll"></i>
+		<h1 v-if="poll">
+			<i class="fas fa-poll"></i>
 			<template v-if="poll.status === 'ELABORATION'">Poll in elaboration phase</template>
 			<template v-if="poll.status === 'VOTING'">Poll in voting phase</template>
 			<template v-if="poll.status === 'FINISHED'">Finished Poll</template>
+		</h1>
+		<h1 v-else>
+			<i class="fas fa-poll"></i> Loading poll ...
 		</h1>
 
 		<div v-if="poll && poll.status === 'ELABORATION'" class="panel panel-default">
@@ -30,7 +34,7 @@
 			<div class="panel-body">
 				<p>The voting phase of this poll has not yet started. There are {{untilVotingStart}} left to discuss all the proposals.
 					Click on the title of each proposal to join the discussion and suggest improvements. Further alternative proposals may also still be added to this poll.</p>
-				<p v-if="poll._embedded.proposals.length === 1">There is just one proposal in this poll yet. Others must join this poll before the voting phase can start.</p>	
+				<p v-if="poll._embedded.proposals.length === 1">There is just one proposal in this poll yet. Others must join this poll before the voting phase can start.</p>
 				<timeline ref="pollTimeline" :height="80" :fillToDate="new Date()" :events="timelineEvents"></timeline>
 			</div>
 		</div>
@@ -182,9 +186,7 @@ export default {
 
 	data () {
 		return {
-			poll: { 
-				_embedded: { proposals: [] }
-			},
+			poll: undefined,
 			delegations: undefined,
 			voterToken: undefined,
 			ownBallot: undefined,
@@ -255,7 +257,7 @@ export default {
 			.then(this.loadOwnBallot)
 			.then(this.loadUsersProposalsInArea)
 			//.then(this.loadDelegations)		 //MAYBE: Could load delegations here since I already have the user's voterToken
-			.catch(err => { log.error(err) })			
+			.catch(err => { log.error(err) })
 	},
 
 	mounted() {
@@ -264,8 +266,8 @@ export default {
 
 	methods: {
 		loadPoll() {
-			return this.$root.api.getPoll(this.pollId).then(poll => { 
-				this.poll = poll 
+			return this.$root.api.getPoll(this.pollId).then(poll => {
+				this.poll = poll
 			}).catch(err => {
 				let msg = "Cannot find poll(id="+this.pollId+")"
 				log.error(msg)
@@ -471,4 +473,3 @@ export default {
 		margin-top: 2rem;
 	}
 </style>
-

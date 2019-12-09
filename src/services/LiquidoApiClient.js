@@ -47,6 +47,11 @@ axios.interceptors.response.use(function (response) {
 		if (error.response.data && error.response.data.message) {
 			log.error("Error response: "+error.response.data.message, error.response)   // log some liquido specific debugging output
 		}
+		if (error.response.data && error.response.data.liquidoErrorName === "JWT_TOKEN_EXPIRED") {
+			log.warn("Your JSON Web Token (JWT) is expired. you need to re-login!")
+			//TODO: this should be handled in auth.js  And then user should be redirected to login page.
+		}
+		
 		log.warn("Http Error Response:", error.response)
 		return Promise.reject(error.response);   				// return the error.response as it is returned by the backend
 	} else if (error.request) {
@@ -539,7 +544,7 @@ module.exports = {
 
   /**
    * get proposals that reached their quorum since a given date.
-   * @param since date in the format "yyyy-MM-dd"
+   * @param since date in the format "yyyy-MM-ddThh:mm:sss"
    */
   getReachedQuorumSince(since) {
     log.debug("getReachedQuorumSince("+since+")")
@@ -562,8 +567,8 @@ module.exports = {
   },
 
   /** get proposals with recent comments. Only proposals can be discussed */
-  getRecentlyDiscussed() {
-    return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded ? res.data._embedded.laws : [])
+  getRecentlyDiscussed(since) {
+    return axios.get('/laws/search/recentlyDiscussed?since='+since).then(res => res.data._embedded ? res.data._embedded.laws : [])
   },
 
   /**

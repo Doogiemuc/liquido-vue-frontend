@@ -1,26 +1,28 @@
 <template>
   <div class="container" id="CastVote">
 
-    <h1><i class="fas fa-balance-scale"></i> Cast your vote</h1>
+    <h1><i class="fas fa-vote-yea"></i> Cast your vote</h1>
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4>Your ballot</h4>
+        <h4>Your ballot
+					<span data-toggle="tooltip" data-placement="top" title="This is the ballot you are going to cast. It contains the proposals in the order you just sorted them.">
+					  <i class="fas fa-info-circle info-icon"></i>
+				  </span>
+				</h4>
       </div>
-      <div class="panel-body ballot-body">
-		<p>This is the ballot you are going to cast. It contains the proposals in the order you just sorted them.</p>
-        <ol class="noBullet">
-          <li v-for="(proposal, index) in voteOrderProposals" :key="proposal.id">#{{index+1}}: "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
-        </ol>
-      </div>
+      <ul class="list-group">
+        <li class="list-group-item ballot-proposal" v-for="(proposal, index) in voteOrderProposals" :key="proposal.id"><b>{{index+1}}.</b> "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+      </ul>
+
     </div>
 
-	<p>&nbsp;</p>
+		<p>&nbsp;</p>
 
     <!-- Cast vote - Step 1 - Fetch voter token -->
     <div id="getVoterTokenPanel" class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">1. Fetch your voter token</h3>
+        <h3 class="panel-title">Fetch your voter token</h3>
       </div>
       <div class="panel-body">
         <ul class="fa-ul">
@@ -74,7 +76,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">2. Anonymously cast your vote</h3>
+        <h3 class="panel-title">Then anonymously cast your vote</h3>
       </div>
       <div class="panel-body">
         <div id="steps">
@@ -186,9 +188,24 @@ export default {
       }
       //log.debug("voteOrderProposals", this.voteOrderProposals)
     })
-    // Cannot fetch delegations yet. Need voterToken
+		.catch(err => {
+				log.error("Cannot load poll(id="+this.pollId+")", err)
+				iziToast.error({
+					id: "CannotLoadPoll",
+					title: 'Cannot load poll',
+					message: 'Did not find poll(id='+this.pollId+').<br/>Do not reload the cast vote page in your browser.',
+					timeout: 8000
+				})
+				this.$router.push("/polls")
+		})
+
+		// Cannot fetch delegations yet. Need voterToken
 
   },
+
+	mounted() {
+		$('[data-toggle="tooltip"]').tooltip()
+	},
 
   methods: {
     getFromNow(dateVal) {
@@ -329,8 +346,13 @@ export default {
   }
 
   .ballot-body {
-    background-color: #F9F9F9;
+    background-color: #f5f5f5;
   }
+
+	.ballot-proposal {
+		background-color: #f5f5f5;
+		padding-left: 2.5em;
+	}
 
   .delegationPanel {
 	  margin-left: 5%;
@@ -341,6 +363,11 @@ export default {
     float: right;
     color: #a94442;
   }
+
+	.info-icon {
+		margin-left: 1rem;
+		color: lightgrey;
+	}
 
   .monspaceFont {
     font-family: monospace;
