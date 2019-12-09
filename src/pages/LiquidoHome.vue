@@ -14,11 +14,11 @@
 			</div>
 			<div class="col-sm-6">
 				<h3>Liquido</h3>
-				<p>is a web based implementation of Liquid Democracy with no central authority. The whole democratic process is decentralized:</p>
+				<p>is a web based implementation of Liquid Democracy with no need for a central authority. The whole democratic process is decentralized:</p>
 				<ul>
 					<li>Anyone may suggest an <b>idea</b>.</li>
 					<li>When an idea reaches its quorum, it becomes a <b>proposal</b>.</li>
-					<li>When a <b>poll</b> is created, then further alternative proposals may join this poll.</li>
+					<li>When a <b>poll</b> is created, then further alternative proposals may decide join this poll.</li>
 					<li>All proposals in the poll can now be further discussed and continuusly elaborated.</li>
 					<li>After a few days the <b>voting phase</b> of the poll starts automatically.</li>
 					<li>In Liquido you don't just vote for one of several propsals, instead you <b>sort proposals</b> into your personally preferred order.</li>
@@ -28,16 +28,16 @@
 
 			<div class="col-sm-6">
 				<h3>Liquid Democracy</h3>
-				<blockquote>(also known as delegative democracy) is a form of democracy whereby an electorate has the option of vesting voting power in delegates rather than voting directly themselves. 
+				<blockquote>(also known as delegative democracy) is a form of democracy whereby an electorate has the option of vesting voting power in delegates rather than voting directly themselves.
 					Voters can either vote directly or delegate their vote to other participants; voters may also select different delegates for different issues.
 					<footer class="pull-right"><a href="https://en.wikipedia.org/wiki/Liquid_democracy" class="quoteSource">https://en.wikipedia.org/wiki/Liquid_democracy</a></footer>
 				</blockquote>
 			</div>
-			<div class="col-sm-6">	
+			<div class="col-sm-6">
 				<h3>Tree of proxies</h3>
-				<p>A proxy may in turn delegate all his collected rights to vote to another parent proxy. This way a tree of proxies evolves 
+				<p>A proxy may in turn delegate all his collected rights to vote to another parent proxy. This way a tree of proxies evolves
 					where the voting power culminates at the top. You can always see who is your effective proxy at the top of this chain.</p>
-				<p> In Liquido you as a voter may <b>always</b> cast a vote on his own, also when a proxy is assigned. You can even overrule an already 
+				<p> In Liquido you as a voter may <b>always</b> cast a vote on his own, also when a proxy is assigned. You can even overrule an already
 					casted vote of your proxy in a poll (as long as the poll is still in its voting phase).
 					A proxie's vote will never overrule a personally casted vote from a voter. And a voter may completely revoke his delegation to a proxy at any time.</p>
 				<p>This way the tree of delegations is in a constant state of change - it's kind of <em>liquid</em>.</p>

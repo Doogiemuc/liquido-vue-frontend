@@ -4,7 +4,7 @@
 	<div v-if="!proposal">
 		<span v-html="loadingMessage"></span>
 	</div>
-  
+
 	<div class="alert alert-danger" v-if="proposalErrorMsg">
 		<h3>Error</h3>
 		<p v-html="proposalErrorMsg"></p>
@@ -75,6 +75,14 @@
 					</button>
 					<p>This proposal is part of a poll in voting. You can cast your vote in the poll.</p>
 				</div>
+				<div v-else-if="proposal.status === 'LOST'">
+					<button type="button" id="goToPollButton" class="btn btn-primary btn-sm pull-right" @click="goToPoll()">Show finished poll
+							<i class="fas fa-angle-double-right"></i>
+					</button>
+					<p>This proposal was part of a poll that is now finished. It lost against another proposal of this poll.</p>
+				</div>
+
+
 			</div>
 		</div>
 
@@ -82,7 +90,7 @@
 			<h4 >Suggestions for improvement</h4>
 
 			<div v-for="comment in comments" :key="comment.id" class="media">
-		
+
 				<div class="media-left">
 					<img :src="comment.createdBy.profile.picture" />
 				</div>
@@ -168,7 +176,7 @@
 
     </div>
 </div>
-  
+
 </template>
 
 <script>
@@ -201,6 +209,7 @@ export default {
 
 	computed: {
 		titleLoc() {
+			console.log("==== ", this.proposal)
 			switch(this.proposal.status) {
 				case "IDEA":        return "Idea"
 				case "PROPOSAL":    return "Proposal"
@@ -210,6 +219,7 @@ export default {
 				case "DROPPED":     return "Dropped law"
 				case "RETENTION":   return "Law in retention"
 				case "RETRACTED":   return "Rectracted law"
+				case "LOST":        return "Proposal (looser in poll)"
 			}
 			return "<???>";
 		},
@@ -413,4 +423,3 @@ export default {
 }
 
 </style>
-

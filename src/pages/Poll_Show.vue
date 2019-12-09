@@ -64,16 +64,14 @@
 				<h4>Your current ballot in this poll</h4>
 			</div>
 			<div class="panel-body ballot-body">
-				<p>
 					<span v-if="ownBallot.level == 0">This ballot was casted by yourself {{ownBallotCreatedAt}}.</span>
 					<span v-if="ownBallot.level == 1">This ballot was casted for you by your direct proxy {{ownBallotCreatedAt}}.</span>
 					<span v-if="ownBallot.level > 1">This ballot was casted for you by a transitive proxy {{ownBallotCreatedAt}}.</span>
 					<span v-if="poll.status == 'VOTING'">You may still change your mind and update	the vote order in your ballot as long as the poll is in its voting phase. Simply click on the cast vote button again.</span>
-				</p>
-				<ol class="noBullet">
-					<li v-for="(proposal, index) in voteOrder" :key="proposal.id">#{{index+1}}: "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
-				</ol>
 			</div>
+			<ul class="list-group">
+				<li class="list-group-item ballot-proposal" v-for="(proposal, index) in voteOrder" :key="proposal.id"><b>{{index+1}}.</b> "{{proposal.title}}" <span class="grey">by {{proposal.createdBy.profile.name}} &lt;{{proposal.createdBy.email}}&gt;</span></li>
+			</ul>
 		</div>
 
 		<button v-if="poll && poll.status==='VOTING'" type="button" id="castVoteButton" class="btn btn-primary btn-lg pull-right" v-on:click="gotoSortBallot">
