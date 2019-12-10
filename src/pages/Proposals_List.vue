@@ -57,9 +57,7 @@ export default {
   },
 
   created () {
-	var twoWeeksAgo = new Date() - 14;
-	twoWeeksAgo.setDate(twoWeeksAgo)
-	console.log(twoWeeksAgo)
+    var twoWeeksAgo = new Date(Date.now() - 12096e5);   // 12096 * 10^5  is two weeks in milliseconds :-)
     this.$root.api.getReachedQuorumSince(twoWeeksAgo.toISOString()).then(proposals => {
       this.recentProposals = proposals.slice(0,10)
     })

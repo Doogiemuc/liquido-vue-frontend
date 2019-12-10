@@ -78,6 +78,8 @@ describe('Liquido Happy Case Test', function() {
 		cy.log("Successfully registerd new user");
 	})
 
+	//TODO: check that admin can login via normal UI
+
 	it('add a new idea via UI', function() {
 		//GIVEN an idea with a random title
 		let num = rand(1000,9999)

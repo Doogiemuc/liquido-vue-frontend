@@ -314,7 +314,7 @@ var checkForJWT = function() {
 	})
 	.catch(err => {
 		//If there was a JWT, it might be expired or plain simply wrong/invalid/hacked
-		log.debug("Stored JWT was expired or invalid.", err)
+		//log.debug("Stored JWT was expired or invalid.", err)
 		return "Stored JWT was expired or invalid."
 	})
 }

@@ -230,6 +230,10 @@ module.exports = {
 	getMyUser() {
 		return axios.get('/my/user', { headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
 	},
+
+	getMyNewsfeed() {
+		return axios.get('/my/newsfeed').then(res => res.data)
+	},
 	
 
 //==================================================================================================================
@@ -565,8 +569,9 @@ module.exports = {
   },
 
   /** get proposals with recent comments. Only proposals can be discussed */
-  getRecentlyDiscussed() {
-    return axios.get('/laws/search/recentlyDiscussed').then(res => res.data._embedded ? res.data._embedded.laws : [])
+  getRecentlyDiscussed(since) {
+	log.debug("getRecentlyDiscussed(since="+since+")")
+    return axios.get('/laws/search/recentlyDiscussed?since='+since).then(res => res.data._embedded ? res.data._embedded.laws : [])
   },
 
   /**
@@ -832,9 +837,11 @@ module.exports = {
   // These calls towards the backend are only available in development environment
   //==================================================================================================================
 
+  /** get a list of users that will be used for the DevLogin Button at the top right of the UI */
   devGetAllUsers(token) {
-	return axios.get('/dev/users?token='+token)
-	.then(res => res.data._embedded.users)
+	// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
+	return anonymousClient.get('/dev/users?token='+token)   
+		.then(res => res.data._embedded.users)
   }
 
 

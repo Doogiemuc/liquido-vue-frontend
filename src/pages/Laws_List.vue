@@ -1,5 +1,5 @@
 <template>
-  <div class="container" id="UserHomePage">
+  <div class="container" id="LawsList">
     <div class="row">
       <div class="col-sm-12">
         <h2><i class="fa fa-university"></i> Laws</h2>

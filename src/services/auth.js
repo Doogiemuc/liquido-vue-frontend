@@ -97,9 +97,13 @@ export default {
 				return user
 			})
 			.catch(err => {
-				log.warn("Cannot find user details with JWT. Invalid or expired JWT?", err)
+				if (err.data && err.data.liquidoErrorName === "JWT_TOKEN_EXPIRED") {
+					log.info("JWT is expired. Need to re-login.", err)
+				} else {
+					log.warn("Cannot find user details with JWT. Invalid JWT?", err)	
+				}
 				this.logout()
-				return Promise.reject({msg: "Cannot find user details with JWT. Invalid or expired JWT?", err: err})
+				return Promise.reject({msg: "Cannot find user details with JWT.", err: err})
 			})
 	},
 
