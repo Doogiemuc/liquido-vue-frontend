@@ -44,10 +44,13 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
   	if (error.response) {
 		// The request was made and the server responded with a status code that falls out of the range of 2xx
-		if (error.response.data && error.response.data.message) {
-			log.error("Error response: "+error.response.data.message, error.response)   // log some liquido specific debugging output
+		if (error.response.status >= 500) {
+			log.error("Error in backend!", error.response)
+		} else if (error.response.data && error.response.data.message) {
+			log.warn("Error response: "+error.response.data.message, error.response)   // log some liquido specific debugging output
+		} else {
+			log.warn("Http Error Response:", error.response)
 		}
-		log.warn("Http Error Response:", error.response)
 		return Promise.reject(error.response);   				// return the error.response as it is returned by the backend
 	} else if (error.request) {
 		// The request was made but no response was received

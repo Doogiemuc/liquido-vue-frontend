@@ -14,7 +14,7 @@
                   <i :class="getIconFor(law)" aria-hidden="true"></i>&nbsp;{{law.title}}
                 </router-link>
               </h4>
-              <div class="maxHeightPreview" :style="previewHeightStyle">{{law.description}}</div>
+              <div class="maxHeightPreview" :style="previewHeightStyle" v-html="law.description"></div>
             </div>
           </td>
           <td class="greyDataRight">

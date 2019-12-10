@@ -19,7 +19,7 @@
 				<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
 				<li>And you can <a href="/#/polls">vote in a currently open poll.</a></li>
 			</ul>
-			<p>Use the grey arrows above to navigate within LIQUIDO. The newsfeed on the right shows relevant updates for you.</p>
+			<p>Use the grey arrows at the top to navigate within LIQUIDO.</p>
           </div>
         </div>
 
@@ -36,6 +36,19 @@
              <h4>Newsfeed</h4>
           </div>
           <div class="panel-body">
+            <div class="media">
+              <div class="media-left">
+                <i class="far fa-share-square fa-2x"></i>
+              </div>
+              <div class="media-body">
+                <small class="pull-right text-muted">NOW</small>
+                <h4 class="media-heading">UNDER CONSTRUCTION</h4>
+                <p style="color:red">
+                  This newsfeed is still under development. Currently it only shows static dummy data.
+                </p>
+              </div>
+            </div>
+
             <div class="media">
               <div class="media-left">
                 <i class="far fa-share-square fa-2x"></i>
@@ -115,7 +128,6 @@ export default {
 
   data () {
     return {
-      openForVotingPolls: [],     // polls that are currently in their voting phase
 	  supportedProposals: [],     // proposals that this user liked
       reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
     }
@@ -127,13 +139,12 @@ export default {
 
   created () {
     // here we load quite a lot of stuff. But all in parallel.
-
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.supportedProposals = proposals.slice(0,10)
-    })
-    this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
-      this.openForVotingPolls = votingPolls
-    })
+	})
+	
+	//TODO: make _ONE_ request to the backend for an aggregated newsfeed (with just the right amount of news!)
+
     var oneWeekAgo = moment().subtract(7, 'days').format("YYYY-MM-DD")
     var currentUserURI = this.$root.api.getURI(this.$root.currentUser)
     this.$root.api.reachedQuorumSinceAndCreatedBy(oneWeekAgo, currentUserURI).then(proposals => {

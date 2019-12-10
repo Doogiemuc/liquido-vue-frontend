@@ -37,9 +37,9 @@
 				<h3>Tree of proxies</h3>
 				<p>A proxy may in turn delegate all his collected rights to vote to another parent proxy. This way a tree of proxies evolves 
 					where the voting power culminates at the top. You can always see who is your effective proxy at the top of this chain.</p>
-				<p> In Liquido you as a voter may <b>always</b> cast a vote on his own, also when a proxy is assigned. You can even overrule an already 
+				<p> In Liquido you as a voter may always cast a vote on your own, also when a proxy is assigned. You can even overrule an already 
 					casted vote of your proxy in a poll (as long as the poll is still in its voting phase).
-					A proxie's vote will never overrule a personally casted vote from a voter. And a voter may completely revoke his delegation to a proxy at any time.</p>
+					The vote of a proxy will never overrule an already casted vote by you. And you may completely revoke your delegation to a proxy at any time.</p>
 				<p>This way the tree of delegations is in a constant state of change - it's kind of <em>liquid</em>.</p>
 
 				<p>&nbsp;</p>

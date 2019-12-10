@@ -57,12 +57,13 @@ export default {
   },
 
   created () {
-    this.$root.api.getReachedQuorumSince("2017-09-18").then(proposals => {
+	var twoWeeksAgo = new Date() - 14;
+	twoWeeksAgo.setDate(twoWeeksAgo)
+	console.log(twoWeeksAgo)
+    this.$root.api.getReachedQuorumSince(twoWeeksAgo.toISOString()).then(proposals => {
       this.recentProposals = proposals.slice(0,10)
     })
-	
-	// Trending proposals are proposals that were recently discussed
-    this.$root.api.getRecentlyDiscussed().then(recentlyDiscussedProposals => {
+    this.$root.api.getRecentlyDiscussed(twoWeeksAgo.toISOString()).then(recentlyDiscussedProposals => {
       this.recentlyDiscussed = recentlyDiscussedProposals
     })
 

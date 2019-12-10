@@ -358,14 +358,14 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('.lawListCondensedTable tr[data-lawuri="'+Cypress.env('idea')._links.self.href+'"]')
 	})
 
-	// CLEANUP
+	// CLEANUP: Delete poll with all its proposals
 	after(function() {
 		if (Cypress.env('poll') !== undefined) {
 			console.log("DELETING poll that was created from test (poll.id="+Cypress.env('poll').id+")")
 			cy.apiLogin(fix.adminMobilephone, fix.adminSmsToken)
 			cy.request({
 				method: 'DELETE',
-				url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id,
+				url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+"?deleteProposals=true",
 				auth: { bearer: api.jsonWebToken }
 			})
 			.then(res => { 

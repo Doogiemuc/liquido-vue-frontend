@@ -276,10 +276,11 @@ iziToast.settings({
 	
  ============================================================================== */
 
+/** Check if backend is alive at all. */
 var isBackendAlive = function() {
 	return apiClient.ping()
 		.then(() => {
-			log.info("Backend is alive at "+process.env.backendBaseURL)
+			log.debug("Backend is alive at "+process.env.backendBaseURL)
 			return Promise.resolve("Backend is ok")
 		})
 		.catch(err => {
@@ -290,6 +291,7 @@ var isBackendAlive = function() {
 		})
 }
 
+/** Check if we are in development environment. If yes, then return a list of users for the quick devLogin button at the top right */
 var checkDevelopmentMode = function() {
 	if (process.env.NODE_ENV === "development") {
 		log.info("LIQUDIO is starting in DEVELOPMENT mode! ")
@@ -299,11 +301,26 @@ var checkDevelopmentMode = function() {
 	return Promise.resolve([])	
 }
 
+/** Load Liquido properties ("setting variables") from backend */
 var getProps = function() {
 	return apiClient.getGlobalProperties()
 }
 
-var startApp = function([props, devUsers]) {
+/** Check if user is already logged in. If there is a valid JWT in the browesers local storage, then our auth.js will return the user JSON */
+var checkForJWT = function() {
+	return auth.fetchCurrentUser()
+	.then(user => {
+		return user
+	})
+	.catch(err => {
+		//If there was a JWT, it might be expired or plain simply wrong/invalid/hacked
+		log.debug("Stored JWT was expired or invalid.", err)
+		return "Stored JWT was expired or invalid."
+	})
+}
+
+/** Start the main VUE app. */
+var startApp = function([alreadyLoggedInUser, props, devUsers]) {
 	var rootApp = new Vue({
 		el: '#app',
 		router,
@@ -315,7 +332,7 @@ var startApp = function([props, devUsers]) {
 		},
 		...RootApp
 	}).$mount()
-	log.info("##### LIQUIDO web app has started ##### env="+process.env.NODE_ENV)
+	log.debug("##### LIQUIDO web app has started ##### env="+process.env.NODE_ENV)
 	return rootApp
 }
 
@@ -328,9 +345,18 @@ var autoLoginDevUser = function(rootApp) {
 }
 */
 
-// Here comes JS Promises at its best :-)
+/**
+ * Here comes JS Promises at its best :-)
+ * First we check if the backend is alive.
+ * Then we do three things in parallel.
+ * The results of the three asynchrounous calls are then forwarded into the startApp function.
+ */
 isBackendAlive()
-  .then(() => Promise.all([getProps(), checkDevelopmentMode()]))
+  .then(() => Promise.all([
+	  checkForJWT(),
+	  getProps(),
+	  checkDevelopmentMode()
+  ]))
   .then(startApp)
   .catch(err => {
     console.error("Fatal error during LIQUIDO startup", err)

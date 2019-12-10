@@ -16,7 +16,7 @@
 
       <!-- right column -->
       <div class="col-sm-6">
-        <law-list :laws="usersLaws" lawListTitle="Laws created by you"></law-list>
+        <law-list :laws="usersLaws" lawListTitle="Laws initiated by you"></law-list>
 	   </div>
     </div>
   </div>
