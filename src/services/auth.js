@@ -46,7 +46,7 @@ export default {
 		if (this.currentUser) return Promise.resolve(this.currentUser)
 		var jsonWebToken = localStorage.getItem(JWT_ITEM_KEY)   //  getItem may return null!
 		if (jsonWebToken) {
-			log.debug("Got JWT from localStorage.")
+			log.debug("Found JWT in localStorage.")
 			return this.storeJwt(jsonWebToken)
 		} else {
 			return Promise.reject("Cannot fetchCurrentUser. Don't have JWT.")
@@ -97,9 +97,13 @@ export default {
 				return user
 			})
 			.catch(err => {
-				//TODO: refresh JWT if expired
-				log.error("Cannot find user details with JWT. Invalid JWT?")
-				return Promise.reject("Cannot find user details with JWT. Invalid JWT?")
+				if (err.data && err.data.liquidoErrorName === "JWT_TOKEN_EXPIRED") {
+					log.info("JWT is expired. Need to re-login.", err)
+				} else {
+					log.warn("Cannot find user details with JWT. Invalid JWT?", err)	
+				}
+				this.logout()
+				return Promise.reject({msg: "Cannot find user details with JWT.", err: err})
 			})
 	},
 

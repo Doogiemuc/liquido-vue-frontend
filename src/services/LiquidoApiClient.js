@@ -44,14 +44,18 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
   	if (error.response) {
 		// The request was made and the server responded with a status code that falls out of the range of 2xx
-		if (error.response.data && error.response.data.message) {
-			log.error("Error response: "+error.response.data.message, error.response)   // log some liquido specific debugging output
+		if (error.response.status >= 500) {
+			log.error("Error in backend!", error.response)
+		} else if (error.response.data && error.response.data.message) {
+			log.warn("Error response: "+error.response.data.message, error.response)   // log some liquido specific debugging output
+		} else {
+			log.warn("Http Error Response:", error.response)
 		}
 		if (error.response.data && error.response.data.liquidoErrorName === "JWT_TOKEN_EXPIRED") {
 			log.warn("Your JSON Web Token (JWT) is expired. you need to re-login!")
 			//TODO: this should be handled in auth.js  And then user should be redirected to login page.
 		}
-		
+
 		log.warn("Http Error Response:", error.response)
 		return Promise.reject(error.response);   				// return the error.response as it is returned by the backend
 	} else if (error.request) {
@@ -64,7 +68,7 @@ axios.interceptors.response.use(function (response) {
 		log.error('Other error', error.message);
 	}
 	//console.log("Error.config", error.config);
-	return Promise.reject(error); 
+	return Promise.reject(error);
 })
 
 
@@ -232,7 +236,11 @@ module.exports = {
 	getMyUser() {
 		return axios.get('/my/user', { headers: { 'Content-Type' : 'application/json' }}).then(res => res.data)
 	},
-	
+
+	getMyNewsfeed() {
+		return axios.get('/my/newsfeed').then(res => res.data)
+	},
+
 
 //==================================================================================================================
 // Global Properties from backend DB
@@ -568,6 +576,7 @@ module.exports = {
 
   /** get proposals with recent comments. Only proposals can be discussed */
   getRecentlyDiscussed(since) {
+	log.debug("getRecentlyDiscussed(since="+since+")")
     return axios.get('/laws/search/recentlyDiscussed?since='+since).then(res => res.data._embedded ? res.data._embedded.laws : [])
   },
 
@@ -834,9 +843,11 @@ module.exports = {
   // These calls towards the backend are only available in development environment
   //==================================================================================================================
 
+  /** get a list of users that will be used for the DevLogin Button at the top right of the UI */
   devGetAllUsers(token) {
-	return axios.get('/dev/users?token='+token)
-	.then(res => res.data._embedded.users)
+	// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
+	return anonymousClient.get('/dev/users?token='+token)
+		.then(res => res.data._embedded.users)
   }
 
 

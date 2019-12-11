@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="PollsList">
     <div class="row">
       <div class="col-sm-6" id="pollsInElaboration">
         <h2>Polls in elaboration phase</h2>

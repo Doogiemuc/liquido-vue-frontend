@@ -5,14 +5,14 @@
     or he can join his proposal into an already existing poll.</p>
   <button type="button" class="btn btn-xs btn-default pull-right" @click="showUsersOwnProposals">Your proposals <i class="fa fa-angle-double-right"></i></button>
   <p>You can search for ideas and proposals on the <a href="#" @click.prevent="searchIdeasAndProposals">search page</a>.
-  
+
   <div class="row">
     <div class="col-sm-6">
       <law-list :laws="recentProposals" id="recentlyNewProposals" lawListTitle="Recently new proposals"></law-list>
     </div>
     <div class="col-sm-6">
       <law-list :laws="recentlyDiscussed" id="trendingProposals" lawListTitle="Trending proposals"></law-list>
-     
+
     </div>
   </div>
 
@@ -57,11 +57,10 @@ export default {
   },
 
   created () {
-    var twoWeeksAgo = new Date(new Date().getTime() - 14*24*3600*1000)  // 14 days ago
+    var twoWeeksAgo = new Date(Date.now() - 12096e5);   // 12096 * 10^5  is two weeks in milliseconds :-)
     this.$root.api.getReachedQuorumSince(twoWeeksAgo.toISOString()).then(proposals => {
       this.recentProposals = proposals.slice(0,10)
     })
-	  // Trending proposals are proposals that were recently discussed
     this.$root.api.getRecentlyDiscussed(twoWeeksAgo.toISOString()).then(recentlyDiscussedProposals => {
       this.recentlyDiscussed = recentlyDiscussedProposals
     })

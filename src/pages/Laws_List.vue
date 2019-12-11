@@ -1,5 +1,5 @@
 <template>
-  <div class="container" id="UserHomePage">
+  <div class="container" id="LawsList">
     <div class="row">
       <div class="col-sm-12">
         <h2><i class="fa fa-university"></i> Laws</h2>
@@ -16,7 +16,7 @@
 
       <!-- right column -->
       <div class="col-sm-6">
-        <law-list :laws="usersLaws" lawListTitle="Laws created by you"></law-list>
+        <law-list :laws="usersLaws" lawListTitle="Laws initiated by you"></law-list>
 	   </div>
     </div>
   </div>

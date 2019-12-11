@@ -9,7 +9,8 @@
 
       <!-- left column: public and general things -->
       <div class="col-sm-6">
-        <div class="panel panel-default">
+        
+		<div v-if="isNewbee" class="panel panel-default">
           <div class="panel-heading">
              <h4>Welcome to LIQUIDO!</h4>
           </div>
@@ -19,12 +20,12 @@
 				<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
 				<li>And you can <a href="/#/polls">vote in a currently open poll.</a></li>
 			</ul>
-			<p>Use the grey arrows above to navigate within LIQUIDO. The newsfeed on the right shows relevant updates for you.</p>
+			<p>Use the grey arrows at the top to navigate within LIQUIDO.</p>
           </div>
         </div>
 
 
-        <law-list v-if="supportedProposals.length > 0"  :laws="supportedProposals" lawListTitle="Proposals supported by you"></law-list>
+        <law-list v-if="supportedProposals.length > 0"  :laws="supportedProposals" lawListTitle="Supported by you"></law-list>
 
       </div>
 
@@ -36,32 +37,36 @@
              <h4>Newsfeed</h4>
           </div>
           <div class="panel-body">
-            <div class="media">
+            <div v-if="news.delegationRequests && news.delegationRequests.length > 0" class="media" >
               <div class="media-left">
                 <i class="far fa-share-square fa-2x"></i>
               </div>
               <div class="media-body">
-                <small class="pull-right text-muted">4 hours ago</small>
+                <small class="pull-right text-muted">now</small>
                 <h4 class="media-heading">Delegation requests</h4>
                 <p>
-                  10 other voters would like to delegate their vote in the area XYZ to you as their proxy. Do you want to accept these delegations?
+                  {{news.delegationRequests.length}} voters would like to delegate their right to vote to you as their proxy. Do you want to 
+                  <a id="acceptDelegationRequestLink" href="#" @click="acceptDelegationRequests">
+                    Accept delegation requests
+                  </a>
                 </p>
               </div>
             </div>
 
-            <div class="media">
-              <div class="media-left">
-                <i class="fas fa-balance-scale-left fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">2 days ago</small>
-                <h4 class="media-heading">Voting for your poll has started</h4>
-                <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj s
-                </p>
-              </div>
-            </div>
+			<div v-if="news.ownProposalsInVoting && news.ownProposalsInVoting.length > 0">
+				<div v-for="prop in news.ownProposalsInVoting" :key="prop.id" class="media">
+					<div class="media-left">
+						<i class="fas fa-balance-scale-left fa-2x"></i>
+					</div>
+					<div class="media-body">
+						<small class="pull-right text-muted">{{getFromNow(prop.poll.votingStartAt)}}</small>
+						<h4 class="media-heading">Voting started</h4>
+						<p>
+							The voting phase in the poll with your proposal '{{prop.title}}' has started. {{prop.poll.votingStartAt}}
+						</p>
+					</div>
+				</div>
+			</div>
 
             <div class="media">
               <div class="media-left">
@@ -114,27 +119,30 @@ export default {
   },
 
   data () {
-    return {
-      openForVotingPolls: [],     // polls that are currently in their voting phase
-	  supportedProposals: [],     // proposals that this user liked
-      reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
-    }
+	return {
+		news: {},	
+		supportedProposals: [],     // proposals that this user liked
+    	reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
+	}
   },
 
   computed: {
-    username: function() { return this.$root.currentUser ? this.$root.currentUser.profile.name : "" },
+	username: function() { return this.$root.currentUser ? this.$root.currentUser.profile.name : "" },
+	isNewbee: function() { moment().diff(this.$root.currentUser.lastLogin, 'days') > 14 }
   },
 
   created () {
-    // here we load quite a lot of stuff. But all in parallel.
-
+	//TODO: make _ONE_ request to the backend for an aggregated newsfeed (with just the right amount of news!)
+	this.$root.api.getMyNewsfeed().then(news => this.news = news)	
+	
+	// here we load quite a lot of stuff. But all in parallel.
     this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
       this.supportedProposals = proposals.slice(0,10)
-    })
-    this.$root.api.findPollsByStatus('VOTING').then(votingPolls => {
-      this.openForVotingPolls = votingPolls
-    })
-    var oneWeekAgo = moment().subtract(7, 'days').format("YYYY-MM-DD")
+	})
+	
+	
+
+    var oneWeekAgo = moment().subtract(7, 'days').toISOString()
     var currentUserURI = this.$root.api.getURI(this.$root.currentUser)
     this.$root.api.reachedQuorumSinceAndCreatedBy(oneWeekAgo, currentUserURI).then(proposals => {
       this.reachedQuorum = proposals
@@ -144,6 +152,7 @@ export default {
 
   methods: {
     getFromNow(dateVal) {
+		console.log("fromNow", dateVal, moment(dateVal).fromNow())
       return moment(dateVal).fromNow();
     },
 
@@ -170,7 +179,29 @@ export default {
         { date: new Date(poll.votingStartAt), above: votingStartLoc, below: "Voting<br/>starts" },
         { date: new Date(poll.votingEndAt),   above: votingEndLoc,   below: "Voting<br/>ends" }
       ]
-    }
+	},
+	
+	acceptDelegationRequests() {
+		/* TODO
+
+		getVoterToken(...).then(
+
+		return this.$root.api.acceptDelegationRequests(this.poll.area, this.voterToken).then(res => {
+			this.delegationRequestsAccepted = this.delegationRequests.length
+			this.delegationCount = res.delegationCount
+			this.delegationRequests = []
+			log.info("Proxy accepted "+this.delegationRequestsAccepted+" delegation requests and now has "+this.delegationCount+" delegations");
+		})
+		.catch(err => {
+			log.error("Could not accept delegation requests", err)
+			this.step2_status = 'error',
+			this.errorMessage = "Could not accept delegation requests."
+			this.errorMessageDetails = JSON.stringify(err)
+			return Promise.reject(this.errorMessage)
+		})
+		*/
+	}
+
   }
 }
 
