@@ -1,107 +1,133 @@
 <template>
-  <div class="container" id="UserHomePage">
-    <div class="row">
-      <div class="col-sm-12">
-        <h2>Welcome {{username}}!</h2>
-      </div>
-    </div>
-    <div class="row">
+	<div class="container" id="UserHomePage">
+		<div class="row">
+			<div class="col-sm-12">
+				<h2>Welcome {{username}}!</h2>
+			</div>
+		</div>
+		<div class="row">
 
-      <!-- left column: public and general things -->
-      <div class="col-sm-6">
-        
-		<div v-if="isNewbee" class="panel panel-default">
-          <div class="panel-heading">
-             <h4>Welcome to LIQUIDO!</h4>
-          </div>
-          <div class="panel-body">
-            <p>Great see you. It looks like you are new here. Here are some ways to start:</p>
-			<ul>
-				<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
-				<li>And you can <a href="/#/polls">vote in a currently open poll.</a></li>
-			</ul>
-			<p>Use the grey arrows at the top to navigate within LIQUIDO.</p>
-          </div>
-        </div>
+			<!-- left column: public and general things -->
+			<div class="col-sm-6">
 
-
-        <law-list v-if="supportedProposals.length > 0"  :laws="supportedProposals" lawListTitle="Supported by you"></law-list>
-
-      </div>
-
-      <!-- right column: voters personal stuff -->
-      <div class="col-sm-6">
-
-        <div class="panel panel-default">
-          <div class="panel-heading">
-             <h4>Newsfeed</h4>
-          </div>
-          <div class="panel-body">
-            <div v-if="news.delegationRequests && news.delegationRequests.length > 0" class="media" >
-              <div class="media-left">
-                <i class="far fa-share-square fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">now</small>
-                <h4 class="media-heading">Delegation requests</h4>
-                <p>
-                  {{news.delegationRequests.length}} voters would like to delegate their right to vote to you as their proxy. Do you want to 
-                  <a id="acceptDelegationRequestLink" href="#" @click="acceptDelegationRequests">
-                    Accept delegation requests
-                  </a>
-                </p>
-              </div>
-            </div>
-
-			<div v-if="news.ownProposalsInVoting && news.ownProposalsInVoting.length > 0">
-				<div v-for="prop in news.ownProposalsInVoting" :key="prop.id" class="media">
-					<div class="media-left">
-						<i class="fas fa-balance-scale-left fa-2x"></i>
+				<div v-if="isNewbee" class="panel panel-default">
+					<div class="panel-heading">
+						<h4>Welcome to LIQUIDO!</h4>
 					</div>
-					<div class="media-body">
-						<small class="pull-right text-muted">{{getFromNow(prop.poll.votingStartAt)}}</small>
-						<h4 class="media-heading">Voting started</h4>
-						<p>
-							The voting phase in the poll with your proposal '{{prop.title}}' has started. {{prop.poll.votingStartAt}}
-						</p>
+					<div class="panel-body">
+						<p>Great see you. It looks like you are new here. Here are some ways to start:</p>
+						<ul>
+							<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
+							<li>You can <a href="/#/polls">cast your vote</a> in poll.</a></li>
+						</ul>
+						<p>Use the grey arrows at the top to navigate within LIQUIDO.</p>
 					</div>
 				</div>
+
+				<law-list v-if="news.supportedByYou && news.supportedByYou.length > 0"  :laws="news.supportedByYou" lawListTitle="Supported by you"></law-list>
 			</div>
 
-            <div class="media">
-              <div class="media-left">
-                <i class="far fa-file-alt fa-2x"></i>
-              </div>
-              <div class="media-body">
-                <small class="pull-right text-muted">15 minutes ago</small>
-                <h4 class="media-heading">New comments on your proposal</h4>
-                <p>
-                  Your idea "foo bar" needs at least 8 more supporters.asd föklj a g b e fasökldj föaklj klj235 klj klsdjöfkl asdöoln 35lnöiov ff
-                  asdöklfj lkj asdölfkj asöldfj ölaksd fj asölkjf öklsdjfklaj sdf lasdöasfd a sklfja sölkfja öksjf lks flkd fl
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+			<!-- right column: voters personal stuff -->
+			<div class="col-sm-6">
 
-        <div v-if="reachedQuorum.length > 0" class="panel panel-default">
-          <div class="panel-heading">
-            <h4>Your ideas that recently reached their quorum</h4>
-          </div>
-          <ul class="list-group">
-            <li v-for="proposal in reachedQuorum" :key="proposal.id" class="list-group-item item-condensed">
-              <router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
-            </li>
-          </ul>
-        </div>
+				<div v-if="news.delegationRequests && news.delegationRequests.length > 0" class="panel panel-default">
+					<div class="panel-heading">
+						 <h4>Delegation requests</h4>
+					</div>
+					<div class="panel-body">
+						<div class="media" >
+							<div class="media-left">
+								<i class="far fa-share-square fa-2x"></i>
+							</div>
+							<div class="media-body">
+								<small class="pull-right text-muted">now</small>
+								<h4 class="media-heading">Delegation requests</h4>
+								<p v-if="news.delegationRequests.length == 1">A voter would like to delegate his right to vote to you as his proxy.</p>
+								<p v-if="news.delegationRequests.length >  1">{{news.delegationRequests.length}} voters would like to delegate their right to vote to you as their proxy.</p>
+								<p>If you accept this request then your vote will also count for your delegees. Your delegees will be able to see how you voted, because your vote will also become theirs.</p>
+								<button role="button" class="btn btn-primary" id="acceptDelegationRequestsButton" href="#" @click="acceptDelegationRequests">
+									Accept all delegation requests
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div v-if="showNewsfeedPanel">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							 <h4>Newsfeed</h4>
+						</div>
+						<div class="panel-body">
+
+							<div v-for="poll in news.pollsInVotingWithOwnProposals" :key="poll.id" class="media">
+								<div class="media-left">
+									<i class="fas fa-fw fa-balance-scale-left fa-2x"></i>
+								</div>
+								<div class="media-body">
+									<small class="pull-right text-muted">{{getFromNow(poll.votingStartAt)}}</small>
+									<h4 class="media-heading">Voting started</h4>
+									<p>
+										The voting phase of poll <router-link :to="'/polls/'+poll.id">{{poll.title}}</router-link> with
+										your proposal <router-link :to="'/proposals/'+getOwnProposal(poll).id">{{getOwnProposal(poll).title}}</router-link> in it has started.
+									</p>
+								</div>
+							</div>
+
+							<div v-for="prop in news.reachedQuorum" :key="prop.id" class="media">
+								<div class="media">
+									<div class="media-left">
+										<i class="far fa-fw fa-file-alt fa-2x"></i>
+									</div>
+									<div class="media-body">
+										<small class="pull-right text-muted">{{getFromNow(prop.reachedQuorumAt)}}</small>
+										<h4 class="media-heading">Reached Quorum</h4>
+										<p>
+											Your idea <router-link :to="'/proposals/'+prop.id">{{prop.title}}</router-link> reached its quorum and can now be discussed as a proposal.
+										</p>
+									</div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+
+				<div v-if="news.recentlyDiscussedProposals && news.recentlyDiscussedProposals.length > 0" class="panel panel-default">
+					<div class="panel-heading">
+						<h4>Your proposals with recently new comments</h4>
+					</div>
+					<ul class="list-group">
+						<li v-for="proposal in news.recentlyDiscussedProposals" :key="proposal.id" class="list-group-item item-condensed">
+							<router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
+						</li>
+					</ul>
+				</div>
+
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4>Your ballots</h4>
+					</div>
+					<div class="panel-body">
+						<button role="button" class="btn btn-default">Fetch ballots</button>
+						Click this button to load all ballots that were recently casted by you or one of your proxies.
+					</div>
+					<!--ul class="list-group">
+						<li v-for="proposal in news.recentlyDiscussedProposals" :key="proposal.id" class="list-group-item item-condensed">
+							<router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
+						</li>
+					</ul -->
+				</div>
 
 
-	   </div>
-    </div>
-  </div>
+		 </div>
+		</div>
+	</div>
 </template>
 
 <script>
+var loglevel = require('loglevel')
+var log = loglevel.getLogger("UserHome")
 import IdeaPanel from '../components/IdeaPanel.vue'
 import LawPanel from '../components/LawPanel.vue'
 import LawList from '../components/LawList.vue'
@@ -110,191 +136,187 @@ import Timeline from '../components/Timeline.vue'
 import moment from 'moment'
 
 export default {
-  components: {
-    'idea-panel' : IdeaPanel,
-    'law-panel' : LawPanel,
-	  'law-list' : LawList,
+	components: {
+		'idea-panel' : IdeaPanel,
+		'law-panel' : LawPanel,
+		'law-list' : LawList,
 		'poll-panel': PollPanel,
-    'timeline' : Timeline
-  },
-
-  data () {
-	return {
-		news: {},	
-		supportedProposals: [],     // proposals that this user liked
-    	reachedQuorum: [],          // user's ideas that recently reached their quorum and became a proposal
-	}
-  },
-
-  computed: {
-	username: function() { return this.$root.currentUser ? this.$root.currentUser.profile.name : "" },
-	isNewbee: function() { moment().diff(this.$root.currentUser.lastLogin, 'days') > 14 }
-  },
-
-  created () {
-	//TODO: make _ONE_ request to the backend for an aggregated newsfeed (with just the right amount of news!)
-	this.$root.api.getMyNewsfeed().then(news => this.news = news)	
-	
-	// here we load quite a lot of stuff. But all in parallel.
-    this.$root.api.findSupportedBy(this.$root.currentUser, 'PROPOSAL').then(proposals => {
-      this.supportedProposals = proposals.slice(0,10)
-	})
-	
-	
-
-    var oneWeekAgo = moment().subtract(7, 'days').toISOString()
-    var currentUserURI = this.$root.api.getURI(this.$root.currentUser)
-    this.$root.api.reachedQuorumSinceAndCreatedBy(oneWeekAgo, currentUserURI).then(proposals => {
-      this.reachedQuorum = proposals
-    })
-    //this.$root.api.getAllCategories().then(areas => this.areas = areas)
-  },
-
-  methods: {
-    getFromNow(dateVal) {
-		console.log("fromNow", dateVal, moment(dateVal).fromNow())
-      return moment(dateVal).fromNow();
-    },
-
-    /** a lot of data calculations for our pretty timeline
-	    SEE ALSO   LawPanel!  Same function ?!?!??!
-    	*/
-    getTimelineEvents(poll) {
-    	if (poll === undefined) return {}
-      //var daysUntilVotingStarts = this.$root.api.getGlobalProperty("liquido.days.until.voting.starts")     // number of days
-      //var durationOfVotingPhase = this.$root.api.getGlobalProperty("liquido.duration.of.voting.phase")     // also in days
-      //var durationInDays        = Number(daysUntilVotingStarts)+ Number(durationOfVotingPhase)
-      //var msSincePollCreated    = Date.now() - Date.parse(poll.createdAt)
-
-      var pollCreatedLoc        = moment(poll.createdAt).format('L')
-      var votingStartLoc        = moment(poll.votingStartAt).format('L')
-      var votingEndLoc          = moment(poll.votingEndAt).format('L')
-
-      //var votingStartLoc        = moment(poll.createdAt).add(daysUntilVotingStarts, 'days').format('L')   // moment.js FTW!
-      //var votingEndLoc          = moment(poll.createdAt).add(durationInDays, 'days').format('L')
-      //var percentVotingStarts   = (daysUntilVotingStarts / durationInDays)*100
-
-      return [
-        { date: new Date(poll.createdAt),     above: pollCreatedLoc,  below: "Poll<br/>created" },
-        { date: new Date(poll.votingStartAt), above: votingStartLoc, below: "Voting<br/>starts" },
-        { date: new Date(poll.votingEndAt),   above: votingEndLoc,   below: "Voting<br/>ends" }
-      ]
+		'timeline' : Timeline
 	},
-	
-	acceptDelegationRequests() {
-		/* TODO
 
-		getVoterToken(...).then(
+	data () {
+	return {
+		news: {},
+		areas: [],
+		}
+	},
 
-		return this.$root.api.acceptDelegationRequests(this.poll.area, this.voterToken).then(res => {
-			this.delegationRequestsAccepted = this.delegationRequests.length
-			this.delegationCount = res.delegationCount
-			this.delegationRequests = []
-			log.info("Proxy accepted "+this.delegationRequestsAccepted+" delegation requests and now has "+this.delegationCount+" delegations");
-		})
-		.catch(err => {
-			log.error("Could not accept delegation requests", err)
-			this.step2_status = 'error',
-			this.errorMessage = "Could not accept delegation requests."
-			this.errorMessageDetails = JSON.stringify(err)
-			return Promise.reject(this.errorMessage)
-		})
-		*/
+	computed: {
+		username: function() { return this.$root.currentUser ? this.$root.currentUser.profile.name : "" },
+		isNewbee: function() { return true /*moment().diff(this.$root.currentUser.lastLogin, 'days') > 14*/  },
+		showNewsfeedPanel: function() {
+			return (this.news.pollsInVotingWithOwnProposals && this.news.pollsInVotingWithOwnProposals.length > 0) ||
+				     (this.news.reachedQuorum && this.news.reachedQuorum.length > 0)
+		}
+	},
+
+	created () {
+		this.$root.api.getMyNewsfeed().then(news => this.news = news)
+		this.$root.api.getAllCategories().then(areas => this.areas = areas)
+	},
+
+	methods: {
+		getFromNow(dateVal) {
+			return moment(dateVal).fromNow();
+		},
+
+		getOwnProposal(poll) {
+			if (poll && poll.proposals && poll.proposals.length > 0) {
+				for (var prop of poll.proposals) {
+					if (prop.createdBy.id === this.$root.currentUser.id)
+						return prop
+				}
+			}
+			return undefined
+		},
+
+		/**
+		 * Need to wrap api.getVoterToken, because we need to pass area to inner promise
+		 * @return {Object} with area and voterToken(String)
+		 */
+		getVoterToken(area) {
+			return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(voterTokenJson => {
+				return { area: area, voterToken: voterTokenJson.voterToken }
+			})
+		},
+
+		acceptDelegationRequests() {
+			var tasks = []
+			var area
+			for(area of this.areas) {
+				tasks.push(
+					this.getVoterToken(area).then(res => {
+						console.log("getVoterToken res=", res)
+						return this.$root.api.acceptDelegationRequests(res.area, res.voterToken).then(res => {
+							console.log("Accepted delegation requests", res)  // res.delegationCount
+						})
+					})
+				)
+			}
+			console.log("Promise all")
+			return Promise.all(tasks)
+			  .then(res => {
+					this.news.delegationRequests = []
+					iziToast.success({
+						id: "AcceptDelegationRequestsSuccess",
+						title: 'Accepted Delegation Requests',
+						message: 'You accepted all delegation requests.<br/>You are now a proxy.'
+					})
+				})
+				.catch(err => {
+					log.error("Could not accept delegation requests", err)
+					iziToast.error({
+						id: "AcceptDelegationRequestsError",
+						title: 'Error',
+						message: 'There was an error when accepting your delegation requests.<br/>Please try again later.'
+					})
+					return Promise.reject(err)
+				})
+		},
+
 	}
-
-  }
 }
 
 
 </script>
 
 <style scoped>
-  .poll-list h4 {
-    margin-top: 5px;
-    margin-bottom: 5px;
-  }
-  .poll-list hr {
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-  .poll-list p {
-    margin: 0;
-  }
-  .poll-list .pfooter {
-    text-align: right;
-    color: #999;
-    font-size: 12px;
-    line-height: 1.4;
-  }
+	.poll-list h4 {
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
+	.poll-list hr {
+		margin-top: 10px;
+		margin-bottom: 10px;
+	}
+	.poll-list p {
+		margin: 0;
+	}
+	.poll-list .pfooter {
+		text-align: right;
+		color: #999;
+		font-size: 12px;
+		line-height: 1.4;
+	}
 
-  /* Button in the lower right corner of poll-pannel */
-  .pollPanel {
-    position: relative;
-  }
-  .expandButton {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-  }
+	/* Button in the lower right corner of poll-pannel */
+	.pollPanel {
+		position: relative;
+	}
+	.expandButton {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+	}
 
 
-  .panel-heading h4 {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-  .ideaIcon {
-    font-size: 30px;
-  }
-  .userPictureLeft {
-    float: left;
-    margin-right: 8px;
-  }
-  .ideaTitle {
-    margin-top: 0;
-    margin-bottom: 8px;
-  }
-  .greyDataRight {
-    padding-top: 18px;
-    color: grey;
-    font-size: 12px;
-    background-color: rgb(245,245,245);
-  }
-  .greyDataRight ul.fa-ul {
-    margin-left: 1.5em;
-  }
-  .greyDataRight .userPicture {
-    margin-bottom: 8px;
-  }
-  .maxHeightPreviewWrapper {
-    position: relative;
-  }
-  .maxHeightPreview {
-    height:55px;
-    overflow:hidden;
-  }
-  .maxHeightPreview:before {
-    content:'';
-    width:100%;
-    height:100%;
-    position:absolute;
-    left:0;
-    top:0;
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */
-    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
-    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
-  }
-  .item-condensed {
-    padding-top: 3px;
-    padding-bottom: 3px;
-  }
-  .item-condensed i {
-    line-height: inherit;  /* necessary to vertically align fontawesome icons */
-  }
-  .item-condensed p {
-    margin-bottom: 0;
-  }
+	.panel-heading h4 {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	.ideaIcon {
+		font-size: 30px;
+	}
+	.userPictureLeft {
+		float: left;
+		margin-right: 8px;
+	}
+	.ideaTitle {
+		margin-top: 0;
+		margin-bottom: 8px;
+	}
+	.greyDataRight {
+		padding-top: 18px;
+		color: grey;
+		font-size: 12px;
+		background-color: rgb(245,245,245);
+	}
+	.greyDataRight ul.fa-ul {
+		margin-left: 1.5em;
+	}
+	.greyDataRight .userPicture {
+		margin-bottom: 8px;
+	}
+	.maxHeightPreviewWrapper {
+		position: relative;
+	}
+	.maxHeightPreview {
+		height:55px;
+		overflow:hidden;
+	}
+	.maxHeightPreview:before {
+		content:'';
+		width:100%;
+		height:100%;
+		position:absolute;
+		left:0;
+		top:0;
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+90,ffffff+100&0+0,0+90,1+100 */
+		background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
+		background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
+		background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+	}
+	.item-condensed {
+		padding-top: 3px;
+		padding-bottom: 3px;
+	}
+	.item-condensed i {
+		line-height: inherit;  /* necessary to vertically align fontawesome icons */
+	}
+	.item-condensed p {
+		margin-bottom: 0;
+	}
 
 
 </style>

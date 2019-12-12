@@ -352,14 +352,17 @@ module.exports = {
 
   /** get accepted delegations, pending delegation requests and the recursive delegation count for this proxy */
   getMyDelegations(area, voterToken) {
+		log.debug("getMyDelegations(area.id="+area.id+", voterToken)")
     return axios.get("/my/delegations/"+area.id, { params: { voterToken: voterToken }}).then(res => res.data)
   },
 
   acceptDelegationRequests(area, voterToken) {
+		log.debug("acceptDelegationRequests(area.id="+area.id+", voterToken)")
     return axios.put("/my/delegations/"+area.id+"/accept", { voterToken: voterToken }).then(res => res.data)
   },
 
   becomePublicProxy(area, voterToken) {
+		log.debug("becomePublicProxy(area.id="+area.id+", voterToken)")
     return axios.put("/my/delegations/"+area.id+"/becomePublicProxy", { voterToken: voterToken }).then(res => res.data)
   },
 

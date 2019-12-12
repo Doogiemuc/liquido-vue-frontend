@@ -85,7 +85,7 @@ import apiClient from '../services/LiquidoApiClient'
 import loglevel from 'loglevel'
 var log = loglevel.getLogger('LoginPage.vue');
 
-// Very simple RegEx for a valid email adress. 
+// Very simple RegEx for a valid email adress.
 const validEMailRe = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
 
 export default {
@@ -168,7 +168,7 @@ export default {
         .then(user => {
           this.smsErrorMsg = ""
           iziToast.success({
-			id: "LoginSuccess",
+            id: "LoginSuccess",
             title: 'Login',
             message: 'You are now logged in as '+user.email,
             position: 'bottomRight',
@@ -180,7 +180,7 @@ export default {
           log.error("Error in loginWithSmsToken", err)
         })
 	},
-	
+
 	/** send a ling via email */
     requestLoginEmail() {
       this.$root.auth.requestLoginEmail(this.email).then(res => {

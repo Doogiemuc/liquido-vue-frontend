@@ -38,11 +38,11 @@
             </button -->
             <li>
               <router-link to="/userHome" class="avatarImgLink">
-			    <img v-bind:src="currentUser.profile.picture" class="avatarImg">
+                <img v-bind:src="currentUser.profile.picture" class="avatarImg">
               </router-link>
             </li>
-            <li class="dropdown">
-              <a href="#" data-toggle="dropdown" class="dropdown-toggle userDropdown">
+            <li class="dropdown userDropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">
                 <span v-html="userNameShort"></span><i class="caret"></i>
               </a>
               <ul class="dropdown-menu">
@@ -127,7 +127,7 @@ export default {
   },
 
   created() {
-	
+
   },
 
 }
@@ -135,20 +135,45 @@ export default {
 </script>
 
 <style scoped>
+	/*TODO: Navigation menu on mobile */
+
+
   .navbar-brand {
     font-size: 25px;
   }
 
-/*
+	@media (max-width: 991px) {
+		#navArrows>li>a {
+			  /* Reduce padding for iPad */
+				padding-left: 10px;
+				padding-right: 10px;
+		}
+	}
+
   .userDropdown {
-    padding-top: 10px;
-    padding-bottom: 0px;
+		color: white;
+    background: #ddd;
+		/*height: 32px;*/
+		margin: 10px 10px 0 0;
+    padding: 0;
   }
-*/
+
+	.userDropdown:hover {
+		color: white;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+	}
+
+	.userDropdown>a.dropdown-toggle {
+		margin: 0;
+		padding: 6px 8px 0 8px;
+		height: 32px;
+	}
+
 
   .avatarImgLink {
     padding: 10px 0 0 0;
-    margin: 0;
+    margin: 0 10px 0 0;
   }
 
   .avatarImg {

@@ -24,8 +24,8 @@
               <li><span class="fa-li"><i class="far fa-user"></i></span>{{law.createdBy.profile.name}}</li>
               <li><span class="fa-li"><i class="far fa-clock"></i></span>{{getFromNow(law.createdAt)}}</li>
               <li><span class="fa-li"><i class="far fa-bookmark"></i></span>{{law.area.title}}</li>
-			  <li><span class="fa-li"><i :class="getIconFor(law)" aria-hidden="true"></i></span>{{law.status}}</li>
-              <li v-if="law.poll !== null"><span class="fa-li"><i class="fas fa-poll"></i></span>
+              <li><span class="fa-li"><i :class="getIconFor(law)" aria-hidden="true"></i></span>{{law.status}}</li>
+              <li v-if="law.poll"><span class="fa-li"><i class="fas fa-poll"></i></span>
                 <router-link :to="'/polls/'+law.poll.id">Poll</router-link>
               </li>
             </ul>
@@ -47,7 +47,7 @@ import SupportButton from '../components/SupportButton'
 
 export default {
   props: {
-    'laws' :         { type: Array,   required: true },
+    'laws' :         { type: Array,   required: true },  // laws must contain _links.self.href !!! Because we need it for data-lawURI attribute
     'previewHeight': { type: String,  required: false, default: function() { return "75px" }},
     'readOnly' :     { type: Boolean, required: false, default: function() { return false }},
     'lawListTitle' : { type: String,  required: false, default: function() { return "" }}
@@ -63,16 +63,25 @@ export default {
   },
 
   methods: {
-	getLawURI(law) {
-      return this.$root.api.getURI(law)
-	},
-	
+		/**
+		 * Here we try to the URI of idea/proposal/law
+		 * But this only works if the passed law is a full HATEOAS Resource.
+		 * When it is just any JSON, then there is no _links. Then we just simply return an empty String.
+		 */
+		getLawURI(law) {
+			if (law && law._links && law._links.self && law._links.self.href) {
+      	return this.$root.api.getURI(law)
+			} else {
+				return ""
+			}
+		},
+
     // dynamically set icon depending on law.status
     getIconFor(law) {
       switch(law.status) {
 		case "IDEA":
 			return { "far": true, "fa-lightbulb": true }
-		case "PROPOSAL": 
+		case "PROPOSAL":
 			return { "far": true, "fa-file-alt": true }
 		case "ELABORATION":
 			return { "far": true, "fa-comments": true }
@@ -105,7 +114,7 @@ export default {
 
     /** get the link for the title of the idea, proposal or law */
     getLinkToLaw(law) {
-      //TODO: Should I manage these frontend URL in a central place? MAYBE in confg/dev.env.js
+      //TODO: Should I manage these frontend URL in a central place? MAYBE in confg/prod.env.js
       switch(law.status) {
         case 'IDEA':     return '/ideas/'+law.id
         case 'LAW':      return '/laws/'+law.id

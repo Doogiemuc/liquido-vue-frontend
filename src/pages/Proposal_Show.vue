@@ -209,7 +209,6 @@ export default {
 
 	computed: {
 		titleLoc() {
-			console.log("==== ", this.proposal)
 			switch(this.proposal.status) {
 				case "IDEA":        return "Idea"
 				case "PROPOSAL":    return "Proposal"
