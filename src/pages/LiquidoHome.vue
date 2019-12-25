@@ -16,7 +16,7 @@
 				<h3>Liquido</h3>
 				<p>is a web based implementation of Liquid Democracy with no need for a central authority. The whole democratic process is decentralized:</p>
 				<ul>
-					<li>Anyone may suggest an <b>idea</b>.</li>
+					<li>Anyone may suggest an <b>idea</b>. Ideas can be liked.</li>
 					<li>When an idea reaches its quorum, it becomes a <b>proposal</b>.</li>
 					<li>When a <b>poll</b> is created, then further alternative proposals may decide join this poll.</li>
 					<li>All proposals in the poll can now be further discussed and continuusly elaborated.</li>

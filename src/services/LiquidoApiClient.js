@@ -692,19 +692,21 @@ module.exports = {
    * @param status {string} ELABORATION|VOTING|FINISHED
    * @return List of polls in this status
    */
-  findPollsByStatus(status) {
-    log.debug("findPollsByStatus()")
-    return axios.get('/polls/search/findByStatus?status='+status)
-      .then( res => { return res.data._embedded.polls })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
-  },
+	findPollsByStatus(status) {
+		log.debug("findPollsByStatus()")
+		return axios.get('/polls/search/findByStatus?status='+status)
+			.then( res => { return res.data._embedded.polls })
+			.catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
+	},
 
-  findPollsByStatusAndArea(status, areaURI) {
-	log.debug("findPollsByStatusAndArea()")
-    return axios.get('/polls/search/findByStatusAndArea?status='+status+'&area='+areaURI)
-      .then( res => { return res.data._embedded.polls })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatusAndArea", err:err}) })
-  },
+	findPolls(status, areaURI, withOwnBallot) {
+		log.debug("findPollsByStatusAndArea(status="+status+", areaURI="+areaURI+", withOwnBallot="+withOwnBallot+")")
+		return axios.get("/polls/search/find", { params: {
+			status: status,
+			area: areaURI,
+			withOwnBallot: withOwnBallot || false
+		}}).then( res => { return res.data._embedded.polls })
+	},
 
   /**
    * Load a poll with all its proposals from the backend.
@@ -768,7 +770,18 @@ module.exports = {
    * Get user's voter token for the given area
    * @param areaId {Number} Numeric numerical ID of area
    * @param {String} tokenSecret users private tokenSecret from which his token will be created.
-   * @return users voterToken
+   * @return JSON with voterToken, delegationRequests in this area, and current delegationCount:
+   *  {
+   *    "voterToken" : "$2a$10$1IdrGrRAN2Wp3U7QI.JIzuYWEy7ZFK5FeGNGJUfYRzyBryxNdA0zm",
+   *    "delegationCount" : 0,
+   *    "_links" : {
+   *      "area" : {
+   *        "templated" : true,
+   *        "href" : "http://localhost:8080/liquido/v2/areas/29{?projection}"
+   *      }
+   *    },
+   *    "delegationRequests" : [ ]  
+   *  } 
    */
   getVoterToken(area, tokenSecret, becomePublicProxy) {
     log.debug("getVoterToken(area.id="+area.id+")")
@@ -819,15 +832,6 @@ module.exports = {
     */
   },
 
-    /** get voter's own ballot in that poll, if he has already voted */
-  getOwnBallot(poll, voterToken) {
-    log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
-    if (!poll) return Promise.reject("Need poll to getOwnBallot!")
-    return axios.get('/polls/'+poll.id+'/ballot/my', { params : {
-      voterToken: voterToken
-    }})
-    .then(res => { return res.data })
-  },
 
   /**
    * Verify if a ballot with that checksum was counted in the poll
@@ -843,15 +847,45 @@ module.exports = {
   },
 
   //==================================================================================================================
-  // These calls towards the backend are only available in development environment
+  // Ballots
   //==================================================================================================================
 
-  /** get a list of users that will be used for the DevLogin Button at the top right of the UI */
-  devGetAllUsers(token) {
-	// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
-	return anonymousClient.get('/dev/users?token='+token)
-		.then(res => res.data._embedded.users)
-  }
+	/** get voter's own ballot in that poll, if he has already voted */
+	getOwnBallot(poll, voterToken) {
+		log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
+		if (!poll) return Promise.reject("Need poll to getOwnBallot!")
+		return axios.get('/polls/'+poll.id+'/myballot', { params : {
+			voterToken: voterToken
+		}})
+		.then(res => { return res.data })
+	},
+
+	/**
+	 * Get users own ballots that still be updated, because the poll is still in VOTING phase.
+	 * The voterToken has an area encodid within. So this request must be called for each area.
+	 * @param {String} voterToken users voterToken as String
+	 * @returns array of ballots in _embedded
+	 */
+	getOwnBallotsInVoting(voterToken) {
+		if (!voterToken) return Promise.reject("Need voterToken to get recent ballots!")
+		return axios.get('/my/ballots', { params : {
+			voterToken: voterToken,
+			pollStatus: "VOTING"
+		}}).then(res => res.data)
+	},
+	
+
+
+	//==================================================================================================================
+	// These calls towards the backend are only available in development environment
+	//==================================================================================================================
+
+	/** get a list of users that will be used for the DevLogin Button at the top right of the UI */
+	devGetAllUsers(token) {
+		// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
+		return anonymousClient.get('/dev/users?token='+token)
+			.then(res => res.data._embedded.users)
+	}
 
 
 }

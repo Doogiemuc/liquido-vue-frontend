@@ -109,14 +109,15 @@
 						<h4>Your ballots</h4>
 					</div>
 					<div class="panel-body">
-						<button role="button" class="btn btn-default">Fetch ballots</button>
-						Click this button to load all ballots that were recently casted by you or one of your proxies.
+						<p>Load all ballots that were recently casted by you or one of your proxies 
+						that you can still update.</p>
+						<button role="button" class="btn btn-default" @click="loadOwnBallotsInVoting">Fetch ballots</button>
 					</div>
-					<!--ul class="list-group">
-						<li v-for="proposal in news.recentlyDiscussedProposals" :key="proposal.id" class="list-group-item item-condensed">
-							<router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
+					<ul class="list-group" v-if="ownBallots">
+						<li v-for="ballot in ownBallots" :key="ballot.id" class="list-group-item item-condensed">
+							<router-link :to="pollLink(ballot)"><i class="far fa-file-alt"></i> Poll</router-link>
 						</li>
-					</ul -->
+					</ul>
 				</div>
 
 
@@ -145,9 +146,10 @@ export default {
 	},
 
 	data () {
-	return {
-		news: {},
-		areas: [],
+		return {
+			news: {},
+			areas: [],
+			ownBallots: []
 		}
 	},
 
@@ -170,6 +172,11 @@ export default {
 			return moment(dateVal).fromNow();
 		},
 
+		pollLink(ballot) {
+			console.log("pollLink", ballot)
+			return "/polls/"+this.$root.api.getIdFromUri(ballot._links.poll.href)
+		},
+
 		getOwnProposal(poll) {
 			if (poll && poll.proposals && poll.proposals.length > 0) {
 				for (var prop of poll.proposals) {
@@ -178,6 +185,19 @@ export default {
 				}
 			}
 			return undefined
+		},
+
+		loadOwnBallotsInVoting() {
+			this.ownBallots = []
+			this.$root.api.getAllCategories()
+			  .then(areas => areas.forEach(
+				  area => this.$root.api.getVoterToken(area, process.env.tokenSecret)
+				  	.then(voterTokenRes => this.$root.api.getOwnBallotsInVoting(voterTokenRes.voterToken)
+				  		.then(ballotRes => {
+							  console.log("Received ballots", ballotRes._embedded)
+							  this.ownBallots = this.ownBallots.concat(ballotRes._embedded)
+						  })
+			  )))
 		},
 
 		/**
