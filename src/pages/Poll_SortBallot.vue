@@ -16,7 +16,7 @@
 		<button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
 			v-bind:disabled="this.ballotIsEmpty"
 			@click="clickCastVoteButton">
-				Cast vote <i class="fas fa-angle-double-right"></i>
+				Next <i class="fas fa-angle-double-right"></i>
 		</button>
 	</div>
 
@@ -80,7 +80,7 @@
     </table>
 
     <button type="button" id="castVoteButtonBottom" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">
-      Cast vote <i class="fas fa-angle-double-right"></i>
+      Next <i class="fas fa-angle-double-right"></i>
     </button>
 
   </div>

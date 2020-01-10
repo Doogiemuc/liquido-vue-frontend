@@ -327,16 +327,18 @@ module.exports = {
     return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
 
-  /** add or update a delegation from the currently logged in user to a proxy */
-  assignProxy(category, proxy, voterToken, transitive) {
+  /** 
+   * add or update a delegation from the currently logged in user to a proxy 
+   * @returns the Delegation
+   */
+  assignProxy(category, proxy, voterToken) {
     if (!category) return Promise.reject("Missing category for saveProxy()")
     if (!proxy) return Promise.reject("Missing proxy for saveProxy()")
     var proxyURI = this.getURI(proxy)
-    log.debug("assignProxy(category.id="+category.id+", proxy="+proxyURI+", transitive="+transitive+")")
+    log.debug("assignProxy(category.id="+category.id+", proxy="+proxyURI+")")
     return axios.put('/my/proxy/'+category.id, {
         toProxy:    proxyURI,
-        voterToken: voterToken,
-        transitive: transitive
+        voterToken: voterToken
       }).then(res => res.data)
   },
 
@@ -691,6 +693,8 @@ module.exports = {
    * find polls by their status
    * @param status {string} ELABORATION|VOTING|FINISHED
    * @return List of polls in this status
+   * 
+   * @deprecated  See findPolls() below
    */
 	findPollsByStatus(status) {
 		log.debug("findPollsByStatus()")
@@ -699,12 +703,18 @@ module.exports = {
 			.catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
 	},
 
-	findPolls(status, areaURI, withOwnBallot) {
-		log.debug("findPollsByStatusAndArea(status="+status+", areaURI="+areaURI+", withOwnBallot="+withOwnBallot+")")
+  /**
+   * Flexible Search for poll
+   * @param {String} status (optional) Poll status
+   * @param {URI} areaURI (optional) filter for area
+   * @param {String} voterToken only return polls that have a ballot casted with this voterToken
+   */
+	findPolls(status, areaURI, voterToken) {
+		log.debug("findPolls(status="+status+", areaURI="+areaURI+", voterToken=" + voterToken ? "<yes>" : "<none>" + ")")
 		return axios.get("/polls/search/find", { params: {
 			status: status,
 			area: areaURI,
-			withOwnBallot: withOwnBallot || false
+			voterToken: voterToken
 		}}).then( res => { return res.data._embedded.polls })
 	},
 
@@ -840,7 +850,7 @@ module.exports = {
    * @return true, if a ballot with that checksum exists in this poll
    */
   verifyChecksum(pollId, checksum) {
-	return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
+	return axios.get('/polls/'+pollId+'/verify', { params: {
 		  checksum: checksum
 	  }})
 	  .then(res => { return res.data })

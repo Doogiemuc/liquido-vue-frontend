@@ -60,15 +60,16 @@
               A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
               Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
             </p>
-            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
-              Do you want to accept these requests? These voters would then be able to see how you voted. But only them because you are their proxy.
+            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you. Do you want to accept these requests? 
+              When you cast your vote, then also ballots for these delegees will be casted.
+              As a consequence these voters would then be able to see how you voted. But only them because you are their proxy.
               Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote). This step is optional.
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
               Accept delegation requests
             </button>
-            <p v-if="delegationCount == 1">You are the proxy for one voter. Your vote will also create a ballot for this delegee.</p>
-            <p v-if="delegationCount >  1">You are the proxy for {{delegationCount}} voters. Your vote will also create ballots for these delegees.</p>
+            <p v-if="delegationCount == 1">You are the proxy for one voter. Your vote will also create a ballot for this delegee, if he hasn't voted on his own yet.</p>
+            <p v-if="delegationCount >  1">You are the proxy for {{delegationCount}} voters. Your vote will also create ballots for these delegees, that haven't voted on their own yet.</p>
           </li>
         </ul>
       </div>
@@ -88,9 +89,10 @@
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
               <p>Here we cast you vote completely anonymously. When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. Do not reveal that this is <em>your</em> checksum!</p>
               <div class="well well-sm monspaceFont" id="checksum">{{checksum || '&nbsp;'}}</div>
-              <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
+              <p><button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
                 Cast vote anonymously<span v-if="step3_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
-              </button>
+              </button></p>
+              <p v-if="voteCount > 0" class="green">Your ballot was counted for you and {{voteCount}} of your delegees.</p>
             </li>
           </ul>
         </div>
@@ -259,27 +261,20 @@ export default {
       this.step3_status = "loading"
       return this.$root.api.castVote(this.poll, this.voteOrderUris, this.voterToken)
         .then(res => {
-          this.checksum = res.checksum
+          this.checksum = res.ballot.checksum
           this.voteCount = res.voteCount
           this.step3_status = "success"
           log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
 
           swal({
-			title: "SUCCESS",
-			customClass: "voteSuccess",
+            title: "SUCCESS",
+            customClass: "voteSuccess",
             text: "Your vote was casted successfully.",
-            type: "success"
-          },
-          function () {
-            //that.$router.push('/userHome')
-          })
-
-          /*
-          iziToast.success({
-            title: 'Success',
-            message: "Your vote was casted successfully."
-          })
-          */
+            type: "success",
+            confirmButtonColor: "#337ab7"
+            },
+            // function () { that.$router.push('/userHome')
+          )
           return this.checksum
         })
         .catch(err => {

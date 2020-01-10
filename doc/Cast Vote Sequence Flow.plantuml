@@ -6,49 +6,60 @@ database DB order 40
 
 == Register for voting in an area ==
 
-Voter -> Server : ""GET /voterToken?area=<area.id>""
+Voter -> Server : ""GET /my/voterToken/<area.id>""
 
-Server -> Server : ""voterToken=hash(""\n""  user.id,""\n""  user.password,""\n""  area.id,""\n""  salt)""
+Server -> Server : create Voter Token\n""voterToken = hash(user.id, user.secret, area.id, salt)""
 
 database DB
-Server -> DB : ""upsert checksum=hash(voterToken)""\n""into TokenChecksums""
+Server -> DB : and store right to vote\n""upsert rightToVote = hash(voterToken, seed)""
 
-DB -> Server : ""get delegated tokens for proxy""
+Server -> DB : (optionally) becomePublicProxy()
 
-Voter <-- Server : return all voterTokens for this area\n(first token is user's own one)
+Voter <-- Server : return voterTokens for this area
 
 |||
 
 == Anonymously cast a vote ==
 
-Voter -> Server : ""POST /castVote""\n""{pollId, voterTokens[], voterOrder}""
+Voter -> Server : Anonymous request\n""POST /castVote""\n""{poll, voterToken, List voterOrder}""
 
-Server -> DB : ""query for checksum=hash(voterToken, secretSeed)""\n""in TokenChecksums""
+Server -> DB : Validate voter token\n""query for rightTovote = hash(voterToken, seed)""
 
-loop for each voterToken
+DB --> Server : return valid rightToVote (if found)
+
+loop castVoteRec()
 
   Server -> Server: ""checkBallot""
 
-  alt If ballot is ok
-    Server -> DB : ""upsert ballot""\n""(poll, ownVote, voteOrder, checksum)""\n""in Ballots""
+  alt If a ballot with that rightToVote and a smaller level does NOT exist
+    Server -> DB : store ballot for (delegated) rightToVote on level N\n""upsert ballot(poll, level, voteOrder, rightToVote)""
 
+  else If ballot with smaller level exists
     note over Server
-      Algo for checking ownVote
-      |= passed\nownVote |= existing\nownVote |= update\nvoteOrder? | |
-      | any   | no existing | -- | new ballot |
-      | true  | true  | yes | Voter updates his own vote order. |
-      | true  | false | yes | Voter overwrites previous vote of a proxy. |
-      | false | true  | no  | Proxy must not overwrite voters own vote. |
-      | false | false | yes | Proxy updated his vote order which is distributed to delegee. |
+      Do not touch existing ballot with smaller level.
     end note
 
   else If ballot is invalid
-    Voter <-- Server : ""return HTTP 401 Forbidden""
+    Voter <-- Server : ""return HTTP 404 Bad request""
   end
+
+  Server -> Server : recursively check delegated rightToVotes on level N+1
 
 end
 
-Voter <-- Server : ""return counted votes as checksums""
+Voter <-- Server : ""return HTTP 201 (Created) {ballot, voteCount}""
+
+|||
+
+== Validate own ballot ==
+
+Voter -> Server: ""GET /polls/<poll.id>/verify?ballotChecksum=<checksum>""
+
+Server -> DB : find Ballot with checksum
+
+DB --> Server : return ballot (if found)
+
+Server -> Voter : ""return found ballot or 404 (Not Found)""
 
 
 ||50||

@@ -49,9 +49,9 @@ export default {
 
 	data () {
 		return {
-			pollTitle: "",		
+			pollTitle: "",
 			pollsInElaboration: [],
-			proposalsToInvite: []	
+			proposalsToInvite: []
 		}
 	},
 
@@ -76,7 +76,7 @@ export default {
 
 	methods: {
 		loadPollsInElaboration() {
-			this.$root.api.findPollsByStatusAndArea("ELABORATION", '/areas/'+this.proposal.area.id)
+			this.$root.api.findPolls("ELABORATION", '/areas/'+this.proposal.area.id)
 				.then(res => { this.pollsInElaboration = res } )
 		},
 
@@ -118,9 +118,7 @@ export default {
 			log.info("Creating a new poll with proposal.id="+this.proposal.id)
 			var poll = {
 				title: this.pollTitle,
-				proposals: [ 
-					this.$root.api.getURI(this.proposal)
-				]
+				proposals: [ this.$root.api.getURI(this.proposal) ]
 			}
 			this.$root.api.createNewPoll(poll).then(poll => {
 				iziToast.success({

@@ -75,12 +75,16 @@
     <router-view></router-view>
 
     <footer>
-      <div class="container text-right">
-        <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
-        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
-          <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
-        </a>
-        <br/>
+      <div class="container">
+        <div class="pull-right">
+          <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
+          <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
+            <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
+          </a>
+        </div>
+        <div>
+          <a href="http://liquido-doc.netlify.com" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
+        </div>
       </div>
     </footer>
   </div>

@@ -27,7 +27,7 @@
 										Requested delegation to
 									</b>
 									<b v-else>
-										Your {{ proxyInfo[area.id].directProxyDelegation.transitive ? "" : "non-transitive"}} proxy
+										Your proxy
 									</b>
 									<br/>
 									{{myProxy(area).profile.name}}<br/>
@@ -202,7 +202,7 @@ export default {
         categoryId: area.id,
         category:   area,
         voterToken: this.voterTokenMap[area.id],
-        delegation: this.proxyInfo[area.id] ? this.proxyInfo[area.id].directProxyDelegation : undefined
+        initDelegation: this.proxyInfo[area.id] ? this.proxyInfo[area.id].directProxyDelegation : undefined
       }})
     }
 

@@ -106,20 +106,23 @@
 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						<h4>Your ballots</h4>
+						<h4>Your ballots in voting</h4>
 					</div>
 					<div class="panel-body">
-						<p>Load all ballots that were recently casted by you or one of your proxies 
-						that you can still update.</p>
+						<p>Here you can load all ballots that were recently casted by you (or a proxy for you)
+						and that you can still update because the poll is still in voting.</p>
 						<button role="button" class="btn btn-default" @click="loadOwnBallotsInVoting">Fetch ballots</button>
 					</div>
 					<ul class="list-group" v-if="ownBallots">
 						<li v-for="ballot in ownBallots" :key="ballot.id" class="list-group-item item-condensed">
-							<router-link :to="pollLink(ballot)"><i class="far fa-file-alt"></i> Poll</router-link>
+							Ballot <small>&lt;{{ballot.checksum}}&gt;</small> in this
+							<router-link :to="pollLink(ballot)"><i class="fas fa-balance-scale"></i> Poll</router-link>
+							<i v-if="ballot.level > 0" class="far fa-share-square"></i>
 						</li>
 					</ul>
 				</div>
 
+				<!-- TODO: Users own laws -> quick link to search -->
 
 		 </div>
 		</div>
@@ -173,7 +176,6 @@ export default {
 		},
 
 		pollLink(ballot) {
-			console.log("pollLink", ballot)
 			return "/polls/"+this.$root.api.getIdFromUri(ballot._links.poll.href)
 		},
 
@@ -187,17 +189,33 @@ export default {
 			return undefined
 		},
 
+		getAllAreas() {
+			return this.$root.api.getAllCategories()
+		},
+
+		getVoterTokens(areas) {
+			return Promise.all(
+				areas.map(area => this.$root.api.getVoterToken(area, process.env.tokenSecret))
+			)
+		},
+
+		getOwnBallotsInVoting(voterTokens) {
+			return Promise.all(voterTokens.map(voterTokenRes => this.$root.api.getOwnBallotsInVoting(voterTokenRes.voterToken)))
+				.then(ownBallotResponses => ownBallotResponses.map(res => res._embedded))
+				.then(ballots => {
+					var merged = [].concat.apply([], ballots);		// flatten array of arrays  https://stackoverflow.com/questions/10865025/merge-flatten-an-array-of-arrays
+					return merged
+				})
+		},
+
 		loadOwnBallotsInVoting() {
 			this.ownBallots = []
-			this.$root.api.getAllCategories()
-			  .then(areas => areas.forEach(
-				  area => this.$root.api.getVoterToken(area, process.env.tokenSecret)
-				  	.then(voterTokenRes => this.$root.api.getOwnBallotsInVoting(voterTokenRes.voterToken)
-				  		.then(ballotRes => {
-							  console.log("Received ballots", ballotRes._embedded)
-							  this.ownBallots = this.ownBallots.concat(ballotRes._embedded)
-						  })
-			  )))
+			this.getAllAreas()
+				.then(this.getVoterTokens)
+				.then(this.getOwnBallotsInVoting)
+				.then(res => {
+					this.ownBallots = res
+				})
 		},
 
 		/**
