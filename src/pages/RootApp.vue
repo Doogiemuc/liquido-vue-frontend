@@ -83,7 +83,7 @@
           </a>
         </div>
         <div>
-          <a href="http://liquido-doc.netlify.com" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
+          <a class="documentation-link" href="http://liquido-doc.netlify.com" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
         </div>
       </div>
     </footer>
@@ -108,7 +108,7 @@ export default {
 
 
   computed: {
-	liquidoWebAppVersion() { return "V"+process.env.liquidoWebAppVersion },
+	liquidoWebAppVersion() { return process.env.liquidoWebAppVersion },
     liquidoBackendInfo()   { return "backend@"+this.props['liquido.backend.version'] + ' ' + process.env.backendBaseURL },
     nodeEnv()        { return process.env.NODE_ENV },
     currentUser()    { return auth.currentUser },
@@ -276,10 +276,13 @@ export default {
     border-top: 1px solid #e7e7e7;
     padding-top: 5px;
     padding-bottom: 20px;
+    color: gray;
   }
   footer a {
     font-size: 12px;
-    color: gray;
+  }
+  footer .documentation-link {
+    font-size: 14px;
   }
   footer a:hover {
     color: blue;
