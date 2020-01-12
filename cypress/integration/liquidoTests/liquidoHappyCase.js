@@ -7,6 +7,9 @@
  * 
  * For further use cases and edge cases see the regression test set.
  */
+
+// Keep in mind that these api and auth instances are not the same as the ones uses by the Vue app.
+// We can use them here to make api calls towards the backend. But we have to do our own login
 import api from '../../../src/services/LiquidoApiClient.js'
 import auth from '../../../src/services/auth.js'
 //import { AssertionError } from 'assert';
@@ -109,7 +112,7 @@ describe('Liquido Happy Case Test', function() {
 		//THEN the idea is saved successfully
 		cy.get('#CreateIdeaSuccess').should('exist')     
 		// AND get the idea from the backend and store it in Cypress.env
-		//cy.login(fix.user1_mobilephone, fix.adminSmsToken)   // MUST login our ref to api before making any direct api calls
+		//cy.login(fix.user1_mobilephone, fix.adminSmsToken)   		// MUST login our ref to api before making any direct api calls
 		cy.get('#newIdeaUri').then(elems => {
 			var ideaURI = elems[0].textContent						// Even the selector by ID returns an Array of DOM elements!
 			return api.getIdea(ideaURI, true).then(idea => {		// BUGFIX: NEVER EVER again forget to "return" the inner Promise!!! :-)
@@ -452,7 +455,8 @@ var addSupporters = function(numSupporters, idea) {
  */
 var createProposal = function(title, user_mobilephone, areaId) {
 
-	//FIXME: This is unstable, overengeneered and complete Promise overkill. But up to now I didn't find any other way.  I could move the whole createProposal to the backend. But I don't want to mock it. I WANT to use LiquidoApi only wherever possible in tests!
+	//FIXME: This is unstable, over engineered and complete Promise overkill. But up to now I didn't find any other way.  I could move the whole createProposal to the backend. But I don't want to mock it. I WANT to use LiquidoApi only wherever possible in tests!
+	//MAYBE: Well one possible way would be to simply to it via the frontend. Ok it's slow. But we only need this once in HappyCase
 
 	console.log("Creating new proposal: title='"+title+"' createdBy="+user_mobilephone+" in area(id="+areaId+")")
 	return cy.login(user_mobilephone, fix.adminSmsToken).then(user => {

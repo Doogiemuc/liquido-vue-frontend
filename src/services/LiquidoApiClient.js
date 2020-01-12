@@ -1,6 +1,6 @@
 /**
- * API client  for the Liquido backend. This class is the central facade for all API methods.
- * Every call to the backend comes through here.
+ * REST API client for the Liquido backend. This class is the central facade for all API methods.
+ * <b>Every</b> call to the backend comes through here.
  *
  * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
  * with an error message.
@@ -8,6 +8,9 @@
  * I know this module is too large for one file. I started to split it up several times. But in the end
  * I personally had the best coding experience when everything was in one file.
  * I tried many different node REST client libraries. But axios was the best and most simple to use.
+ * 
+ * LiquidoApiClient only knows the JWT from the backend. It does not know anything about the
+ * currently logged in user's data like name, email. The currently logged in user is only stored in auth.js
  */
 
 var _ = require('lodash')
@@ -92,7 +95,6 @@ var globalPropertiesCache = undefined
 //==================================================================================================================
 
 module.exports = {
-  currentUser: undefined,			// just a cache for currentUser in auth.js   //TODO: remove this here. Currnet user should only be in auth.js   Its only used in upvoteComment anyway!!
   jsonWebToken: undefined,
 
   /** Set the JWT that will be used for all future requests */
@@ -105,10 +107,6 @@ module.exports = {
 	  this.jsonWebToken = jwt
       //log.debug("apiClient authorized with JWT")
     }
-  },
-
-  setCurrentUser(user) {
-	  this.currentUser = user
   },
 
   /**
@@ -528,7 +526,7 @@ module.exports = {
       method:  'POST',
       url:     '/laws/'+idea.id+'/like',
     }).then(res => {
-	  log.info("Current user " + (this.currentUser ? this.currentUser.email : "!ERROR!") +  " now supports idea(id="+idea.id+") '"+idea.title+"'")
+	  log.info("Current user now supports idea(id="+idea.id+") '"+idea.title+"'")
       return ""  // backend returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter to idea(id="+idea.id+")", err)
@@ -608,12 +606,12 @@ module.exports = {
   /**
     * Upvote a comment of a proposal. Will add current user to the list of upvoters. Backend will not add an upvoter twice.
     * @param comment a comment model (JSON with comment._links.upVoters.href)
+    * @param currentUser currently logged in user from Auth.js
     * @return Promise (HTTP 204)
     */
-  upvoteComment(comment, user) {
-    //TODO: use currentUser. But api client does not know user. It only knows JWT ???
+  upvoteComment(comment, currentUser) {
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
-    var userURI     = this.getURI(user)
+    var userURI     = this.getURI(currentUser)
     log.debug("upvoteComment", upvotersURI, userURI)
     return axios({
       method: 'POST',

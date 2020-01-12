@@ -24,15 +24,6 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-/** 
- * Login a user via the UI. This uses the devLoginMobilephone URL shortcut
- * When the call returns, then the app is then shown on the start page.
- */
-Cypress.Commands.add('urlLogin', (mobilephone, token) => {
-	console.log("Cypress: login via url: "+mobilephone)
-	cy.visit('/#/?'+Cypress.$.param({devLoginMobilephone: mobilephone, token: token}))
-	cy.get('#userMenu').should('exist')
-})
 
 const JWT_ITEM_KEY = 'liquido-jwt'
 /**
@@ -60,7 +51,7 @@ Cypress.Commands.add('login', (mobilephone, token) => {
 	})
 })
 
-/** Goto is like cy.visit but you can also pass URL params that will be uriencoded. */
+/** Goto is like cy.visit but you can also pass URL params that will be uriEncoded. */
 Cypress.Commands.add('goto', (urlOrOpts, config) => {
 	var opts 
 	if (Cypress._.isString(urlOrOpts)) {
@@ -82,3 +73,12 @@ Cypress.Commands.add('goto', (urlOrOpts, config) => {
 	return cy.visit(opts)
 })
 
+/* @Deprecated: This was an older version. Login the frontend via a special URL. But this is too insecure
+ * Login a user via the UI. This uses the devLoginMobilephone URL shortcut
+ * When the call returns, then the app is then shown on the start page.
+Cypress.Commands.add('urlLogin', (mobilephone, token) => {
+	console.log("Cypress: login via url: "+mobilephone)
+	cy.visit('/#/?'+Cypress.$.param({devLoginMobilephone: mobilephone, token: token}))
+	cy.get('#userMenu').should('exist')
+})
+*/
