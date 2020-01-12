@@ -34,9 +34,9 @@ if (window.Cypress) {   // when running under Cypress TEST, then set backendBase
   anonymousClient.defaults.baseURL = window.Cypress.env('backendBaseURL')
   log = console     //BUGFIX to show loglevel output in Cypress test runner's console
 } else {
-  throw new Error("LiqudioApiClient: baseURL MUST be defined!")
+  throw new Error("LiqudioApiClient: process.env.backendBaseURL MUST be defined!")
 }
-//log.debug("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
+console.log("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {

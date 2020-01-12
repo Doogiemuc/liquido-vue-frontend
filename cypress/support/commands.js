@@ -34,24 +34,29 @@ Cypress.Commands.add('urlLogin', (mobilephone, token) => {
 	cy.get('#userMenu').should('exist')
 })
 
+const JWT_ITEM_KEY = 'liquido-jwt'
 /**
  * Quickly login the api client instance that is used by Cypress. This accesses the low level API without any GUI interaction
  * 
  * Keep in mind that this logs in the user in the auth instance of the Cypress Test.
  * This is a different auth instance than the one used by the Vue web app!
  * 
- * @param mobile {String} user's mobilephone, e.g. fix.user1_mobile
+ * @param mobilephone {String} user's mobilephone, e.g. fix.user1_mobile
+ * @param token {String} secret login token for LIQUIDO admin
  * @return user info as json    (current JWT can be fetched with auth.getJWT if you need it)
  */ 
-Cypress.Commands.add('apiLogin', (mobilephone, token) => {
+Cypress.Commands.add('login', (mobilephone, token) => {
 	var auth = Cypress.env('auth')
+	var apiClient = Cypress.env('api')
 	var backendBaseURL = Cypress.env('backendBaseURL')
 	return cy.request({
 		method: 'GET',
 		url: backendBaseURL+'/dev/getJWT' + '?' + Cypress.$.param({mobile: mobilephone, token: token})
 	}).then(res => {
+		var jwt = res.body
 		console.log("Cypress: devLogin via API. mobilephone=" + mobilephone)
-		return auth.storeJwt(res.body)
+		localStorage.setItem(JWT_ITEM_KEY, jwt)  // also store the JWT in the  local storage of the browser under test, so that the user is logged in
+		return auth.storeJwt(jwt)  
 	})
 })
 
