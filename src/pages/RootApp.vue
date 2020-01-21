@@ -75,12 +75,16 @@
     <router-view></router-view>
 
     <footer>
-      <div class="container text-right">
-        <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
-        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
-          <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
-        </a>
-        <br/>
+      <div class="container">
+        <div class="pull-right">
+          <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
+          <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
+            <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
+          </a>
+        </div>
+        <div>
+          <a class="documentation-link" href="http://liquido-doc.netlify.com" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
+        </div>
       </div>
     </footer>
   </div>
@@ -104,7 +108,7 @@ export default {
 
 
   computed: {
-	liquidoWebAppVersion() { return "V"+process.env.liquidoWebAppVersion },
+	liquidoWebAppVersion() { return process.env.liquidoWebAppVersion },
     liquidoBackendInfo()   { return "backend@"+this.props['liquido.backend.version'] + ' ' + process.env.backendBaseURL },
     nodeEnv()        { return process.env.NODE_ENV },
     currentUser()    { return auth.currentUser },
@@ -272,10 +276,13 @@ export default {
     border-top: 1px solid #e7e7e7;
     padding-top: 5px;
     padding-bottom: 20px;
+    color: gray;
   }
   footer a {
     font-size: 12px;
-    color: gray;
+  }
+  footer .documentation-link {
+    font-size: 14px;
   }
   footer a:hover {
     color: blue;

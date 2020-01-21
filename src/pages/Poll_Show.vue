@@ -99,7 +99,7 @@
 				<div class="panel-heading">
 					<h4>No winning proposal</h4>
 				</div>
-				<div class="panel-body ballot-body">
+				<div class="panel-body">
 					<p>This poll does not have a unique winning proposal.</p>
 				</div>
 			</div>
@@ -139,8 +139,13 @@
 				<input type="text" class="form-control" name="checksum" id="checksumInput" v-model="checksum" placeholder="">
 				<button type="button" class="btn btn-default" id="checksumInputButton" v-bind:disabled="disableChecksumButton" @click="verifyChecksum">Verify checksum</button>
 			</div>
-			<div v-if="checksumValidity === 'valid'" class="alert alert-success checksumAlert" role="alert">This checksum is valid and your ballot was counted in this poll.</div>
-			<div v-if="checksumValidity === 'invalid'" class="alert alert-danger checksumAlert" role="alert">This checksum is <b>not</b> valid</div>
+			<div v-if="validatedBallot === 'invalid'" class="alert alert-danger checksumAlert" role="alert">This checksum is <b>not</b> valid</div>
+			<div v-if="validatedBallot && validatedBallot.id" class="alert alert-success checksumAlert" role="alert">
+				This checksum is valid. 
+				<span v-if="validatedBallot.level == 0">Your ballot was counted in this poll.</span>
+				<span v-if="validatedBallot.level >  0">This ballot was casted for you by your proxy.</span>
+				<!-- TODO: show ballot with voteOrder -->
+			</div>
 		</div>
 
 		<br/>
@@ -192,7 +197,7 @@ export default {
 			searchVal: "",
 			selectedUserProposal: undefined,				// the currently selected user proposal (in the dropdown select) when joining this poll
 			checksum: undefined,
-			checksumValidity: undefined,
+			validatedBallot: undefined,
 			pollErrorMsg: undefined,
 		}
 	},
@@ -301,7 +306,7 @@ export default {
 		/* lazily fetch the user's voterToken and cache it locally */
 		fetchVoterToken() {
 			if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
-			return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
+			return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false).then(token => {
 				this.voterToken = token.voterToken
 				return this.voterToken
 			})
@@ -418,8 +423,9 @@ export default {
 
 		verifyChecksum() {
 			this.$root.api.verifyChecksum(this.pollId, this.checksum)
-				.then(res => {
-					this.checksumValidity = res.valid ? 'valid' : 'invalid'
+				.then(res => { this.validatedBallot = res })
+				.catch(err => {
+					console.log("checksum not valid", err)
 				})
 		},
 
@@ -451,6 +457,13 @@ export default {
 		overflow: hidden;
 		padding: 5px;
 		margin: 0;
+	}
+	.ballot-body {
+		background-color: #f5f5f5;
+	}
+	.ballot-proposal {
+		background-color: #f5f5f5;
+		padding-left: 2.5em;
 	}
 	.noBullet {
 	  list-style: none;

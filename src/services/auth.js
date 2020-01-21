@@ -93,7 +93,6 @@ export default {
 			.then(user => {
 				log.info("User (id="+user.id+", "+user.email+", "+user.profile.mobilephone+") logged in successfully.")
 				this.currentUser = user
-				apiClient.setCurrentUser(user)
 				return user
 			})
 			.catch(err => {
@@ -134,7 +133,6 @@ export default {
 		this.currentUser = undefined
 		localStorage.removeItem(JWT_ITEM_KEY)
 		apiClient.setJsonWebTokenHeader(undefined)
-		apiClient.setCurrentUser(undefined)
 	},
 
 	/** 

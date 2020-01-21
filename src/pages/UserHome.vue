@@ -106,19 +106,23 @@
 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						<h4>Your ballots</h4>
+						<h4>Your ballots in voting</h4>
 					</div>
 					<div class="panel-body">
-						<button role="button" class="btn btn-default">Fetch ballots</button>
-						Click this button to load all ballots that were recently casted by you or one of your proxies.
+						<p>Here you can load all ballots that were recently casted by you (or a proxy for you)
+						and that you can still update because the poll is still in voting.</p>
+						<button role="button" class="btn btn-default" @click="loadOwnBallotsInVoting">Fetch ballots</button>
 					</div>
-					<!--ul class="list-group">
-						<li v-for="proposal in news.recentlyDiscussedProposals" :key="proposal.id" class="list-group-item item-condensed">
-							<router-link :to="{ path: '/proposals/'+proposal.id }"><i class="far fa-file-alt"></i> {{proposal.title}}</router-link>
+					<ul class="list-group" v-if="ownBallots">
+						<li v-for="ballot in ownBallots" :key="ballot.id" class="list-group-item item-condensed">
+							Ballot <small>&lt;{{ballot.checksum}}&gt;</small> in this
+							<router-link :to="pollLink(ballot)"><i class="fas fa-balance-scale"></i> Poll</router-link>
+							<i v-if="ballot.level > 0" class="far fa-share-square"></i>
 						</li>
-					</ul -->
+					</ul>
 				</div>
 
+				<!-- TODO: Users own laws -> quick link to search -->
 
 		 </div>
 		</div>
@@ -145,9 +149,10 @@ export default {
 	},
 
 	data () {
-	return {
-		news: {},
-		areas: [],
+		return {
+			news: {},
+			areas: [],
+			ownBallots: []
 		}
 	},
 
@@ -170,6 +175,10 @@ export default {
 			return moment(dateVal).fromNow();
 		},
 
+		pollLink(ballot) {
+			return "/polls/"+this.$root.api.getIdFromUri(ballot._links.poll.href)
+		},
+
 		getOwnProposal(poll) {
 			if (poll && poll.proposals && poll.proposals.length > 0) {
 				for (var prop of poll.proposals) {
@@ -180,12 +189,41 @@ export default {
 			return undefined
 		},
 
+		getAllAreas() {
+			return this.$root.api.getAllCategories()
+		},
+
+		getVoterTokens(areas) {
+			return Promise.all(
+				areas.map(area => this.$root.api.getVoterToken(area.id, process.env.tokenSecret))
+			)
+		},
+
+		getOwnBallotsInVoting(voterTokens) {
+			return Promise.all(voterTokens.map(voterTokenRes => this.$root.api.getOwnBallotsInVoting(voterTokenRes.voterToken)))
+				.then(ownBallotResponses => ownBallotResponses.map(res => res._embedded))
+				.then(ballots => {
+					var merged = [].concat.apply([], ballots);		// flatten array of arrays  https://stackoverflow.com/questions/10865025/merge-flatten-an-array-of-arrays
+					return merged
+				})
+		},
+
+		loadOwnBallotsInVoting() {
+			this.ownBallots = []
+			this.getAllAreas()
+				.then(this.getVoterTokens)
+				.then(this.getOwnBallotsInVoting)
+				.then(res => {
+					this.ownBallots = res
+				})
+		},
+
 		/**
 		 * Need to wrap api.getVoterToken, because we need to pass area to inner promise
 		 * @return {Object} with area and voterToken(String)
 		 */
 		getVoterToken(area) {
-			return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(voterTokenJson => {
+			return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(voterTokenJson => {
 				return { area: area, voterToken: voterTokenJson.voterToken }
 			})
 		},
@@ -195,7 +233,7 @@ export default {
 			var area
 			for(area of this.areas) {
 				tasks.push(
-					this.getVoterToken(area).then(res => {
+					this.getVoterToken(area.id).then(res => {
 						console.log("getVoterToken res=", res)
 						return this.$root.api.acceptDelegationRequests(res.area, res.voterToken).then(res => {
 							console.log("Accepted delegation requests", res)  // res.delegationCount

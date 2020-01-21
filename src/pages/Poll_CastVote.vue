@@ -62,15 +62,16 @@
               A voter would like to delegate his right to vote to you as his proxy. Do you want to accept this request?
               Your vote will then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
             </p>
-            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
-              Do you want to accept these requests? These voters will then be able to see how you voted. But only them because you are their proxy.
+            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you. Do you want to accept these requests? 
+              When you cast your vote, then also ballots for these delegees will be casted.
+              As a consequence these voters would then be able to see how you voted. But only them because you are their proxy.
               Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote). This step is optional.
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
               Accept delegation requests
             </button>
-            <p v-if="delegationCount == 1">You are the proxy for one voter. Your vote will also create a ballot for this delegee.</p>
-            <p v-if="delegationCount >  1">You are the proxy for {{delegationCount}} voters. Your vote will also create ballots for these delegees.</p>
+            <p v-if="delegationCount == 1">You are the proxy for one voter. Your vote will also create a ballot for this delegee, if he hasn't voted on his own yet.</p>
+            <p v-if="delegationCount >  1">You are the proxy for {{delegationCount}} voters. Your vote will also create ballots for these delegees, that haven't voted on their own yet.</p>
           </li>
         </ul>
       </div>
@@ -91,9 +92,10 @@
               <p>With the voter token from above you can now anonymously cast your vote. When your ballot was counted successfully, the server will return a checksum of your ballot.
 								With this checksum you can validate that your ballot was counted correctly on the poll's page. Do not reveal your checksum! It's private and should only be known to you.</p>
               <div class="well well-sm monspaceFont" id="checksum">{{checksum || '&nbsp;'}}</div>
-              <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
+              <p><button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
                 Cast vote anonymously<span v-if="step3_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
-              </button>
+              </button></p>
+              <p v-if="voteCount > 0" class="green">Your ballot was counted for you and {{voteCount}} of your delegees.</p>
             </li>
           </ul>
         </div>
@@ -219,9 +221,9 @@ export default {
      * If an error appears then we show an error message with expandable error details.
      */
     fetchVoterToken() {
-      log.info("Starting to cast the vote.")
+      log.info("Starting to cast the vote.", this.poll.area)
       this.step1_status = "loading"
-      return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false)  // do not automatically become a proxy here
+      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false)  // do not automatically become a proxy here
         .then(res => {
           console.log("got voterToken", res)
           this.voterToken         = res.voterToken
@@ -261,20 +263,20 @@ export default {
       this.step3_status = "loading"
       return this.$root.api.castVote(this.poll, this.voteOrderUris, this.voterToken)
         .then(res => {
-          this.checksum = res.checksum
+          this.checksum = res.ballot.checksum
+          this.voteCount = res.voteCount
           this.step3_status = "success"
           log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
 					//TODO: two buttons in swal: "Ok" and "Go to poll"
           swal({
-			title: "SUCCESS",
-			customClass: "voteSuccess",
+            title: "SUCCESS",
+            customClass: "voteSuccess",
             text: "Your vote was casted successfully.",
-            type: "success"
-          },
-          function () {
-            //that.$router.push('/polls/'+this.poll.id)
-          })
-
+            type: "success",
+            confirmButtonColor: "#337ab7"
+            },
+            // function () { that.$router.push('/userHome')
+          )
           return this.checksum
         })
         .catch(err => {

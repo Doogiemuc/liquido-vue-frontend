@@ -1,6 +1,6 @@
 /**
- * API client  for the Liquido backend. This class is the central facade for all API methods.
- * Every call to the backend comes through here.
+ * REST API client for the Liquido backend. This class is the central facade for all API methods.
+ * <b>Every</b> call to the backend comes through here.
  *
  * All API functions return a Promise. When the HTTP operation fails, then this promise will reject
  * with an error message.
@@ -8,6 +8,9 @@
  * I know this module is too large for one file. I started to split it up several times. But in the end
  * I personally had the best coding experience when everything was in one file.
  * I tried many different node REST client libraries. But axios was the best and most simple to use.
+ * 
+ * LiquidoApiClient only knows the JWT from the backend. It does not know anything about the
+ * currently logged in user's data like name, email. The currently logged in user is only stored in auth.js
  */
 
 var _ = require('lodash')
@@ -22,6 +25,7 @@ var log = loglevel.getLogger("LiquidoApiClient")
 
 const axios = require('axios')              // main HTTP client
 const anonymousClient = axios.create()      // extra HTTP client instance for anonymous unauthenticated requests
+anonymousClient.defaults.headers.Cookie = undefined   // Bugfix: Do not send any cookies with anonymous client!
 
 /***** Set Base URL of backend *****/
 if (process.env.backendBaseURL) {
@@ -34,9 +38,9 @@ if (window.Cypress) {   // when running under Cypress TEST, then set backendBase
   anonymousClient.defaults.baseURL = window.Cypress.env('backendBaseURL')
   log = console     //BUGFIX to show loglevel output in Cypress test runner's console
 } else {
-  throw new Error("LiqudioApiClient: baseURL MUST be defined!")
+  throw new Error("LiqudioApiClient: process.env.backendBaseURL MUST be defined!")
 }
-//log.debug("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
+console.log("LiqudioApiClient (instanceId="+Math.random() + ") pointing to baseUrl=" + axios.defaults.baseURL)
 
 /***** Axios RESPONSE interceptor: global error handler ******/
 axios.interceptors.response.use(function (response) {
@@ -92,7 +96,6 @@ var globalPropertiesCache = undefined
 //==================================================================================================================
 
 module.exports = {
-  currentUser: undefined,			// just a cache for currentUser in auth.js   //TODO: remove this here. Currnet user should only be in auth.js   Its only used in upvoteComment anyway!!
   jsonWebToken: undefined,
 
   /** Set the JWT that will be used for all future requests */
@@ -105,10 +108,6 @@ module.exports = {
 	  this.jsonWebToken = jwt
       //log.debug("apiClient authorized with JWT")
     }
-  },
-
-  setCurrentUser(user) {
-	  this.currentUser = user
   },
 
   /**
@@ -220,16 +219,16 @@ module.exports = {
 
   /** Update existing user */
   saveUser(user) {
-	log.info("Save user "+user.email)
-	return axios({
-		method: 'PUT',   // PUT is idempotent. POST is not.   Go learn REST :-)  Just kidding. Also took me a year to grasp the difference :-)
-		url: this.getURI(user),
-		headers: { 'Content-Type' : 'application/json' },
-		data: user
-	})
-	.catch(err => {
-		return Promise.reject({msg: "Cannot save user ", email: user.email, err: err})
-	})
+    log.info("Save user "+user.email)
+    return axios({
+      method: 'PUT',   // PUT is idempotent. POST is not.   Go learn REST :-)  Just kidding. Also took me a year to grasp the difference :-)
+      url: this.getURI(user),
+      headers: { 'Content-Type' : 'application/json' },
+      data: user
+    })
+    .catch(err => {
+      return Promise.reject({msg: "Cannot save user ", email: user.email, err: err})
+    })
   },
 
 	/** fetch HATEOAS details of currently logged in user */
@@ -299,6 +298,25 @@ module.exports = {
     }
   },
 
+  saveNewArea(newArea) {
+    log.debug("POST new area: "+JSON.stringify(newArea))
+    return axios({
+      method: 'POST',
+      url: '/areas',
+      headers: { 'Content-Type' : 'application/json' },
+      data: newArea
+    }).then(res => {
+      return res.data
+    }).catch(err => {
+      if (err.response.status == 409) {
+        log.warn("Cannot saveNewArea: An area with that exact title already exists! "+JSON.stringify(newArea)+" :", err)
+      } else {
+        log.error("Cannot saveNewArea:"+JSON.stringify(newIdea)+" :", err)
+      }
+      return Promise.reject(err)
+    })
+  },
+
 //==================================================================================================================
 // Checksums and Proxies
 //==================================================================================================================
@@ -327,16 +345,18 @@ module.exports = {
     return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
 
-  /** add or update a delegation from the currently logged in user to a proxy */
-  assignProxy(category, proxy, voterToken, transitive) {
+  /** 
+   * add or update a delegation from the currently logged in user to a proxy 
+   * @returns the Delegation
+   */
+  assignProxy(category, proxy, voterToken) {
     if (!category) return Promise.reject("Missing category for saveProxy()")
     if (!proxy) return Promise.reject("Missing proxy for saveProxy()")
     var proxyURI = this.getURI(proxy)
-    log.debug("assignProxy(category.id="+category.id+", proxy="+proxyURI+", transitive="+transitive+")")
+    log.debug("assignProxy(category.id="+category.id+", proxy="+proxyURI+")")
     return axios.put('/my/proxy/'+category.id, {
         toProxy:    proxyURI,
-        voterToken: voterToken,
-        transitive: transitive
+        voterToken: voterToken
       }).then(res => res.data)
   },
 
@@ -526,7 +546,7 @@ module.exports = {
       method:  'POST',
       url:     '/laws/'+idea.id+'/like',
     }).then(res => {
-	  log.info("Current user " + (this.currentUser ? this.currentUser.email : "!ERROR!") +  " now supports idea(id="+idea.id+") '"+idea.title+"'")
+	  log.info("Current user now supports idea(id="+idea.id+") '"+idea.title+"'")
       return ""  // backend returns status 204
     }).catch(err => {
       log.error("Cannot addSupporter to idea(id="+idea.id+")", err)
@@ -606,12 +626,12 @@ module.exports = {
   /**
     * Upvote a comment of a proposal. Will add current user to the list of upvoters. Backend will not add an upvoter twice.
     * @param comment a comment model (JSON with comment._links.upVoters.href)
+    * @param currentUser currently logged in user from Auth.js
     * @return Promise (HTTP 204)
     */
-  upvoteComment(comment, user) {
-    //TODO: use currentUser. But api client does not know user. It only knows JWT ???
+  upvoteComment(comment, currentUser) {
     var upvotersURI = comment._links.upVoters.href   // e.g. /comments/4711/upVoters
-    var userURI     = this.getURI(user)
+    var userURI     = this.getURI(currentUser)
     log.debug("upvoteComment", upvotersURI, userURI)
     return axios({
       method: 'POST',
@@ -691,20 +711,30 @@ module.exports = {
    * find polls by their status
    * @param status {string} ELABORATION|VOTING|FINISHED
    * @return List of polls in this status
+   * 
+   * @deprecated  See findPolls() below
    */
-  findPollsByStatus(status) {
-    log.debug("findPollsByStatus()")
-    return axios.get('/polls/search/findByStatus?status='+status)
-      .then( res => { return res.data._embedded.polls })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
-  },
+	findPollsByStatus(status) {
+		log.debug("findPollsByStatus()")
+		return axios.get('/polls/search/findByStatus?status='+status)
+			.then( res => { return res.data._embedded.polls })
+			.catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatus()", err:err}) })
+	},
 
-  findPollsByStatusAndArea(status, areaURI) {
-	log.debug("findPollsByStatusAndArea()")
-    return axios.get('/polls/search/findByStatusAndArea?status='+status+'&area='+areaURI)
-      .then( res => { return res.data._embedded.polls })
-      .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot findPollsByStatusAndArea", err:err}) })
-  },
+  /**
+   * Flexible Search for poll
+   * @param {String} status (optional) Poll status
+   * @param {URI} areaURI (optional) filter for area
+   * @param {String} voterToken only return polls that have a ballot casted with this voterToken
+   */
+	findPolls(status, areaURI, voterToken) {
+		log.debug("findPolls(status="+status+", areaURI="+areaURI+", voterToken=" + voterToken ? "<yes>" : "<none>" + ")")
+		return axios.get("/polls/search/find", { params: {
+			status: status,
+			area: areaURI,
+			voterToken: voterToken
+		}}).then( res => { return res.data._embedded.polls })
+	},
 
   /**
    * Load a poll with all its proposals from the backend.
@@ -768,11 +798,22 @@ module.exports = {
    * Get user's voter token for the given area
    * @param areaId {Number} Numeric numerical ID of area
    * @param {String} tokenSecret users private tokenSecret from which his token will be created.
-   * @return users voterToken
+   * @return JSON with voterToken, delegationRequests in this area, and current delegationCount:
+   *  {
+   *    "voterToken" : "$2a$10$1IdrGrRAN2Wp3U7QI.JIzuYWEy7ZFK5FeGNGJUfYRzyBryxNdA0zm",
+   *    "delegationCount" : 0,
+   *    "_links" : {
+   *      "area" : {
+   *        "templated" : true,
+   *        "href" : "http://localhost:8080/liquido/v2/areas/29{?projection}"
+   *      }
+   *    },
+   *    "delegationRequests" : [ ]  
+   *  } 
    */
-  getVoterToken(area, tokenSecret, becomePublicProxy) {
-    log.debug("getVoterToken(area.id="+area.id+")")
-    return axios.get("/my/voterToken/"+area.id, { params: {
+  getVoterToken(areaId, tokenSecret, becomePublicProxy) {
+    log.debug("getVoterToken(area.id="+areaId+")")
+    return axios.get("/my/voterToken/"+areaId, { params: {
         tokenSecret: tokenSecret,
         becomePublicProxy: becomePublicProxy
       } })
@@ -804,11 +845,19 @@ module.exports = {
       method: 'POST',
       url: '/castVote',
       headers: { 'Content-Type' : 'application/json' },
+      withCredentials: false,   // BugFix: Make axios REALLY not send cookie.
       data: {
         poll: this.getURI(poll),
         voterToken: voterToken,
         voteOrder: voteOrder
-      }
+      },
+      transformRequest: [function (data, headers) {
+        // Do whatever you want to transform the data
+        console.log("transformRequest from", headers)
+        headers.Cookie = undefined
+        console.log("transformRequest to", headers)
+        return data;
+      }],
     })
     .then(res => { return res.data })
     /*
@@ -819,6 +868,7 @@ module.exports = {
     */
   },
 
+<<<<<<< HEAD
     /** get voter's own ballot in that poll, if he has already voted */
   getOwnBallot(poll, voterToken) {
     log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
@@ -828,6 +878,8 @@ module.exports = {
     }})
     .then(res => { return res.data })
   },
+=======
+>>>>>>> a262a201237f306a680f30b84ffb053aa3c52c1f
 
   /**
    * Verify if a ballot with that checksum was counted in the poll
@@ -836,22 +888,59 @@ module.exports = {
    * @return true, if a ballot with that checksum exists in this poll
    */
   verifyChecksum(pollId, checksum) {
+<<<<<<< HEAD
 		return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
 			  checksum: checksum
 		  }})
 		  .then(res => { return res.data })
+=======
+	return axios.get('/polls/'+pollId+'/verify', { params: {
+		  checksum: checksum
+	  }})
+	  .then(res => { return res.data })
+>>>>>>> a262a201237f306a680f30b84ffb053aa3c52c1f
   },
 
   //==================================================================================================================
-  // These calls towards the backend are only available in development environment
+  // Ballots
   //==================================================================================================================
 
-  /** get a list of users that will be used for the DevLogin Button at the top right of the UI */
-  devGetAllUsers(token) {
-	// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
-	return anonymousClient.get('/dev/users?token='+token)
-		.then(res => res.data._embedded.users)
-  }
+	/** get voter's own ballot in that poll, if he has already voted */
+	getOwnBallot(poll, voterToken) {
+		log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
+		if (!poll) return Promise.reject("Need poll to getOwnBallot!")
+		return axios.get('/polls/'+poll.id+'/myballot', { params : {
+			voterToken: voterToken
+		}})
+		.then(res => { return res.data })
+	},
+
+	/**
+	 * Get users own ballots that still be updated, because the poll is still in VOTING phase.
+	 * The voterToken has an area encodid within. So this request must be called for each area.
+	 * @param {String} voterToken users voterToken as String
+	 * @returns array of ballots in _embedded
+	 */
+	getOwnBallotsInVoting(voterToken) {
+		if (!voterToken) return Promise.reject("Need voterToken to get recent ballots!")
+		return axios.get('/my/ballots', { params : {
+			voterToken: voterToken,
+			pollStatus: "VOTING"
+		}}).then(res => res.data)
+	},
+	
+
+
+	//==================================================================================================================
+	// These calls towards the backend are only available in development environment
+	//==================================================================================================================
+
+	/** get a list of users that will be used for the DevLogin Button at the top right of the UI */
+	devGetAllUsers(token) {
+		// this must be an anonymous call, because we also want to receive users, when no one is logged in yet.  (Very early in main.js)
+		return anonymousClient.get('/dev/users?token='+token)
+			.then(res => res.data._embedded.users)
+	}
 
 
 }

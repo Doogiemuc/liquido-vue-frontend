@@ -7,8 +7,12 @@
  * 
  * For further use cases and edge cases see the regression test set.
  */
+
+// Keep in mind that these api and auth instances are not the same as the ones uses by the Vue app.
+// We can use them here to make api calls towards the backend. But we have to do our own login
 import api from '../../../src/services/LiquidoApiClient.js'
 import auth from '../../../src/services/auth.js'
+import { ConsoleReporter } from 'jasmine'
 //import { AssertionError } from 'assert';
 var fix	// Quick shortcut to access test fixture data
 
@@ -37,7 +41,7 @@ describe('Liquido Happy Case Test', function() {
 	before(function() {
 		cy.fixture('liquidoTestFixtures.json').then(fixtures => {
 			Cypress.env(fixtures)  			// store in cypres environment
-			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. => cy.apiLogin uses this instance.  Looks like an ugly hack, but works fine
+			Cypress.env('auth', auth)   	// Put a shared instance of auth.js into env. => cy.login uses this instance.  Looks like an ugly hack, but works fine
 			fix = fixtures					// quick access to test fixtures
 		})
 	})
@@ -47,6 +51,28 @@ describe('Liquido Happy Case Test', function() {
 		console.log("===================================================")
 		console.log("======= TEST CASE >>>", Cypress.mocha.getRunner().suite.ctx.currentTest.title, "<<<")
 		console.log("===================================================")
+	})
+
+	it('check for one area', function() {
+		cy.login(fix.adminMobilephone, fix.adminSmsToken)
+			.then(api.getAllCategories)
+			.then(areas => {
+				cy.log("found "+areas.length+" areas")
+				if (areas.length < 1) {
+					cy.log("Creating first area")
+					api.saveNewArea({
+						title: "Area created by Cypress test "+rand(1000,9999),
+						description: "Tests nead at least one area. So Cypress created this one."
+					}).then(area => {
+						console.log("Created first initial area", area)
+					})
+				}
+			})
+		
+	})
+
+	it('check for at least 11 users', function() {
+		//TODO
 	})
 
 	it('register as a new user', function() {
@@ -70,15 +96,13 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#registerSuccess').should('exist')					// would show error alert if user already exists
 
 		// THEN the user exists in the backend
-		cy.apiLogin(fix.adminMobilephone, fix.adminSmsToken).then(user => {
+		cy.login(fix.adminMobilephone, fix.adminSmsToken).then(user => {
 			api.findUserByEmail(Cypress.env("randEMail")).then(randUser => {
 				expect(randUser.profile.mobilephone).to.equal(Cypress.env('randMobilephone'))
 			})
 		})
 		cy.log("Successfully registerd new user");
 	})
-
-	//TODO: check that admin can login via normal UI
 
 	it('add a new idea via UI', function() {
 		//GIVEN an idea with a random title
@@ -87,7 +111,8 @@ describe('Liquido Happy Case Test', function() {
 		Cypress.env('ideaDescription', fix.ideaDescription_prefix + num)
 
 		//WHEN rand user adds a new idea
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.visit('/')
 		cy.get('#LiquidoHome').should('exist')
 		cy.get('#IdeasArrow').click()
 		cy.get('#IdeasList').should('exist')
@@ -110,7 +135,7 @@ describe('Liquido Happy Case Test', function() {
 		//THEN the idea is saved successfully
 		cy.get('#CreateIdeaSuccess').should('exist')     
 		// AND get the idea from the backend and store it in Cypress.env
-		//cy.apiLogin(fix.user1_mobilephone, fix.adminSmsToken)   // MUST login our ref to api before making any direct api calls
+		//cy.login(fix.user1_mobilephone, fix.adminSmsToken)   		// MUST login our ref to api before making any direct api calls
 		cy.get('#newIdeaUri').then(elems => {
 			var ideaURI = elems[0].textContent						// Even the selector by ID returns an Array of DOM elements!
 			return api.getIdea(ideaURI, true).then(idea => {		// BUGFIX: NEVER EVER again forget to "return" the inner Promise!!! :-)
@@ -131,15 +156,20 @@ describe('Liquido Happy Case Test', function() {
 			// Need to cy.wrap so that Cypress waits for the result, before continuing
 			// https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
 			addSupporters(10, Cypress.env('idea')).then(res => {
+				console.log("Finished adding 10 supporters to idea(id="+Cypress.env('idea').id)
 				// THEN the idea has now become a proposal
-				cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+				
+				cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 				cy.visit('/#/proposals/'+Cypress.env('idea').id)
 				// AND has the proposal icon
 				cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
 				
+				console.log("have.class is fine now sending api.getIdea")
+
 				// AND the proposal has status PROPOSAL when reloaded from the server
 				return api.getIdea(Cypress.env('idea')).then(proposal => {
-					expect(proposal.status, "Former Idea should have status PROPOSAL").to.equal('PROPOSAL')
+					console.log("got proposal ", proposal)
+					expect(proposal.status, "Former Idea should now have status PROPOSAL").to.equal('PROPOSAL')
 					Cypress.env('proposal', proposal)
 					return proposal
 				})
@@ -157,7 +187,7 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('proposal'), "Proposal should be stored in Cypress.env()").toBeNonEmptyObject
 		expect(Cypress.env('proposal').status, "Idea should have status PROPOSAL").to.equal('PROPOSAL')
 		// AND rand user is logged in
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		// AND views his proposal
 		cy.visit('/#/proposals/'+Cypress.env('proposal').id)
 
@@ -173,7 +203,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#pollTitle').should('have.text', pollTitle)
 
 		//  AND store poll in Cypress.env()
-		cy.apiLogin(Cypress.env('randMobilephone'), fix.adminSmsToken).then(user => {
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken).then(user => {
 			return api.getProposal(Cypress.env('proposal'), true).then(proposalProjection => {
 				console.log("created new poll", proposalProjection.poll)
 				Cypress.env('poll', proposalProjection.poll)
@@ -189,15 +219,13 @@ describe('Liquido Happy Case Test', function() {
 		cy.log("Create new proposal")
 		var proposalTitle = "Second Proposal created by cypress "+new Date().getTime()
 		createProposal(proposalTitle, fix.adminMobilephone, Cypress.env('areaId'))
-		.then(prop => {
-			console.log("============ AFTER create proposal")
-			expect(prop.status, "Second proposal should have status PROPOSAL").to.equal('PROPOSAL')
-		})
-
+			.then(prop => {
+				expect(prop.status, "Second proposal should have status PROPOSAL").to.equal('PROPOSAL')
+			})
 
 		cy.log("now joining poll")
 		//  WHEN joining the poll via UI
-		cy.urlLogin(fix.adminMobilephone, fix.adminSmsToken)
+		cy.login(fix.adminMobilephone, fix.adminSmsToken)
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
 
 		cy.get('#proposalSearchInput').type(proposalTitle)
@@ -216,7 +244,7 @@ describe('Liquido Happy Case Test', function() {
 
 		//  WHEN starting the voting phase of this poll
 		var backendBaseURL = Cypress.env('backendBaseURL')
-		cy.apiLogin(fix.adminMobilephone, fix.adminSmsToken).then(user => {				// MUST(!) chain the cypress command with .then()
+		cy.login(fix.adminMobilephone, fix.adminSmsToken).then(user => {				// MUST(!) chain the cypress command with .then()
 			cy.request({
 				method: 'GET',
 				url: backendBaseURL+'/dev/polls/'+Cypress.env('poll').id+'/startVotingPhase',
@@ -258,7 +286,8 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('proposal').status).to.equal('PROPOSAL')
 
 		// WHEN Navigating to our poll and start casting a vote
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.visit('/')
 		// cy.visit('/#/polls/'+Cypress.env('poll').id)   This would be quick, but no, we navigate to the poll just as a user would!
 		cy.get('#PollsArrow').click()
 
@@ -280,7 +309,10 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#CastVote').should('exist')
 
 		//  AND fetch voterToken and finally cast ballot
+		cy.wait(5000)
 		cy.get('#fetchVoterTokenButton').click()
+		cy.wait(5000)
+
 		cy.get('#voterToken').should('not.be.empty')
 		cy.get('#castVoteButton').click()
 
@@ -306,24 +338,25 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('idea')).toBeNonEmptyObject
 		expect(Cypress.env('checksum')).toBeNonEmptyString
 
-		// WHEN finish this poll
-		cy.apiLogin(fix.adminMobilephone, fix.adminSmsToken)
-		cy.request({
-			method: 'GET',
-			url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+'/finishVotingPhase',
-			headers: {
-				'Accept': 'application/json'
-			},
-			auth: {
-				bearer: api.jsonWebToken
-			}
-		}).then(res => {
-			expect(res.status).to.equal(200)
-			expect(res.winner).toBeNonEmptyObject
+		// WHEN finish this poll (as admin user via /dev endpoint)
+		cy.login(fix.adminMobilephone, fix.adminSmsToken).then(res => {
+			cy.request({
+				method: 'GET',
+				url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+'/finishVotingPhase',
+				headers: {
+					'Accept': 'application/json'
+				},
+				auth: {
+					bearer: api.jsonWebToken
+				}
+			}).then(res => {
+				expect(res.status).to.equal(200)
+				expect(res.winner).toBeNonEmptyObject
+			})
 		})
-
+		
 		// THEN poll result should have the correct winner
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
 		cy.get('#PollResult').should('exist')
 		console.log(Cypress.env('idea'))
@@ -336,7 +369,7 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('checksum')).toBeNonEmptyString
 		
 		// WHEN validating the checksum on the poll's page
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
 		cy.get('#PollResult').should('exist')
 		cy.get('#checksumInput').type(Cypress.env('checksum'))
@@ -353,7 +386,7 @@ describe('Liquido Happy Case Test', function() {
 		expect(Cypress.env('idea')).toBeNonEmptyObject
 
 		// WHEN navigating to the law's page
-		cy.urlLogin(Cypress.env('randMobilephone'), fix.adminSmsToken)
+		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/laws')
 		
 		// THEN this law is shown 
@@ -364,14 +397,15 @@ describe('Liquido Happy Case Test', function() {
 	after(function() {
 		if (Cypress.env('poll') !== undefined) {
 			console.log("DELETING poll that was created from test (poll.id="+Cypress.env('poll').id+")")
-			cy.apiLogin(fix.adminMobilephone, fix.adminSmsToken)
-			cy.request({
-				method: 'DELETE',
-				url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+"?deleteProposals=true",
-				auth: { bearer: api.jsonWebToken }
-			})
-			.then(res => { 
-				Cypress.env('poll', undefined)
+			cy.login(fix.adminMobilephone, fix.adminSmsToken).then(adminUser => {		// MUST chain the requests with then
+				cy.request({
+					method: 'DELETE',
+					url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+"?deleteProposals=true",
+					auth: { bearer: api.jsonWebToken }
+				})
+				.then(res => { 
+					Cypress.env('poll', undefined)
+				})
 			})
 		}
 		Cypress.env('areaId', undefined)
@@ -426,7 +460,10 @@ var addSupporters = function(numSupporters, idea) {
 		console.log("Adding supporters for phones", phones)
 		return phones.map(mobile =>
 			() => auth.devLogin(mobile, fix.adminSmsToken).then(
-					() => api.addSupporterToIdea(idea)   // will add the currently logged in user to the idea
+					() => {
+						console.log("Adding supporter ", mobile)
+						return api.addSupporterToIdea(idea)   // will add the currently logged in user to the idea
+					}
 				)
 			)
 		.reduce((prev, next) => {	// This chains the promises one after another. The argument to .then() must be a function that returns a promise, not the function call itself!
@@ -450,10 +487,11 @@ var addSupporters = function(numSupporters, idea) {
  */
 var createProposal = function(title, user_mobilephone, areaId) {
 
-	//FIXME: This is unstable, overengeneered and complete Promise overkill. But up to now I didn't find any other way.  I could move the whole createProposal to the backend. But I don't want to mock it. I WANT to use LiquidoApi only wherever possible in tests!
+	//FIXME: This is unstable, over engineered and complete Promise overkill. But up to now I didn't find any other way.  I could move the whole createProposal to the backend. But I don't want to mock it. I WANT to use LiquidoApi only wherever possible in tests!
+	//MAYBE: Well one possible way would be to simply to it via the frontend. Ok it's slow. But we only need this once in HappyCase
 
 	console.log("Creating new proposal: title='"+title+"' createdBy="+user_mobilephone+" in area(id="+areaId+")")
-	return cy.apiLogin(user_mobilephone, fix.adminSmsToken).then(user => {
+	return cy.login(user_mobilephone, fix.adminSmsToken).then(user => {
 		return saveNewIdea(title, areaId).then(idea => {
 			console.log("saved new idea", idea.title, "now going to add supporters")
 			return api.getIdea(idea, true).then(projectedIdea => {

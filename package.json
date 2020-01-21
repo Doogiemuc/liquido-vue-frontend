@@ -1,6 +1,6 @@
 {
   "name": "liquido-vue-frontend",
-  "version": "0.21.0",
+  "version": "35.1.0",
   "description": "Web frontend for my Liquid Democracy app implemented in NodeJS with Vue",
   "keywords": [
     "Liquid Democracy",
@@ -36,7 +36,6 @@
     "bcrypt-nodejs": "^0.0.3",
     "chalk": "^1.1.3",
     "crypto-js": "^3.1.9-1",
-    "cypress": "^3.4.1",
     "dragula": "^3.7.2",
     "izitoast": "^1.4.0",
     "lodash": "^4.17.15",
@@ -65,6 +64,7 @@
     "cross-env": "^3.2.4",
     "cross-spawn": "^4.0.2",
     "css-loader": "^0.23.0",
+    "cypress": "^3.8.2",
     "eventsource-polyfill": "^0.9.6",
     "express": "^4.16.3",
     "extract-text-webpack-plugin": "^1.0.1",

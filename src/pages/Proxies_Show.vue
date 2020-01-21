@@ -27,7 +27,7 @@
 										Requested delegation to
 									</b>
 									<b v-else>
-										Your {{ proxyInfo[area.id].directProxyDelegation.transitive ? "" : "non-transitive"}} proxy
+										Your proxy
 									</b>
 									<br/>
 									{{myProxy(area).profile.name}}<br/>
@@ -122,7 +122,7 @@ export default {
      */
     fetchCachedVoterToken(area) {
       if (this.voterTokenMap[area.id]) return Promise.resolve(this.voterTokenMap[area.id])
-      return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(token => {
+      return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(token => {
         this.voterTokenMap[area.id] = token.voterToken
         return token.voterToken
       })
@@ -202,7 +202,7 @@ export default {
         categoryId: area.id,
         category:   area,
         voterToken: this.voterTokenMap[area.id],
-        delegation: this.proxyInfo[area.id] ? this.proxyInfo[area.id].directProxyDelegation : undefined
+        initDelegation: this.proxyInfo[area.id] ? this.proxyInfo[area.id].directProxyDelegation : undefined
       }})
     }
 

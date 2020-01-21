@@ -12,11 +12,12 @@
 					<footer class="pull-right"><a href="https://en.wikipedia.org/wiki/Democracy">https://en.wikipedia.org/wiki/Democracy</a></footer>
 				</blockquote>
 			</div>
+
 			<div class="col-sm-6">
 				<h3>Liquido</h3>
 				<p>is a web based implementation of Liquid Democracy with no need for a central authority. The whole democratic process is decentralized:</p>
 				<ul>
-					<li>Anyone may suggest an <b>idea</b>.</li>
+					<li>Anyone may suggest an <b>idea</b>. Ideas can be liked.</li>
 					<li>When an idea reaches its quorum, it becomes a <b>proposal</b>.</li>
 					<li>When a <b>poll</b> is created, then further alternative proposals may decide join this poll.</li>
 					<li>All proposals in the poll can now be further discussed and continuusly elaborated.</li>
@@ -33,6 +34,7 @@
 					<footer class="pull-right"><a href="https://en.wikipedia.org/wiki/Liquid_democracy" class="quoteSource">https://en.wikipedia.org/wiki/Liquid_democracy</a></footer>
 				</blockquote>
 			</div>
+
 			<div class="col-sm-6">
 				<h3>Tree of proxies</h3>
 				<p>A proxy may in turn delegate all his collected rights to vote to another parent proxy. This way a tree of proxies evolves
@@ -41,13 +43,17 @@
 					casted vote of your proxy in a poll (as long as the poll is still in its voting phase).
 					The vote of a proxy will never overrule an already casted vote by you. And you may completely revoke your delegation to a proxy at any time.</p>
 				<p>This way the tree of delegations is in a constant state of change - it's kind of <em>liquid</em>.</p>
+			</div>
 
-				<p>&nbsp;</p>
+			<div class="col-sm-6 docButton">
+				<a class="btn btn-primary" href="http://liquido-doc.netlify.com" role="button" target="_blank">LIQUIDO Documentation <i class="fas fa-angle-double-right"></i></a>
+			</div>
+
+			<div class="col-sm-6">
 				<p v-if="$root.currentUser === undefined" class="text-center">
-					<router-link to="/login"    role="button" id="HomePageLoginButton" class="btn btn-default loginButton">Login</router-link>
-					<router-link to="/register" role="button" id="RegisterButton" class="btn btn-default">Register</router-link>
+					<router-link to="/login"    role="button" id="HomePageLoginButton" class="btn btn-default loginButton">Login <i class="fas fa-angle-double-right"></i></router-link>
+					<router-link to="/register" role="button" id="RegisterButton" class="btn btn-default">Register <i class="fas fa-angle-double-right"></i></router-link>
 				</p>
-
 			</div>
 		</div>
 	</div>
@@ -70,5 +76,8 @@ blockquote {
 }
 .loginButton {
 	margin-right: 3em;
+}
+.docButton {
+	text-align: center;
 }
 </style>

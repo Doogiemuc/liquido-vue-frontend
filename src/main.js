@@ -267,12 +267,13 @@ iziToast.settings({
  Here we start the frontend app. A lot of important things are happening here:
 
  1) isBackendAlive: ping the backend to check it we can reach it
- 2.1) checkDevelopmentMode: if NODE_ENV === "development" then configure trace level
-	and load all users for devLogin dropdown menu     
-	@return list of users if in development mode
+ 2.1) check if user is already logged in because he has a stored JWT
  2.2) get Properties from Backend
- 3) start Rootapp.vue with the return values from 2.1 and 2.2.
-	It will replace the content of index.html (the loading spinner) and will show a header and page content.
+ 2.3) checkDevelopmentMode: if NODE_ENV === "development" then configure trace level
+	    and load all users for devLogin dropdown menu     
+	    @return list of users if in development mode
+ 3) start Rootapp.vue with the three return values from above
+	  It will replace the content of index.html (the loading spinner) and will show a header and page content.
 	
  ============================================================================== */
 
@@ -309,14 +310,11 @@ var getProps = function() {
 /** Check if user is already logged in. If there is a valid JWT in the browesers local storage, then our auth.js will return the user JSON */
 var checkForJWT = function() {
 	return auth.fetchCurrentUser()
-	.then(user => {
-		return user
-	})
-	.catch(err => {
-		//If there was a JWT, it might be expired or plain simply wrong/invalid/hacked
-		//log.debug("Stored JWT was expired or invalid.", err)
-		return "Stored JWT was expired or invalid."
-	})
+  .catch(err => {
+    //If there was a JWT, it might be expired or plain simply wrong/invalid/hacked
+    log.debug("Stored JWT was expired or invalid.", err)
+    return "Stored JWT was expired or invalid."
+  })
 }
 
 /** Start the main VUE app. */

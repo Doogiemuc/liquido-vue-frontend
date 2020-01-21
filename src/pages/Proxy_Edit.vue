@@ -26,20 +26,33 @@
       <div class="col-sm-4">
 		<p>&nbsp;</p>
 
-        <div class="panel panel-default" v-if="proxy">
-          <div class="panel-heading">
-            <h4>Your proxy in '{{category.title}}'</h4>
-          </div>
-          <div class="panel-body">
-            <div>
-              <img :src="proxy.profile.picture" class="avatarImg pull-left"/>
-              {{proxy.profile.name}}<br/>
-              &lt;{{proxy.email}}&gt;
-              <br/><br/>
-              <button type="button" @click="removeProxy()" class="btn btn-danger pull-right">Remove delegation</button>
-            </div>
-          </div>
-        </div>
+		<div class="panel panel-default" v-if="proxy">
+			<div class="panel-heading">
+				<h4>Your proxy in '{{category.title}}'</h4>
+			</div>
+			<ul class="list-group">
+				<li class="list-group-item smallFont">
+					<div>
+					<img :src="proxy.profile.picture" class="avatarImg pull-left"/>
+					<span  v-if="delegation.delegationRequest">
+						<b>Requested delegation to</b><br/>
+					</span>
+					<span v-else>
+						<b>Your proxy:</b><br/>
+					</span>
+					{{proxy.profile.name}}<br/>
+					&lt;{{proxy.email}}&gt;
+					</div>
+				</li>
+				<li class="list-group-item" v-if="delegation.delegationRequest">
+					{{proxy.profile.name}} is not a public proxy. He did not yet accept your delegation request. Most likely he will soon do so. Then he will be your assigned proxy.</p>
+					<p class="text-right"><button type="button" @click="removeProxy()" class="btn btn-danger">Retrackt delegation request</button></p>
+				</li>
+				<li class="list-group-item" v-else>
+					<p class="text-right"><button type="button" @click="removeProxy()" class="btn btn-danger">Remove delegation</button></p>
+				</li>
+			</ul>
+		</div>
 
         <div class="panel panel-default" v-else>
           <div class="panel-heading">
@@ -48,7 +61,6 @@
           <div class="panel-body">
             <div>
               <p>You currently have no proxy assigned in this area. You can select one from the table at the left.</p>
-			  <p><input type="checkbox" v-model="transitive" />&nbsp;assign as transitive proxy</p>
               <button type="button" class="btn btn-primary pull-right" v-bind:disabled="this.selectedProxy == null" @click="assignProxy()">Assign proxy</button>
             </div>
           </div>
@@ -81,14 +93,14 @@ export default {
   // The delegation will be loaded if not passed
   props: {
     'category':   { type: Object, required: true },
-    'delegation': { type: Object, required: false },
+    'initDelegation': { type: Object, required: false },
   },
 
   data () {
     return {
-      proxy: this.delegation ? this.delegation.toProxy : undefined,
+	  proxy: this.initDelegation ? this.initDelegation.toProxy : undefined,
+	  delegation: this.initDelegation,
       selectedProxy: undefined,         // currently selected row in the table
-      transitive: true,                 // assign transitive proxy checkbox
       userList: [],                     // list of available users that could be assigned as proxies
       usersColumns: [
         { title: "Avatar", path: "profile.picture", vueFilter: 'userPicture', rawHTML: true },
@@ -135,10 +147,8 @@ export default {
 	
 	/** Filter rows of table by search for email or profile.name of proxy */
 	rowFilterFunc(row) {
-		return true;
 		var currentFilters = this.$refs.proxyTableFilters.currentFilters
 		if (!currentFilters || currentFilters.proxySearch === undefined) return true
-		console.log("Filtering row ", JSON.stringify(currentFilters))
 		var searchRegex = new RegExp(currentFilters.proxySearch, "i")
 		return (!currentFilters.proxySearch || (
 			searchRegex.test(row.email) ||
@@ -151,14 +161,22 @@ export default {
      */
     assignProxy() {
       log.debug("assignProxy: set '"+this.selectedProxy.email+"' as proxy for '"+this.$root.currentUser.email+"' in category '"+this.category.title+"'")
-      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+      this.$root.api.getVoterToken(this.category.id, process.env.tokenSecret, false).then(token => {
         this.$root.api.assignProxy(this.category, this.selectedProxy, token.voterToken, this.transitive).then(res => {
           log.debug(this.$root.currentUser.email + " assigned proxy '"+this.selectedProxy.email+"' in category '"+this.category.title+"'")
-          this.proxy = this.selectedProxy
-          iziToast.success({
-            title: 'OK',
-            message: "Proxy assigned successfully."
-          })
+		  this.proxy = res.toProxy
+		  this.delegation = res 
+		  if (res.delegationRequest) {
+            iziToast.success({
+              title: 'OK',
+              message: "Delegation to proxy has been requested."
+            })
+          } else {
+            iziToast.success({
+              title: 'OK',
+              message: "Proxy assigned successfully."
+            })
+          }
         })
         .catch(err => {
           log.error("Couldn't assign proxy: ", err)
@@ -174,7 +192,7 @@ export default {
     /** remove the currently set proxy */
     removeProxy() {
       log.debug("Removing proxy in category ", this.category)
-      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+      this.$root.api.getVoterToken(this.category.id, process.env.tokenSecret, false).then(token => {
         this.$root.api.removeProxy(this.category, token.voterToken).then(res => {
           this.proxy = undefined
           iziToast.success({
@@ -220,9 +238,9 @@ export default {
    *  - the proxy map of the currenlty logged in useer
    */
   mounted () {   // must do this in mounted, because only then $refs are available
+	console.log(this.delegation)
     this.$refs.proxyTable.setSort(this.usersColumns[1])
     this.getAssignableProxies().then(list => {
-		console.log("list", list)
 		this.$refs.proxyTable.setRowData(list)
 	})
   }
@@ -231,16 +249,19 @@ export default {
 </script>
 
 <style scoped>
-  .panel-heading h4 {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-  .avatarImg {
-    margin-right: 0.5em;
-  }
-
-  #proxyTable td {
-    vertical-align: middle;
-  }
-
+	.panel-heading h4 {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	.avatarImg {
+		width: 50px;
+		height: 50px;
+		margin-right: 0.5em;
+	}
+	.smallFont {
+		font-size: 12px;
+	}
+	#proxyTable td {
+		vertical-align: middle;
+	}
 </style>
