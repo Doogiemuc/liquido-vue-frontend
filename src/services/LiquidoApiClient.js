@@ -823,7 +823,7 @@ module.exports = {
   getOwnBallot(poll, voterToken) {
     log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
     if (!poll) return Promise.reject("Need poll to getOwnBallot!")
-    return axios.get('/polls/'+poll.id+'/ballot/my', { params : {
+    return axios.get('/polls/'+poll.id+'/myballot', { params : {
       voterToken: voterToken
     }})
     .then(res => { return res.data })
@@ -832,14 +832,14 @@ module.exports = {
   /**
    * Verify if a ballot with that checksum was counted in the poll
    * @param {Number} pollId id of a poll
-   * @param {String} checksumStr a checksum to verify
+   * @param {String} checksum a checksum to verify
    * @return true, if a ballot with that checksum exists in this poll
    */
   verifyChecksum(pollId, checksum) {
-	return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
-		  checksum: checksum
-	  }})
-	  .then(res => { return res.data })
+		return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
+			  checksum: checksum
+		  }})
+		  .then(res => { return res.data })
   },
 
   //==================================================================================================================

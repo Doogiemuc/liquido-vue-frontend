@@ -3,6 +3,8 @@
 
     <h1><i class="fas fa-vote-yea"></i> Cast your vote</h1>
 
+		<p>Casting a vote in LIQUIDO consists of two steps. First you fetch your voter token. Then you can anonymously cast your vote with this token.</p>
+
     <div class="panel panel-default">
       <div class="panel-heading">
         <h4>Your ballot
@@ -57,11 +59,11 @@
             <span v-show="numDelReq > 0"  class="fa-li"><i class="fas fa-2x fa-check-circle dimmed"></i></span>
             <span v-show="numDelReq === 0" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
             <p v-if="numDelReq == 1">
-              A voter would like to delegate his vote to you as his proxy. Do you want to accept this request?
-              Your vote would then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
+              A voter would like to delegate his right to vote to you as his proxy. Do you want to accept this request?
+              Your vote will then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
             </p>
             <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you.
-              Do you want to accept these requests? These voters would then be able to see how you voted. But only them because you are their proxy.
+              Do you want to accept these requests? These voters will then be able to see how you voted. But only them because you are their proxy.
               Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote). This step is optional.
             </p>
             <button v-if="numDelReq > 0" type="button" id="acceptDelegationRequestButton" class="btn btn-primary" @click="acceptDelegationRequests">
@@ -86,7 +88,8 @@
               <span v-show="step3_status === 'loading'" class="fa-li"><i class="fas fa-2x fa-spinner grey fa-spin"></i></span>
               <span v-show="step3_status === 'error'"   class="fa-li"><i class="fas fa-2x fa-times red"></i></span>
               <span v-show="step3_status === 'success'" class="fa-li"><i class="fas fa-2x fa-check-circle green"></i></span>
-              <p>Here we cast you vote completely anonymously. When your ballot was counted successfully, the server will return a checksum. You can validate that your ballot was counted correctly with this anonymous checksum. Your checksum should appear on the poll's public list of ballots. Do not reveal that this is <em>your</em> checksum!</p>
+              <p>With the voter token from above you can now anonymously cast your vote. When your ballot was counted successfully, the server will return a checksum of your ballot.
+								With this checksum you can validate that your ballot was counted correctly on the poll's page. Do not reveal your checksum! It's private and should only be known to you.</p>
               <div class="well well-sm monspaceFont" id="checksum">{{checksum || '&nbsp;'}}</div>
               <button type="button" id="castVoteButton" class="btn btn-primary" @click="castVote" :disabled="disableCastVoteButton">
                 Cast vote anonymously<span v-if="step3_status === 'success'">&nbsp;<i class="fas fa-check-circle"></i></span>
@@ -146,7 +149,6 @@ export default {
       voterToken: "",
       delegationCount: 0,
       checksum: "",
-      voteCount: undefined,
       step1_status: 'dimmed',
       step2_status: 'dimmed',
       step3_status: 'dimmed',
@@ -260,10 +262,9 @@ export default {
       return this.$root.api.castVote(this.poll, this.voteOrderUris, this.voterToken)
         .then(res => {
           this.checksum = res.checksum
-          this.voteCount = res.voteCount
           this.step3_status = "success"
           log.info("Vote for poll.id="+this.poll.id+" casted successfully.")
-
+					//TODO: two buttons in swal: "Ok" and "Go to poll"
           swal({
 			title: "SUCCESS",
 			customClass: "voteSuccess",
@@ -271,15 +272,9 @@ export default {
             type: "success"
           },
           function () {
-            //that.$router.push('/userHome')
+            //that.$router.push('/polls/'+this.poll.id)
           })
 
-          /*
-          iziToast.success({
-            title: 'Success',
-            message: "Your vote was casted successfully."
-          })
-          */
           return this.checksum
         })
         .catch(err => {

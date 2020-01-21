@@ -16,7 +16,7 @@
 		<button type="button" id="castVoteButton" class="btn btn-primary btn-lg"
 			v-bind:disabled="this.ballotIsEmpty"
 			@click="clickCastVoteButton">
-				Cast vote <i class="fas fa-angle-double-right"></i>
+				Next <i class="fas fa-angle-double-right"></i>
 		</button>
 	</div>
 
@@ -80,7 +80,7 @@
     </table>
 
     <button type="button" id="castVoteButtonBottom" class="btn btn-primary btn-lg pull-right" v-bind:disabled="this.ballotIsEmpty" @click="clickCastVoteButton">
-      Cast vote <i class="fas fa-angle-double-right"></i>
+      Next <i class="fas fa-angle-double-right"></i>
     </button>
 
   </div>
@@ -239,9 +239,16 @@ export default {
     pointer-events: none;
   }
 
-  #leftContainer {
+	.lawPanel {
+	    box-shadow: 2px 2px 5px rgba(0,0,0,.5);
+	}
+
+	#leftContainer,
+	#rightContainer {
     min-height: 200px;
-    background: #CCC;
+    border: 1px solid #DDD;
+    background-color: #CCC;
+		padding: 10px;
   }
 
   #leftContainer div.panel,
@@ -257,12 +264,6 @@ export default {
     cursor: grabbing;
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
-  }
-
-  #rightContainer {
-    min-height: 200px;
-    border: 1px solid #DDD;
-    background-color: #CCC;
   }
 
   .rightWrapper {
@@ -310,10 +311,4 @@ export default {
     margin-top: 10px;
   }
 
-</style>
-
-/*
-  BUGFIX: DOM content created with v-html are not affected by scoped styles, but you can still style them using deep selectors
-  https://vue-loader.vuejs.org/guide/scoped-css.html
-*/
 </style>
