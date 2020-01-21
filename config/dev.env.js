@@ -4,7 +4,7 @@ var prodEnv = require('./prod.env')
 /* Keep in mind, that all values in this JSON must be quoted with single AND double quotes, because of webpack !!! */
 module.exports = merge(prodEnv, {
   NODE_ENV: '"development"',
-  backendBaseURL: '"http://localhost:8080/liquido/v2"',     // URL of rest endpoint in backend (WITHOUT trailing slash!)
+  backendBaseURL: '"http://ec2-52-208-204-181.eu-west-1.compute.amazonaws.com/liquido/v2"',     // URL of rest endpoint in backend (WITHOUT trailing slash!)
 
   // These user can be logged in with one click
   devUsers: '['+

@@ -83,7 +83,7 @@
           </a>
         </div>
         <div>
-          <a class="documentation-link" href="http://liquido-doc.netlify.com" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
+          <a class="documentation-link" href="http://doc.liquido.vote" target="_blank"><i class="fas fa-question-circle"></i> LIQUIDO Documentation</a>
         </div>
       </div>
     </footer>
@@ -271,7 +271,8 @@ export default {
   }
 
   footer {
-    margin-top: 15px;
+    margin-top: 30px;
+		height: 50px;
     background-color: #f8f8f8;
     border-top: 1px solid #e7e7e7;
     padding-top: 5px;

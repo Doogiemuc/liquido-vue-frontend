@@ -62,7 +62,7 @@
               A voter would like to delegate his right to vote to you as his proxy. Do you want to accept this request?
               Your vote will then count two times. This voter will be able to see how you voted. But only him because you are his proxy. This step is optional.
             </p>
-            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you. Do you want to accept these requests? 
+            <p v-if="numDelReq > 1">{{numDelReq}} voters would like to delegate their right to vote to you. Do you want to accept these requests?
               When you cast your vote, then also ballots for these delegees will be casted.
               As a consequence these voters would then be able to see how you voted. But only them because you are their proxy.
               Your vote would then count {{delegationCount + numDelReq + 1}} times (including your own vote). This step is optional.
@@ -150,6 +150,7 @@ export default {
       topProxy: undefined,
       voterToken: "",
       delegationCount: 0,
+			voteCount: 0,
       checksum: "",
       step1_status: 'dimmed',
       step2_status: 'dimmed',

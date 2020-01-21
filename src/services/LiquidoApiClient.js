@@ -8,7 +8,7 @@
  * I know this module is too large for one file. I started to split it up several times. But in the end
  * I personally had the best coding experience when everything was in one file.
  * I tried many different node REST client libraries. But axios was the best and most simple to use.
- * 
+ *
  * LiquidoApiClient only knows the JWT from the backend. It does not know anything about the
  * currently logged in user's data like name, email. The currently logged in user is only stored in auth.js
  */
@@ -25,7 +25,6 @@ var log = loglevel.getLogger("LiquidoApiClient")
 
 const axios = require('axios')              // main HTTP client
 const anonymousClient = axios.create()      // extra HTTP client instance for anonymous unauthenticated requests
-anonymousClient.defaults.headers.Cookie = undefined   // Bugfix: Do not send any cookies with anonymous client!
 
 /***** Set Base URL of backend *****/
 if (process.env.backendBaseURL) {
@@ -345,8 +344,8 @@ module.exports = {
     return axios.get('/my/proxy/'+area.id).then(res => res.data)
   },
 
-  /** 
-   * add or update a delegation from the currently logged in user to a proxy 
+  /**
+   * add or update a delegation from the currently logged in user to a proxy
    * @returns the Delegation
    */
   assignProxy(category, proxy, voterToken) {
@@ -711,7 +710,7 @@ module.exports = {
    * find polls by their status
    * @param status {string} ELABORATION|VOTING|FINISHED
    * @return List of polls in this status
-   * 
+   *
    * @deprecated  See findPolls() below
    */
 	findPollsByStatus(status) {
@@ -808,11 +807,12 @@ module.exports = {
    *        "href" : "http://localhost:8080/liquido/v2/areas/29{?projection}"
    *      }
    *    },
-   *    "delegationRequests" : [ ]  
-   *  } 
+   *    "delegationRequests" : [ ]
+   *  }
    */
   getVoterToken(areaId, tokenSecret, becomePublicProxy) {
     log.debug("getVoterToken(area.id="+areaId+")")
+		if (!areaId || !tokenSecret) return Promise.reject("Need areaId and tokenSecret to getVoterToken!")
     return axios.get("/my/voterToken/"+areaId, { params: {
         tokenSecret: tokenSecret,
         becomePublicProxy: becomePublicProxy
@@ -845,12 +845,13 @@ module.exports = {
       method: 'POST',
       url: '/castVote',
       headers: { 'Content-Type' : 'application/json' },
-      withCredentials: false,   // BugFix: Make axios REALLY not send cookie.
+      //withCredentials: false,   // BugFix: Make axios REALLY not send cookie.
       data: {
         poll: this.getURI(poll),
         voterToken: voterToken,
         voteOrder: voteOrder
       },
+			/*
       transformRequest: [function (data, headers) {
         // Do whatever you want to transform the data
         console.log("transformRequest from", headers)
@@ -858,28 +859,25 @@ module.exports = {
         console.log("transformRequest to", headers)
         return data;
       }],
+			*/
     })
     .then(res => { return res.data })
-    /*
     .catch(err => {
       console.log("Error in apiClient.castVote", err)
       return Promise.reject({msg: "LiquidoApiClient: Cannot castVote()", poll: poll, err: err})
     })
-    */
   },
 
-<<<<<<< HEAD
-    /** get voter's own ballot in that poll, if he has already voted */
+	/** get voter's own ballot in that poll, if he has already voted */
   getOwnBallot(poll, voterToken) {
     log.debug("getOwnBallot(pollId="+poll.id+" with voterToken)")
     if (!poll) return Promise.reject("Need poll to getOwnBallot!")
+		if (!voterToken) return Promise.reject("Need voterToken to getOwnBallot!")
     return axios.get('/polls/'+poll.id+'/myballot', { params : {
       voterToken: voterToken
     }})
     .then(res => { return res.data })
   },
-=======
->>>>>>> a262a201237f306a680f30b84ffb053aa3c52c1f
 
   /**
    * Verify if a ballot with that checksum was counted in the poll
@@ -887,19 +885,12 @@ module.exports = {
    * @param {String} checksum a checksum to verify
    * @return true, if a ballot with that checksum exists in this poll
    */
-  verifyChecksum(pollId, checksum) {
-<<<<<<< HEAD
-		return axios.get('/polls/'+pollId+'/verifyChecksum', { params: {
-			  checksum: checksum
-		  }})
-		  .then(res => { return res.data })
-=======
-	return axios.get('/polls/'+pollId+'/verify', { params: {
-		  checksum: checksum
-	  }})
-	  .then(res => { return res.data })
->>>>>>> a262a201237f306a680f30b84ffb053aa3c52c1f
-  },
+	verifyChecksum(pollId, checksum) {
+		return axios.get('/polls/'+pollId+'/verify', { params: {
+			checksum: checksum
+		}})
+		.then(res => { return res.data })
+	},
 
   //==================================================================================================================
   // Ballots
@@ -928,7 +919,7 @@ module.exports = {
 			pollStatus: "VOTING"
 		}}).then(res => res.data)
 	},
-	
+
 
 
 	//==================================================================================================================

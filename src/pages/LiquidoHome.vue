@@ -1,6 +1,6 @@
 <template>
 	<div class="container" id="LiquidoHome">
-		<h1>Liquido</h1>
+		<h1>Liquido WebApp</h1>
 		<p class="lead">A liquid aproach to direct democracy.</p>
 		<hr>
 		<div class="row">
@@ -45,13 +45,13 @@
 				<p>This way the tree of delegations is in a constant state of change - it's kind of <em>liquid</em>.</p>
 			</div>
 
-			<div class="col-sm-6 docButton">
-				<a class="btn btn-primary" href="http://liquido-doc.netlify.com" role="button" target="_blank">LIQUIDO Documentation <i class="fas fa-angle-double-right"></i></a>
+			<div class="col-sm-6 buttonCol">
+				<a class="btn btn-default" href="http://www.liquido.vote" role="button"><i class="fas fa-angle-double-left"></i> LIQUIDO Website</a>
 			</div>
 
-			<div class="col-sm-6">
+			<div class="col-sm-6 buttonCol">
 				<p v-if="$root.currentUser === undefined" class="text-center">
-					<router-link to="/login"    role="button" id="HomePageLoginButton" class="btn btn-default loginButton">Login <i class="fas fa-angle-double-right"></i></router-link>
+					<router-link to="/login"    role="button" id="HomePageLoginButton" class="btn btn-primary loginButton">Login <i class="fas fa-angle-double-right"></i></router-link>
 					<router-link to="/register" role="button" id="RegisterButton" class="btn btn-default">Register <i class="fas fa-angle-double-right"></i></router-link>
 				</p>
 			</div>
@@ -77,7 +77,7 @@ blockquote {
 .loginButton {
 	margin-right: 3em;
 }
-.docButton {
-	text-align: center;
+.buttonCol {
+	margin-top: 3rem;
 }
 </style>
