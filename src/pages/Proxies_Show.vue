@@ -122,7 +122,7 @@ export default {
      */
     fetchCachedVoterToken(area) {
       if (this.voterTokenMap[area.id]) return Promise.resolve(this.voterTokenMap[area.id])
-      return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(token => {
+      return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(token => {
         this.voterTokenMap[area.id] = token.voterToken
         return token.voterToken
       })

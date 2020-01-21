@@ -1,0 +1,9 @@
+{
+	"baseUrl": "http://ec2-52-208-204-181.eu-west-1.compute.amazonaws.com/",
+	"env": {
+		"backendBaseURL": "http://ec2-52-208-204-181.eu-west-1.compute.amazonaws.com/liquido/v2"
+	},
+	"testFiles": "**/liquidoHappyCase.js",
+	"watchForFileChanges": false,
+	"defaultCommandTimeout": 10000
+}

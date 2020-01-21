@@ -219,9 +219,9 @@ export default {
      * If an error appears then we show an error message with expandable error details.
      */
     fetchVoterToken() {
-      log.info("Starting to cast the vote.")
+      log.info("Starting to cast the vote.", this.poll.area)
       this.step1_status = "loading"
-      return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false)  // do not automatically become a proxy here
+      return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false)  // do not automatically become a proxy here
         .then(res => {
           console.log("got voterToken", res)
           this.voterToken         = res.voterToken

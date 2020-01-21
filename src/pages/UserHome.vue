@@ -195,7 +195,7 @@ export default {
 
 		getVoterTokens(areas) {
 			return Promise.all(
-				areas.map(area => this.$root.api.getVoterToken(area, process.env.tokenSecret))
+				areas.map(area => this.$root.api.getVoterToken(area.id, process.env.tokenSecret))
 			)
 		},
 
@@ -223,7 +223,7 @@ export default {
 		 * @return {Object} with area and voterToken(String)
 		 */
 		getVoterToken(area) {
-			return this.$root.api.getVoterToken(area, process.env.tokenSecret, false).then(voterTokenJson => {
+			return this.$root.api.getVoterToken(area.id, process.env.tokenSecret, false).then(voterTokenJson => {
 				return { area: area, voterToken: voterTokenJson.voterToken }
 			})
 		},
@@ -233,7 +233,7 @@ export default {
 			var area
 			for(area of this.areas) {
 				tasks.push(
-					this.getVoterToken(area).then(res => {
+					this.getVoterToken(area.id).then(res => {
 						console.log("getVoterToken res=", res)
 						return this.$root.api.acceptDelegationRequests(res.area, res.voterToken).then(res => {
 							console.log("Accepted delegation requests", res)  // res.delegationCount

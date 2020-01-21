@@ -12,6 +12,7 @@
 // We can use them here to make api calls towards the backend. But we have to do our own login
 import api from '../../../src/services/LiquidoApiClient.js'
 import auth from '../../../src/services/auth.js'
+import { ConsoleReporter } from 'jasmine'
 //import { AssertionError } from 'assert';
 var fix	// Quick shortcut to access test fixture data
 
@@ -50,6 +51,28 @@ describe('Liquido Happy Case Test', function() {
 		console.log("===================================================")
 		console.log("======= TEST CASE >>>", Cypress.mocha.getRunner().suite.ctx.currentTest.title, "<<<")
 		console.log("===================================================")
+	})
+
+	it('check for one area', function() {
+		cy.login(fix.adminMobilephone, fix.adminSmsToken)
+			.then(api.getAllCategories)
+			.then(areas => {
+				cy.log("found "+areas.length+" areas")
+				if (areas.length < 1) {
+					cy.log("Creating first area")
+					api.saveNewArea({
+						title: "Area created by Cypress test "+rand(1000,9999),
+						description: "Tests nead at least one area. So Cypress created this one."
+					}).then(area => {
+						console.log("Created first initial area", area)
+					})
+				}
+			})
+		
+	})
+
+	it('check for at least 11 users', function() {
+		//TODO
 	})
 
 	it('register as a new user', function() {
@@ -133,15 +156,20 @@ describe('Liquido Happy Case Test', function() {
 			// Need to cy.wrap so that Cypress waits for the result, before continuing
 			// https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
 			addSupporters(10, Cypress.env('idea')).then(res => {
+				console.log("Finished adding 10 supporters to idea(id="+Cypress.env('idea').id)
 				// THEN the idea has now become a proposal
+				
 				cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 				cy.visit('/#/proposals/'+Cypress.env('idea').id)
 				// AND has the proposal icon
 				cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
 				
+				console.log("have.class is fine now sending api.getIdea")
+
 				// AND the proposal has status PROPOSAL when reloaded from the server
 				return api.getIdea(Cypress.env('idea')).then(proposal => {
-					expect(proposal.status, "Former Idea should have status PROPOSAL").to.equal('PROPOSAL')
+					console.log("got proposal ", proposal)
+					expect(proposal.status, "Former Idea should now have status PROPOSAL").to.equal('PROPOSAL')
 					Cypress.env('proposal', proposal)
 					return proposal
 				})
@@ -191,11 +219,9 @@ describe('Liquido Happy Case Test', function() {
 		cy.log("Create new proposal")
 		var proposalTitle = "Second Proposal created by cypress "+new Date().getTime()
 		createProposal(proposalTitle, fix.adminMobilephone, Cypress.env('areaId'))
-		.then(prop => {
-			console.log("============ AFTER create proposal")
-			expect(prop.status, "Second proposal should have status PROPOSAL").to.equal('PROPOSAL')
-		})
-
+			.then(prop => {
+				expect(prop.status, "Second proposal should have status PROPOSAL").to.equal('PROPOSAL')
+			})
 
 		cy.log("now joining poll")
 		//  WHEN joining the poll via UI
@@ -283,7 +309,10 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#CastVote').should('exist')
 
 		//  AND fetch voterToken and finally cast ballot
+		cy.wait(5000)
 		cy.get('#fetchVoterTokenButton').click()
+		cy.wait(5000)
+
 		cy.get('#voterToken').should('not.be.empty')
 		cy.get('#castVoteButton').click()
 
@@ -431,7 +460,10 @@ var addSupporters = function(numSupporters, idea) {
 		console.log("Adding supporters for phones", phones)
 		return phones.map(mobile =>
 			() => auth.devLogin(mobile, fix.adminSmsToken).then(
-					() => api.addSupporterToIdea(idea)   // will add the currently logged in user to the idea
+					() => {
+						console.log("Adding supporter ", mobile)
+						return api.addSupporterToIdea(idea)   // will add the currently logged in user to the idea
+					}
 				)
 			)
 		.reduce((prev, next) => {	// This chains the promises one after another. The argument to .then() must be a function that returns a promise, not the function call itself!

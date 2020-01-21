@@ -25,6 +25,7 @@ var log = loglevel.getLogger("LiquidoApiClient")
 
 const axios = require('axios')              // main HTTP client
 const anonymousClient = axios.create()      // extra HTTP client instance for anonymous unauthenticated requests
+anonymousClient.defaults.headers.Cookie = undefined   // Bugfix: Do not send any cookies with anonymous client!
 
 /***** Set Base URL of backend *****/
 if (process.env.backendBaseURL) {
@@ -218,16 +219,16 @@ module.exports = {
 
   /** Update existing user */
   saveUser(user) {
-	log.info("Save user "+user.email)
-	return axios({
-		method: 'PUT',   // PUT is idempotent. POST is not.   Go learn REST :-)  Just kidding. Also took me a year to grasp the difference :-)
-		url: this.getURI(user),
-		headers: { 'Content-Type' : 'application/json' },
-		data: user
-	})
-	.catch(err => {
-		return Promise.reject({msg: "Cannot save user ", email: user.email, err: err})
-	})
+    log.info("Save user "+user.email)
+    return axios({
+      method: 'PUT',   // PUT is idempotent. POST is not.   Go learn REST :-)  Just kidding. Also took me a year to grasp the difference :-)
+      url: this.getURI(user),
+      headers: { 'Content-Type' : 'application/json' },
+      data: user
+    })
+    .catch(err => {
+      return Promise.reject({msg: "Cannot save user ", email: user.email, err: err})
+    })
   },
 
 	/** fetch HATEOAS details of currently logged in user */
@@ -295,6 +296,25 @@ module.exports = {
     } else {
       return Promise.reject("Cannot get Category from uri="+uri)
     }
+  },
+
+  saveNewArea(newArea) {
+    log.debug("POST new area: "+JSON.stringify(newArea))
+    return axios({
+      method: 'POST',
+      url: '/areas',
+      headers: { 'Content-Type' : 'application/json' },
+      data: newArea
+    }).then(res => {
+      return res.data
+    }).catch(err => {
+      if (err.response.status == 409) {
+        log.warn("Cannot saveNewArea: An area with that exact title already exists! "+JSON.stringify(newArea)+" :", err)
+      } else {
+        log.error("Cannot saveNewArea:"+JSON.stringify(newIdea)+" :", err)
+      }
+      return Promise.reject(err)
+    })
   },
 
 //==================================================================================================================
@@ -791,9 +811,9 @@ module.exports = {
    *    "delegationRequests" : [ ]  
    *  } 
    */
-  getVoterToken(area, tokenSecret, becomePublicProxy) {
-    log.debug("getVoterToken(area.id="+area.id+")")
-    return axios.get("/my/voterToken/"+area.id, { params: {
+  getVoterToken(areaId, tokenSecret, becomePublicProxy) {
+    log.debug("getVoterToken(area.id="+areaId+")")
+    return axios.get("/my/voterToken/"+areaId, { params: {
         tokenSecret: tokenSecret,
         becomePublicProxy: becomePublicProxy
       } })
@@ -825,11 +845,19 @@ module.exports = {
       method: 'POST',
       url: '/castVote',
       headers: { 'Content-Type' : 'application/json' },
+      withCredentials: false,   // BugFix: Make axios REALLY not send cookie.
       data: {
         poll: this.getURI(poll),
         voterToken: voterToken,
         voteOrder: voteOrder
-      }
+      },
+      transformRequest: [function (data, headers) {
+        // Do whatever you want to transform the data
+        console.log("transformRequest from", headers)
+        headers.Cookie = undefined
+        console.log("transformRequest to", headers)
+        return data;
+      }],
     })
     .then(res => { return res.data })
     /*

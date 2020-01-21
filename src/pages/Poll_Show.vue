@@ -306,7 +306,7 @@ export default {
 		/* lazily fetch the user's voterToken and cache it locally */
 		fetchVoterToken() {
 			if (this.voterToken !== undefined) return Promise.resolve(this.voterToken)
-			return this.$root.api.getVoterToken(this.poll.area, process.env.tokenSecret, false).then(token => {
+			return this.$root.api.getVoterToken(this.poll.area.id, process.env.tokenSecret, false).then(token => {
 				this.voterToken = token.voterToken
 				return this.voterToken
 			})

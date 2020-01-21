@@ -161,7 +161,7 @@ export default {
      */
     assignProxy() {
       log.debug("assignProxy: set '"+this.selectedProxy.email+"' as proxy for '"+this.$root.currentUser.email+"' in category '"+this.category.title+"'")
-      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+      this.$root.api.getVoterToken(this.category.id, process.env.tokenSecret, false).then(token => {
         this.$root.api.assignProxy(this.category, this.selectedProxy, token.voterToken, this.transitive).then(res => {
           log.debug(this.$root.currentUser.email + " assigned proxy '"+this.selectedProxy.email+"' in category '"+this.category.title+"'")
 		  this.proxy = res.toProxy
@@ -192,7 +192,7 @@ export default {
     /** remove the currently set proxy */
     removeProxy() {
       log.debug("Removing proxy in category ", this.category)
-      this.$root.api.getVoterToken(this.category, process.env.tokenSecret, false).then(token => {
+      this.$root.api.getVoterToken(this.category.id, process.env.tokenSecret, false).then(token => {
         this.$root.api.removeProxy(this.category, token.voterToken).then(res => {
           this.proxy = undefined
           iziToast.success({
