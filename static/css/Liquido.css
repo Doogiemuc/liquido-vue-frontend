@@ -3,7 +3,7 @@
  */
 
 body {
-  padding-top: 50px; /* because of fixed header */
+  padding-top: 80px; /* because of fixed header with BETA warning */
 }
 
 .opaqueImg {

@@ -1,6 +1,9 @@
 <template>
   <div>
     <div class="navbar navbar-default navbar-fixed-top">
+			<div class="under-construction">
+				LIQUIDO is currently in its public BETA phase. This DB is automatically reset every night!
+			</div>
       <div class="container">
         <div class="navbar-header">
           <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle">
@@ -288,5 +291,22 @@ export default {
   footer a:hover {
     color: blue;
   }
+
+	.under-construction {
+		color: white;
+		padding: 5px 0;
+		font-weight: bold;
+		font-size: 16px;
+		text-align: center;
+		text-shadow: 1px 1px 3px #000;
+		background: repeating-linear-gradient(
+		  50deg,
+		  #440,
+		  #440 9px,
+		  #880 11px,
+		  #880 20px,
+			#440 21px
+		);
+	}
 
 </style>
