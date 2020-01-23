@@ -60,7 +60,7 @@
             </li>
           </ul>
 
-          <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" id="NavLoginButton" class="btn btn-default navbar-btn navbar-right">Login</router-link>
+          <router-link v-if="!currentUser && $route.path != '/login'" role="button" to="/login" id="NavLoginButton" class="btn btn-primary navbar-btn navbar-right">Login</router-link>
 
           <div v-if="showDevLogin" class="btn-group navbar-btn navbar-right">
             <!-- Development login -->

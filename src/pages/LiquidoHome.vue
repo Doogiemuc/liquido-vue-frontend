@@ -1,7 +1,7 @@
 <template>
 	<div class="container" id="LiquidoHome">
 		<h1>Liquido WebApp</h1>
-		<p class="lead">A liquid aproach to direct democracy.</p>
+		<p class="lead">A modern approach to Liquid Democracy.</p>
 		<hr>
 		<div class="row">
 			<div class="col-sm-6">
