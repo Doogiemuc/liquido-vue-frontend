@@ -45,7 +45,7 @@ const routes = [
 		initEmail: route.query.email || route.params.initEmail,
 		initMobilePhone: route.params.initMobilePhone,
 		token: route.query.token
-	}) 
+	})
   },
   { path: '/logout',
     component: LogoutPage,
@@ -56,7 +56,7 @@ const routes = [
 
   // =================== Category / Area ================
   { path: '/categories',
-    component: function(resolve) {                
+    component: function(resolve) {
       require(['./pages/Categories_List.vue'], resolve)
     }
   },
@@ -198,7 +198,7 @@ const routes = [
     },
     props: true
   },
-  
+
   // ======================= PageNotFound =======================
   // Show error page for all invalid pathes
   { path: '/pageNotFound', component: PageNotFound, meta: { requiresAuth: false } }
@@ -270,11 +270,11 @@ iziToast.settings({
  2.1) check if user is already logged in because he has a stored JWT
  2.2) get Properties from Backend
  2.3) checkDevelopmentMode: if NODE_ENV === "development" then configure trace level
-	    and load all users for devLogin dropdown menu     
+	    and load all users for devLogin dropdown menu
 	    @return list of users if in development mode
  3) start Rootapp.vue with the three return values from above
 	  It will replace the content of index.html (the loading spinner) and will show a header and page content.
-	
+
  ============================================================================== */
 
 /** Check if backend is alive at all. */
@@ -299,12 +299,17 @@ var checkDevelopmentMode = function() {
 		loglevel.setLevel("trace")   				// trace == log everything
 		return apiClient.devGetAllUsers(process.env.devLoginToken)			// No login! /dev/users Endpoint must be publicly available. Which is only the case in DEV and TEST!
 	}
-	return Promise.resolve([])	
+	return Promise.resolve([])
 }
 
 /** Load Liquido properties ("setting variables") from backend */
 var getProps = function() {
-	return apiClient.getGlobalProperties()
+	return apiClient.getGlobalProperties().then(res => {
+		if (process.env.NODE_ENV === "development" || process.env.NODE_ENV=="testing") {
+			log.info("Liquido Global Properties", res)
+		}
+		return res
+	})
 }
 
 /** Check if user is already logged in. If there is a valid JWT in the browesers local storage, then our auth.js will return the user JSON */
@@ -334,15 +339,6 @@ var startApp = function([alreadyLoggedInUser, props, devUsers]) {
 	return rootApp
 }
 
-/*  No more automatic login of user.  This is unhandy during testing.
-var autoLoginDevUser = function(rootApp) {
-	if (process.env.NODE_ENV == "development" && process.env.devLoginMobilephone !== undefined) {
-	  auth.devLogin(process.env.devLoginMobilephone)
-	}
-	return Promise.resolve()
-}
-*/
-
 /**
  * Here comes JS Promises at its best :-)
  * First we check if the backend is alive.
@@ -360,4 +356,3 @@ isBackendAlive()
     console.error("Fatal error during LIQUIDO startup", err)
     $('#loadingCircle').replaceWith('<p class="bg-danger" id="backendNotAlive">ERROR while loading Liquido App. Please try again later.</p>')
   })
-

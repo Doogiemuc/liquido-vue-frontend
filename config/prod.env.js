@@ -6,6 +6,6 @@ module.exports = {
   //TODO: let voter choose tokenSecret for maximum security. This dummy one is from TestFixtures.java
   tokenSecret: '"userTokenSecret"',
 
-  // Only for development and tests: SMS Token that can login the admin
+  // authentication token that can login the admin, and only the admin
   devLoginToken: '"998877"'
 }

@@ -49,7 +49,7 @@ export default {
 			log.debug("Found JWT in localStorage.")
 			return this.storeJwt(jsonWebToken)
 		} else {
-			return Promise.reject("Cannot fetchCurrentUser. Don't have JWT.")
+			return Promise.reject({msg: "Cannot fetchCurrentUser. Don't have JWT.", err: "CANNOT_FETCH_USER"})
 		}
 	},
 
@@ -58,7 +58,11 @@ export default {
 	requestSmsToken(mobilephone) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
 		return axios.get('/auth/requestSmsToken', { params: { mobile: cleanMobilePhone} } )
-		  .catch(err => { log.error("Cannot requestSmsToken for "+mobilephone, err) })
+		  .catch(err => {
+				var msg = "Cannot requestSmsToken for "+mobilephone
+				log.warn(msg, err)
+				return Promise.reject({msg: msg, err: err})
+			})
 	},
 
 	/**
@@ -75,13 +79,14 @@ export default {
 			return this.storeJwt(res.data)
 		})
 		.catch(err => {
-			log.error("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
-			return Promise.reject({msg: "Cannot loginWithSmsToken mobilephone="+mobilephone, err: err})
+			var msg = "Cannot loginWithSmsToken mobilephone="+mobilephone
+			log.warn(msg, err)
+			return Promise.reject({msg: msg, err: err})
 		})
 	},
 
-	/** 
-	 * When we've got a JWT, then store it globally and fetch user details 
+	/**
+	 * When we've got a JWT, then store it globally and fetch user details
 	 * @pararm {String} Json Web Token
 	 * @return User info JSON
 	 */
@@ -99,7 +104,7 @@ export default {
 				if (err.data && err.data.liquidoErrorName === "JWT_TOKEN_EXPIRED") {
 					log.info("JWT is expired. Need to re-login.", err)
 				} else {
-					log.warn("Cannot find user details with JWT. Invalid JWT?", err)	
+					log.warn("Cannot find user details with JWT. Invalid JWT?", err)
 				}
 				this.logout()
 				return Promise.reject({msg: "Cannot find user details with JWT.", err: err})
@@ -109,9 +114,10 @@ export default {
 	/** Request a one time token for login that will be sent via email */
 	requestLoginEmail(email) {
 		return axios.get('/auth/requestEmailToken', { params: { email: email } } )
-		  .catch(err => { 
-			  log.error("Cannot requestEmailToken for "+email, err) 
-			  return Promise.reject(err)
+		  .catch(err => {
+				var msg = "Cannot requestEmailToken for "+email
+			  log.warn(msg, err)
+			  return Promise.reject({msg: msg, err: err})
 		  })
 	},
 
@@ -122,25 +128,26 @@ export default {
 			return this.storeJwt(res.data)
 		  })
 		  .catch(err => {
-			log.error("Cannot login with email token", err)
-			return Promise.reject("Cannot login with email token"+err)
+				var msg = "Cannot login with email token"
+				log.warn(msg, err)
+				return Promise.reject({msg: msg, err: err})
 		  })
 	},
 
 	/** Logout the current user */
 	logout() {
-		log.info("LOGOUT")
+		log.info("LOGOUT "+this.currentUser.email)
 		this.currentUser = undefined
 		localStorage.removeItem(JWT_ITEM_KEY)
 		apiClient.setJsonWebTokenHeader(undefined)
 	},
 
-	/** 
-	 * Quick login for development. 
+	/**
+	 * Quick login for development.
 	 * Still MUST provide valid token.
-	 * 
+	 *
 	 * GET /dev/loginWithSmsToken?mobile=%2B49123451389&token=123456
-	 * 
+	 *
 	 * @return the loggin in user as JSON
 	 */
 	devLogin(mobilephone, token) {
@@ -152,7 +159,7 @@ export default {
 				return this.storeJwt(res.data)
 			})
 			.catch(err => {
-				log.error("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
+				log.warn("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
 				return Promise.reject({msg: "Cannot loginWithSmsToken mobilephone="+mobilephone, err: err})
 			})
 	},

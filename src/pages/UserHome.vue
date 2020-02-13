@@ -17,8 +17,10 @@
 					<div class="panel-body">
 						<p>Great see you. It looks like you are new here. Here are some ways to start:</p>
 						<ul>
-							<li>You can <a href="/#/ideas/add">add your own idea.</a></li>
-							<li>You can <a href="/#/polls">cast your vote</a> in poll.</a></li>
+							<li><a href="/#/proposals">Discuss current proposals</a></li>
+							<li><a href="/#/polls">Cast your vote in a poll</a></li>
+							<li><a href="/#/ideas/add">Add your own idea.</a></li>
+							<li><a href="/#/proxies">Assign a proxy</a></li>
 						</ul>
 						<p>Use the grey arrows at the top to navigate within LIQUIDO.</p>
 					</div>
@@ -109,13 +111,15 @@
 						<h4>Your ballots in voting</h4>
 					</div>
 					<div class="panel-body">
-						<p>Here you can load all ballots that were recently casted by you (or a proxy for you)
-						and that you can still update because the poll is still in voting.</p>
+						<p>Here you can load your ballots that you recently casted.
+							When the poll is still in its voting phase, then you can still update your ballot.</p>
+						<p>In LIQUIDO ballots may also have been casted by one of your proxies for you.
+							In this case you may overwrite the proxie's ballot and cast your own one.</p>
 						<button role="button" class="btn btn-default" @click="loadOwnBallotsInVoting">Fetch ballots</button>
 					</div>
 					<ul class="list-group" v-if="ownBallots">
 						<li v-for="ballot in ownBallots" :key="ballot.id" class="list-group-item item-condensed">
-							Ballot <small>&lt;{{ballot.checksum}}&gt;</small> in this
+							Ballot <span class="ballot-checksum">{{ballot.checksum}}</span> in this
 							<router-link :to="pollLink(ballot)"><i class="fas fa-balance-scale"></i> Poll</router-link>
 							<i v-if="ballot.level > 0" class="far fa-share-square"></i>
 						</li>
@@ -285,6 +289,13 @@ export default {
 		color: #999;
 		font-size: 12px;
 		line-height: 1.4;
+	}
+
+	.ballot-checksum {
+		font-size: 12px;
+		background: #EEE;
+		font-family: monospace;
+		padding: 2px;
 	}
 
 	/* Button in the lower right corner of poll-pannel */

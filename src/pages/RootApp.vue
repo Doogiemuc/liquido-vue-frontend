@@ -80,7 +80,7 @@
     <footer>
       <div class="container">
         <div class="pull-right">
-          <small>{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> env={{nodeEnv}} -> {{liquidoBackendInfo}}</small>&nbsp;
+          <small>v{{liquidoWebAppVersion}}</small><small v-if="nodeEnv !== 'production'"> &rarr; {{liquidoBackendBaseUrl}} ({{liquidoBackendVersion}}) {{nodeEnv}}</small>&nbsp;
           <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" style="color:grey">
             <img alt="Creative Commons License" class="opaqueImg" style="border-width:0" src="/static/img/licensebutton-80x15.png">
           </a>
@@ -110,9 +110,10 @@ export default {
   */
 
 
-  computed: {
-	liquidoWebAppVersion() { return process.env.liquidoWebAppVersion },
-    liquidoBackendInfo()   { return "backend@"+this.props['liquido.backend.version'] + ' ' + process.env.backendBaseURL },
+	computed: {
+		liquidoWebAppVersion()   { return process.env.liquidoWebAppVersion },
+    liquidoBackendVersion()  { return this.props.backendVersion },
+		liquidoBackendBaseUrl()  { return process.env.backendBaseURL },
     nodeEnv()        { return process.env.NODE_ENV },
     currentUser()    { return auth.currentUser },
     showDevLogin()   { return process.env.NODE_ENV === 'development' && this.currentUser === undefined },
