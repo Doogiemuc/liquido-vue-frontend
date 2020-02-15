@@ -66,7 +66,7 @@
 						<div class="col-sm-10">
 							<p>You do not need to remember a password for Liquido. You will login with your mobile phone.</p>
 							<p>Please <a href="https://authy.com/install">install the Authy app.</a> You must use the same mobile number as above when you register in the authy app!</p>
-							<p>Authy can then generate time based one time tokens (T-OTP). These are like passwords but a T-OTP is only valid for about a minute. Every minute the Authy App will automatically generate a new 6-digit token for you.
+							<p>Authy can then generate time based one time tokens (T-OTP). These are like passwords but a T-OTP is only valid for a short time. Every 20 seconds the Authy App will automatically generate a new 6-digit token.
 							  This secure token will allow you to login.</p>
 							<p class="app-store-imgs">
 								<a href="https://authy.com/install"><img src="/static/img/Download_on_the_App_Store_Badge_US.svg" width="135" height="46" style="margin-right: 2rem;"></a>

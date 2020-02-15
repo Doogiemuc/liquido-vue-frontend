@@ -31,6 +31,7 @@ const JWT_ITEM_KEY = 'liquido-jwt'
  * 
  * Keep in mind that this logs in the user in the auth instance of the Cypress Test.
  * This is a different auth instance than the one used by the Vue web app!
+ * But we do store the JWT in the browser under test. So the user will also be logged-in in the app.
  * 
  * @param mobilephone {String} user's mobilephone, e.g. fix.user1_mobile
  * @param token {String} secret login token for LIQUIDO admin

@@ -54,10 +54,10 @@ export default {
 	},
 
 
-	/** Request a one time token for login that will be sent via SMS */
-	requestSmsToken(mobilephone) {
+	/** Request a one time token for login */
+	requestAuthyToken(mobilephone) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
-		return axios.get('/auth/requestSmsToken', { params: { mobile: cleanMobilePhone} } )
+		return axios.get('/auth/requestToken', { params: { mobile: cleanMobilePhone} } )
 		  .catch(err => {
 				var msg = "Cannot requestSmsToken for "+mobilephone
 				log.warn(msg, err)
@@ -71,15 +71,15 @@ export default {
 	 * @param {String} smsToken 6-digit SMS code that was sent to the user's mobile phone
 	 * @return user info JSON
 	 */
-	loginWithSmsToken(mobilephone, smsToken) {
+	loginWithToken(mobilephone, smsToken) {
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
 		log.debug("Login request with SMS token from "+cleanMobilePhone)
-		return axios.get('/auth/loginWithSmsToken', { params: { mobile: cleanMobilePhone, token: smsToken} } )
+		return axios.get('/auth/loginWithToken', { params: { mobile: cleanMobilePhone, token: smsToken} } )
 		.then(res =>  {
 			return this.storeJwt(res.data)
 		})
 		.catch(err => {
-			var msg = "Cannot loginWithSmsToken mobilephone="+mobilephone
+			var msg = "Cannot loginWithToken mobilephone="+mobilephone
 			log.warn(msg, err)
 			return Promise.reject({msg: msg, err: err})
 		})
@@ -146,7 +146,7 @@ export default {
 	 * Quick login for development.
 	 * Still MUST provide valid token.
 	 *
-	 * GET /dev/loginWithSmsToken?mobile=%2B49123451389&token=123456
+	 * GET /dev/loginWithToken?mobile=%2B49123451389&token=123456
 	 *
 	 * @return the loggin in user as JSON
 	 */
@@ -159,8 +159,8 @@ export default {
 				return this.storeJwt(res.data)
 			})
 			.catch(err => {
-				log.warn("Cannot loginWithSmsToken mobilephone="+mobilephone, err)
-				return Promise.reject({msg: "Cannot loginWithSmsToken mobilephone="+mobilephone, err: err})
+				log.warn("Cannot devLogin mobilephone="+mobilephone, err)
+				return Promise.reject({msg: "Cannot devLogin mobilephone="+mobilephone, err: err})
 			})
 	},
 

@@ -12,11 +12,13 @@
 // We can use them here to make api calls towards the backend. But we have to do our own login
 import api from '../../../src/services/LiquidoApiClient.js'
 import auth from '../../../src/services/auth.js'
-import { ConsoleReporter } from 'jasmine'
+//import { ConsoleReporter } from 'jasmine'
 //import { AssertionError } from 'assert';
 var fix	// Quick shortcut to access test fixture data
 
 describe('Liquido Happy Case Test', function() {
+
+	console.log("[TEST] Running Liquido Happy Case against "+Cypress.env('backendBaseURL'))
 
 	/** Make one initial request against the backend to check if it is alive at all */
 	before(function() {
@@ -71,9 +73,25 @@ describe('Liquido Happy Case Test', function() {
 		
 	})
 
-	it('check for at least 11 users', function() {
-		//TODO
-	})
+	it('check for at least 12 users in DB', function() {
+		const nn = 12
+		cy.log("Checking for at least "+nn+" users in the  DB.")
+		cy.login(fix.adminMobilephone, fix.adminSmsToken).then(res => {
+			cy.request({
+				method: 'GET',
+				url: Cypress.env('backendBaseURL')+'/users',
+				auth: {
+					bearer: api.jsonWebToken
+				}
+			}).then(res => {
+				console.log(res)
+				expect(res.body._embedded.users, "Need at leats "+nn+" users.").to.have.length.of.at.least(nn)
+				cy.log("Ok, we have at least "+nn+" users in the DB.")
+			})
+			
+		})
+	})		
+	
 
 	it('register as a new user', function() {
 		// GIVEN random new user data
@@ -148,7 +166,7 @@ describe('Liquido Happy Case Test', function() {
 
 	it('quickly add supporters to this idea until it becomes a proposal', function() {
 		//GIVEN an idea in Cypress.env
-		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").toBeNonEmptyObject
+		expect(Cypress.env('idea'), "Idea should be stored in Cypress.env()").to.be.an('object')
 		expect(Cypress.env('idea').status, "Idea should have status IDEA").to.equal('IDEA')
 
 		//WHEN adding enough supporters to idea
@@ -157,8 +175,8 @@ describe('Liquido Happy Case Test', function() {
 			// https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
 			addSupporters(10, Cypress.env('idea')).then(res => {
 				console.log("Finished adding 10 supporters to idea(id="+Cypress.env('idea').id)
-				// THEN the idea has now become a proposal
 				
+				// THEN the idea has now become a proposal
 				cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 				cy.visit('/#/proposals/'+Cypress.env('idea').id)
 				// AND has the proposal icon
@@ -184,7 +202,7 @@ describe('Liquido Happy Case Test', function() {
 		//GIVEN a poll title
 		var pollTitle = "Poll created by test "+new Date().getTime()
 		// AND a proposal
-		expect(Cypress.env('proposal'), "Proposal should be stored in Cypress.env()").toBeNonEmptyObject
+		expect(Cypress.env('proposal'), "Proposal should be stored in Cypress.env()").to.be.an('object')
 		expect(Cypress.env('proposal').status, "Idea should have status PROPOSAL").to.equal('PROPOSAL')
 		// AND rand user is logged in
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
@@ -240,7 +258,7 @@ describe('Liquido Happy Case Test', function() {
 
 	it('start voting phase', function() {
 		// GIVEN a poll
-		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('poll')).to.be.an('object')
 
 		//  WHEN starting the voting phase of this poll
 		var backendBaseURL = Cypress.env('backendBaseURL')
@@ -281,8 +299,8 @@ describe('Liquido Happy Case Test', function() {
 
 	it('cast vote for this proposal', function() {
 		// GIVEN a poll and an proposal
-		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('proposal')).toBeNonEmptyObject
+		expect(Cypress.env('poll')).to.be.an('object')
+		expect(Cypress.env('proposal')).to.be.an('object')
 		expect(Cypress.env('proposal').status).to.equal('PROPOSAL')
 
 		// WHEN Navigating to our poll and start casting a vote
@@ -309,9 +327,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#CastVote').should('exist')
 
 		//  AND fetch voterToken and finally cast ballot
-		cy.wait(5000)
 		cy.get('#fetchVoterTokenButton').click()
-		cy.wait(5000)
 
 		cy.get('#voterToken').should('not.be.empty')
 		cy.get('#castVoteButton').click()
@@ -334,9 +350,9 @@ describe('Liquido Happy Case Test', function() {
 
 	it("finish poll and verify winning proposal", function() {
 		// GIVEN a poll and idea and a checksum
-		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('idea')).toBeNonEmptyObject
-		expect(Cypress.env('checksum')).toBeNonEmptyString
+		expect(Cypress.env('poll'), "Need poll").to.be.an('object')
+		expect(Cypress.env('idea'), "Need idea").to.be.an('object')
+		expect(Cypress.env('checksum'), "Need checksum").to.be.a('string').that.is.not.empty   // Chai can by really fluid :-) https://www.chaijs.com/api/bdd/
 
 		// WHEN finish this poll (as admin user via /dev endpoint)
 		cy.login(fix.adminMobilephone, fix.adminSmsToken).then(res => {
@@ -350,8 +366,8 @@ describe('Liquido Happy Case Test', function() {
 					bearer: api.jsonWebToken
 				}
 			}).then(res => {
-				expect(res.status).to.equal(200)
-				expect(res.winner).toBeNonEmptyObject
+				expect(res.status, "Poll is finished").to.equal(200)
+				expect(res.body.winner, "Poll has a winner").to.be.an('object')
 			})
 		})
 		
@@ -365,8 +381,8 @@ describe('Liquido Happy Case Test', function() {
 
 	it("ballot's checksum is valid", function() {
 		// GIVEN a finished poll and a ballot's checksum
-		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('checksum')).toBeNonEmptyString
+		expect(Cypress.env('poll')).to.be.an('object')
+		expect(Cypress.env('checksum')).to.be.a('string').that.is.not.empty
 		
 		// WHEN validating the checksum on the poll's page
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
@@ -382,8 +398,8 @@ describe('Liquido Happy Case Test', function() {
 
 	it('Winning law is shown on the laws page', function() {
 		// GIVEN a poll and the winning law
-		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('idea')).toBeNonEmptyObject
+		expect(Cypress.env('poll')).to.be.an('object')
+		expect(Cypress.env('idea')).to.be.an('object')
 
 		// WHEN navigating to the law's page
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
@@ -453,7 +469,7 @@ var addSupporters = function(numSupporters, idea) {
 		let phones = []
 		let i = 0;
 		while (phones.length < numSupporters && i < users.length) {
-			if (users[i].email != idea.createdBy.email) phones.push(users[i].profile.mobilephone)	
+			if (users[i].email != idea.createdBy.email) phones.push(users[i].profile.mobilephone)	// A user must not support his own idea
 			i++;
 		}
 		if (phones.length < numSupporters) return Promise.reject("Cannot addSupporters. Need at least "+(numSupporters+1)+" users in the DB!")
@@ -495,7 +511,7 @@ var createProposal = function(title, user_mobilephone, areaId) {
 		return saveNewIdea(title, areaId).then(idea => {
 			console.log("saved new idea", idea.title, "now going to add supporters")
 			return api.getIdea(idea, true).then(projectedIdea => {
-				return addSupporters(11, projectedIdea).then(res => {
+				return addSupporters(10, projectedIdea).then(res => {
 					return api.getIdea(idea, true).then(projectedProposal => {   			   // reload idea in new status proposal and return that
 						console.log(projectedProposal)
 						return projectedProposal

@@ -64,7 +64,7 @@
     "cross-env": "^3.2.4",
     "cross-spawn": "^4.0.2",
     "css-loader": "^0.23.0",
-    "cypress": "^3.8.2",
+    "cypress": "^4.0.2",
     "eventsource-polyfill": "^0.9.6",
     "express": "^4.16.3",
     "extract-text-webpack-plugin": "^1.0.1",

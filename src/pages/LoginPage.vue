@@ -1,7 +1,55 @@
 <template>
 	<div class="container" id="LoginPage">
 		<div class="row topRow">
-			<div class="col-md-5">
+
+			<div class="col-md-8">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Login via Authy App (or SMS)</h3>
+					</div>
+					<div class="panel-body">
+						<div class="row">
+							<div class="col-sm-8">
+
+								<form accept-charset="UTF-8" role="form" class="phoneForm form-inline">
+									<fieldset>
+										<div class="form-group">
+											<input class="form-control" id="phoneInput" placeholder="your mobile phone no." name="mobilephone" type="text" v-model="mobilephone">
+										</div>
+										<button type="submit" id="requestAuthyTokenButton" @click.prevent="requestAuthyToken()" class="btn btn-primary" :disabled="disableRequestTokenButton">Request token</button>
+									</fieldset>
+								</form>
+								<form class="form-inline">
+									<fieldset :disabled="!tokenRequested">
+										<div class="form-group">
+											<p>Request a token for your mobile phone number, then enter the 6-digit one time token from the Authy app:</p>
+											<div class="digit-group" id="tokenInputs">
+												<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
+												<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
+												<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
+												<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
+												<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
+												<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
+											</div>
+										</div>
+									</fieldset>
+								</form>
+								<div class="alert alert-danger" id="tokenAlert" v-if="tokenErrorMsg">
+									<button type="button" class="close" aria-label="Close" @click="tokenErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
+									<span v-html="tokenErrorMsg"></span>
+								</div>
+
+							</div>
+							<div class="col-sm-4 hidden-xs">
+								<img src="/static/img/Authy Screenshot with Phone.jpg" width="120px" class="pull-right" />
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-4">
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						<h3 class="panel-title">Login via email</h3>
@@ -10,7 +58,7 @@
 						<form accept-charset="UTF-8" role="form" class="loginLinkForm">
 							<fieldset>
 								<div class="form-group">
-									<input class="form-control" id="emailInput" placeholder="email" name="email" type="text" v-model="email">
+									<input class="form-control" id="emailInput" placeholder="your email" name="email" type="text" v-model="email">
 								</div>
 								<p>An email with a login link will be sent to your email account.</p>
 								<button type="submit" id="loginLinkButton" @click.prevent="requestLoginEmail()" class="btn btn-primary" :disabled="!isEmailValid">Send login link</button>
@@ -28,44 +76,6 @@
 				</div>
 			</div>
 
-			<div class="col-md-2">&nbsp;</div>
-
-			<div class="col-md-5">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">Login via Authy/SMS</h3>
-					</div>
-					<div class="panel-body text-center">
-						<form accept-charset="UTF-8" role="form" class="phoneForm">
-							<fieldset>
-								<div class="form-group">
-									<input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
-								</div>
-								<p>If you have the authy app installed enter the Liquido token form the app. Otherwise a one time token will be sent to you via SMS.</p>
-								<button type="submit" id="sendSmsLoginTokenButton" @click.prevent="requestSmsToken()" class="btn btn-primary" :disabled="disableSendSmsTokenButton">Request token</button>
-							</fieldset>
-						</form>
-						<form class="form-inline" v-if="smsTokenSent">
-							<div class="form-group">
-								<p>Enter the 6-digit token that you have received via SMS:</p>
-								<div class="digit-group" id="smsTokenInputs">
-									<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
-									<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
-									<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
-									<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
-									<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
-									<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
-								</div>
-							</div>
-						</form>
-						<p></p>
-						<div class="alert alert-danger" v-if="smsErrorMsg">
-							<button type="button" class="close" aria-label="Close" @click="smsErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
-							<span v-html="smsErrorMsg"></span>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<div class="row lastRow">
@@ -73,10 +83,10 @@
 				<a href="https://authy.com/install" class="pull-left">
 					<img src="/static/img/Authy_App_246.png" class="app-logo">
 				</a>
-				<p>If you haven't already done so, please <a href="https://authy.com/install">install the Authy app</a> on your mobile phone, so that you use secure "one time passwords" to login.</p>
+				<p>If you haven't already done so, please <a href="https://authy.com/install">install the Authy app</a> on your mobile phone, so that you can use secure one time passwords to login.</p>
 			</div>
 			<div class="col-md-6 text-right">
-				<router-link to="/register" role="button" class="btn btn-default">Register &raquo;</router-link>
+				<router-link to="/register" role="button" class="btn btn-default">Register as new user &raquo;</router-link>
 			</div>
 		</div>
 	</div>
@@ -105,24 +115,23 @@ export default {
 		return {
 			emailSuccess: false,
 			emailErrorMsg: '',
-			smsTokenSent: false,
-			smsErrorMsg: '',
+			tokenRequested: false,
+			tokenErrorMsg: '',
 			email: this.initEmail,
 			mobilephone: this.initMobilePhone,
 			rememberMe: false,
-			smsTokenSent: false,
-			digits: []            // 6 digit sms token entered by user
+			digits: []            // 6 digit token entered by user
 		}
 	},
 
 	computed: {
 		isDevEnv() { return process.env.NODE_ENV === 'development' },
-		smsToken() { return this.digits[0]+this.digits[1]+this.digits[2]+this.digits[3] },
+		authyToken() { return this.digits.join("") },
 		isEmailValid() {
 			return validEMailRe.test(this.email)
 		},
-		disableSendSmsTokenButton() {
-			return this.mobilephone.length < 5 || this.smsTokenSent
+		disableRequestTokenButton() {
+			return this.mobilephone.length < 5 // || this.tokenRequested
 		},
 	},
 
@@ -142,36 +151,36 @@ export default {
 					$(evt.target).nextAll("input")[0].focus()  // focus next input
 				}
 				if (digitNo == 5) {     // when the sixth digit is entered, then immidiately validate the entered sms token.
-					this.loginWithSmsToken()
+					this.loginWithAuthyToken()
 				}
 			}
 		},
 
-		/** request login token that will be sent via SMS */
-		requestSmsToken() {
-			this.smsTokenSent = true
-			this.smsErrorMsg = ''
+		/** request Authy login token */
+		requestAuthyToken() {
+			this.tokenRequested = true
+			this.tokenErrorMsg = ''
 			this.digits = []
-			this.$root.auth.requestSmsToken(this.mobilephone).then(res => {
-				this.smsTokenSent = true
+			this.$root.auth.requestAuthyToken(this.mobilephone).then(res => {
+				this.tokenRequested = true
 				this.$nextTick(function () {
 					$('#digit0').focus()
 				})
 			}).catch(error => {
 				if (error.err.data.liquidoErrorCode === 4 /*CANNOT_LOGIN_MOBILE_NOT_FOUND*/) {
-					this.smsErrorMsg = 'Mobile number unknown.<br/>You must <a href="/#/register">register</a> first.'
+					this.tokenErrorMsg = 'Mobile number unknown.<br/>You must <a href="/#/register">register</a> first.'
 				} else {
-					this.smsErrorMsg = "Could not request token."
+					this.tokenErrorMsg = "Could not request token."
 				}
-				this.smsTokenSent = false
+				this.tokenRequested = false
 			})
 		},
 
-		loginWithSmsToken() {
-			var smsToken = this.digits.join("")
-			this.$root.auth.loginWithSmsToken(this.mobilephone, smsToken)
+		loginWithAuthyToken() {
+			var authyToken = this.digits.join("")
+			this.$root.auth.loginWithToken(this.mobilephone, authyToken)
 				.then(user => {
-					this.smsErrorMsg = ""
+					this.tokenErrorMsg = ""
 					iziToast.success({
 						id: "LoginSuccess",
 						title: 'Login',
@@ -180,9 +189,9 @@ export default {
 					})
 					this.$router.push('/userHome')
 				}).catch(err => {
-					this.smsErrorMsg = "SMS token not valid."
-					this.smsTokenSent = false
-					log.error("Error in loginWithSmsToken", err)
+					this.tokenErrorMsg = "This token is invalid."
+					this.tokenRequested = false
+					log.error("Error in loginWithAuthyToken", err)
 				})
 	},
 
@@ -232,6 +241,11 @@ export default {
 .lastRow {
 	margin-top: 50px;
 }
+/* Make Bootstrap cells in row same hight https://www.codeply.com/go/bp/Cn6fA6LuTq */
+.row.equal {
+	display: flex;
+	flex-wrap: wrap;
+}
 .phoneForm {
 	margin-bottom: 1em;
 }
@@ -247,6 +261,9 @@ export default {
 	font-size: 24pt;
 	text-align: center;
 	display: inline-block; /* prevent wrapping also on narrow mobile view */
+}
+#tokenAlert {
+	margin-top: 2rem;
 }
 .app-logo {
 	width: 80px;
