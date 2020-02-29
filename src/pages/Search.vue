@@ -62,7 +62,7 @@ export default {
     return {
       // Data for DoogieTable.vue
       tableColumns: [
-		{ title: "", path: "status", vueFilter: 'statusIcon', rawHTML: true},  
+		{ title: "", path: "status", vueFilter: 'statusIcon', rawHTML: true},
         { title: "Title", path: "title", editable: false, rawHTML: false },
         { title: "Description", path: "description", editable: false, rawHTML: true },
         { htmlTitle: '<i class="fa fa-user"></i>', path: "createdBy", vueFilter: 'userAvatar', rawHTML: true },
@@ -312,14 +312,14 @@ export default {
       .catch(err => { console.error("ERROR appending to search result: ", err) })
 
 	},
-	
+
 	/** Set currentFilterValues from initial query (if any is passed) */
 	handleInitQuery() {
 		if (this.initQuery) {
 			for (var filterId in this.initQuery) {
 				switch (filterId) {
 					case "areaId":
-						//TODO:  BUGFIX Can only set area, AFTER area has been loaded. :-(   
+						//TODO:  BUGFIX Can only set area, AFTER area has been loaded. :-(
 						this.$refs.tableFilter.setFilterValue("category", this.initQuery[filterId])			// set areaId. Area name will be set automatically
 						break;
 					case "textSearch":
@@ -362,7 +362,7 @@ export default {
   },
 
   mounted() {
-	
+
   },
 
   /** These are vue "filters". They convert the passed value into a format that shows to the user. (They should be called converters by vue.) */
@@ -374,7 +374,7 @@ export default {
 		}
 		return '<i class="fa fa-file-alt" aria-hidden="true"></i>'
 	},
-	
+
 	userAvatar(user) {
       return '<img src="'+user.profile.picture+'" title="'+user.profile.name +' <'+ user.email +'>" />'
     },

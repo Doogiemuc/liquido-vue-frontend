@@ -1,10 +1,10 @@
 /**
  * Start to finish HAPPY CASE for Liquido.
  * This is the shortest simplest possible user flow  from registering a new user until a finished poll.
- * 
+ *
  * The individual tests inside this file depend on each other and must run in this order. Only the whole spec is repeatable.
  * Each test step can use the data created from the test steps before it. This data is kept in Cypress.env()
- * 
+ *
  * For further use cases and edge cases see the regression test set.
  */
 
@@ -22,7 +22,7 @@ describe('Liquido Happy Case Test', function() {
 
 	/** Make one initial request against the backend to check if it is alive at all */
 	before(function() {
-		cy.request({ 
+		cy.request({
 			url: Cypress.env('backendBaseURL')+'/_ping',
 			timeout: 1000
 		}).then(res => {
@@ -70,7 +70,7 @@ describe('Liquido Happy Case Test', function() {
 					})
 				}
 			})
-		
+
 	})
 
 	it('check for at least 12 users in DB', function() {
@@ -101,7 +101,7 @@ describe('Liquido Happy Case Test', function() {
 		Cypress.env('randEMail',       randUsername + fix.email_suffix)
 		Cypress.env('randMobilephone', fix.mobilephone_prefix + num)
 		Cypress.env('randWebsite',     'www.fromCypressTest.org')
-		
+
 		// WHEN this user registers
 		cy.visit('/')
 		cy.get('#RegisterButton').click()
@@ -144,24 +144,24 @@ describe('Liquido Happy Case Test', function() {
 			win.tinyMCE.activeEditor.save()   // BUGFIX: Must manually save TinyMCE's content back to the textare to trigger all necessary events. *sic*
 		})
 		//AND selects the first area
-		cy.get('#ideaAreaSelect > option').eq(0).then(el => 
+		cy.get('#ideaAreaSelect > option').eq(0).then(el =>
 			cy.get('#ideaAreaSelect').select(el.val())
 		)
 		//AND saves that idea
 		cy.get('#saveIdeaButton').click()
 
 		//THEN the idea is saved successfully
-		cy.get('#CreateIdeaSuccess').should('exist')     
+		cy.get('#CreateIdeaSuccess').should('exist')
 		// AND get the idea from the backend and store it in Cypress.env
 		//cy.login(fix.user1_mobilephone, fix.adminSmsToken)   		// MUST login our ref to api before making any direct api calls
 		cy.get('#newIdeaUri').then(elems => {
 			var ideaURI = elems[0].textContent						// Even the selector by ID returns an Array of DOM elements!
 			return api.getIdea(ideaURI, true).then(idea => {		// BUGFIX: NEVER EVER again forget to "return" the inner Promise!!! :-)
 				Cypress.env("idea", idea)							// Put projected JSON of idea into Cypress.env  ("projected" means, with user etc.)
-				cy.log("Successfully created new idea ", idea) 
+				cy.log("Successfully created new idea ", idea)
 			})
 		})
-		
+
 	})
 
 	it('quickly add supporters to this idea until it becomes a proposal', function() {
@@ -175,13 +175,13 @@ describe('Liquido Happy Case Test', function() {
 			// https://github.com/cypress-io/cypress-example-recipes/blob/master/examples/logging-in__using-app-code/cypress/integration/spec.js
 			addSupporters(10, Cypress.env('idea')).then(res => {
 				console.log("Finished adding 10 supporters to idea(id="+Cypress.env('idea').id)
-				
 				// THEN the idea has now become a proposal
+
 				cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 				cy.visit('/#/proposals/'+Cypress.env('idea').id)
 				// AND has the proposal icon
 				cy.get('.lawPanel h4.lawTitle > svg').should('have.class', 'fa-file-alt')   // fa-file-alt is the icon for a proposal
-				
+
 				console.log("have.class is fine now sending api.getIdea")
 
 				// AND the proposal has status PROPOSAL when reloaded from the server
@@ -193,9 +193,9 @@ describe('Liquido Happy Case Test', function() {
 				})
 			})
 		)
-		
+
 		cy.log("SUCCESS. Idea has become a proposal.")
-		
+
 	})
 
 	it('start a new poll', function() {
@@ -231,7 +231,7 @@ describe('Liquido Happy Case Test', function() {
 
 		cy.log('Successfully started poll '+pollTitle)
 	})
-	
+
 	it('second proposal joins this poll', function() {
 		// GIVEN a proposal from a second user (admin)
 		cy.log("Create new proposal")
@@ -250,7 +250,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('#joinPollPanel .dropdown-menu > li > a:first()').should('have.text', proposalTitle)
 		cy.get('#joinPollPanel .dropdown-menu > li > a:first()').click()
 		cy.get('#joinPollPanel button').click()    // This click reloads the whole page after we joined the poll.
-		
+
 		//  THEN the new proposal is shown on the poll's page
 		cy.get('div.lawPanel h4.lawTitle').should('contain.text', proposalTitle)
 		cy.log('SUCCESS: Second proposal joined the poll')
@@ -274,8 +274,8 @@ describe('Liquido Happy Case Test', function() {
 				console.log("Started voting phase of poll", res)
 				cy.log("Started voting phase of poll")
 			})
-		})	
-		
+		})
+
 		//  THEN the poll is shown in voting phase
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
 		cy.get('#castVoteButton').should('not.be.disabled')
@@ -328,7 +328,6 @@ describe('Liquido Happy Case Test', function() {
 
 		//  AND fetch voterToken and finally cast ballot
 		cy.get('#fetchVoterTokenButton').click()
-
 		cy.get('#voterToken').should('not.be.empty')
 		cy.get('#castVoteButton').click()
 
@@ -345,7 +344,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
 		cy.get('#yourBallot').should('exist')
 
-		cy.log("Vote casted SUCCESSFULLY.") 
+		cy.log("Vote casted SUCCESSFULLY.")
 	})
 
 	it("finish poll and verify winning proposal", function() {
@@ -370,7 +369,7 @@ describe('Liquido Happy Case Test', function() {
 				expect(res.body.winner, "Poll has a winner").to.be.an('object')
 			})
 		})
-		
+
 		// THEN poll result should have the correct winner
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
@@ -381,9 +380,9 @@ describe('Liquido Happy Case Test', function() {
 
 	it("ballot's checksum is valid", function() {
 		// GIVEN a finished poll and a ballot's checksum
-		expect(Cypress.env('poll')).to.be.an('object')
-		expect(Cypress.env('checksum')).to.be.a('string').that.is.not.empty
-		
+		expect(Cypress.env('poll')).toBeNonEmptyObject
+		expect(Cypress.env('checksum')).toBeNonEmptyString
+
 		// WHEN validating the checksum on the poll's page
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/polls/'+Cypress.env('poll').id)
@@ -404,8 +403,8 @@ describe('Liquido Happy Case Test', function() {
 		// WHEN navigating to the law's page
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
 		cy.visit('/#/laws')
-		
-		// THEN this law is shown 
+
+		// THEN this law is shown
 		cy.get('.lawListCondensedTable tr[data-lawuri="'+Cypress.env('idea')._links.self.href+'"]')
 	})
 
@@ -419,7 +418,7 @@ describe('Liquido Happy Case Test', function() {
 					url: Cypress.env('backendBaseURL')+'/dev/polls/'+Cypress.env('poll').id+"?deleteProposals=true",
 					auth: { bearer: api.jsonWebToken }
 				})
-				.then(res => { 
+				.then(res => {
 					Cypress.env('poll', undefined)
 				})
 			})
@@ -462,9 +461,9 @@ var saveNewIdea = function(title, areaId) {
  */
 var addSupporters = function(numSupporters, idea) {
 	console.log("Adding "+numSupporters+" supporters to idea", idea)
-	if (!idea.id || !idea.createdBy || !idea.createdBy.email) 
+	if (!idea.id || !idea.createdBy || !idea.createdBy.email)
 	  return Promise.reject("ERROR: need idea.id and idea.createdBy.email. You MUTS pass a PROJECTED idea to function addSupporters()!")
-	
+
 	return api.devGetAllUsers(fix.adminSmsToken).then(users => {
 		let phones = []
 		let i = 0;
@@ -487,7 +486,7 @@ var addSupporters = function(numSupporters, idea) {
 		}, Promise.resolve("FIRST"))
 		/*
 		.then(res => {
-			return idea				// MAYBE: return the idea, since the chained promises above (with api.addSupporterToIdea inside) done't return anything.   But this would still be the old idea. 
+			return idea				// MAYBE: return the idea, since the chained promises above (with api.addSupporterToIdea inside) done't return anything.   But this would still be the old idea.
 		})
 		*/
 	})
@@ -495,7 +494,7 @@ var addSupporters = function(numSupporters, idea) {
 }
 
 /**
- * Quickly create a new proposal. Will create an idea and then add enough supporters, so that 
+ * Quickly create a new proposal. Will create an idea and then add enough supporters, so that
  * the idea immideately becomes a proposal. This uses the /dev endpoints of the backend.
  * @param {String} title Title of the new proposal
  * @param {String} user_mobilephone mobile phone of proposal's creator
@@ -519,11 +518,11 @@ var createProposal = function(title, user_mobilephone, areaId) {
 				})
 			})
 		})
-	})	
+	})
 }
 
 // Creat a random Integer in the interval [min, max[
-var rand = function(min,max)   
+var rand = function(min,max)
 {
   return Math.floor(Math.random()*(max-min)+min);
 }

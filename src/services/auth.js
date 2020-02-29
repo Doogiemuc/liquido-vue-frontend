@@ -136,7 +136,7 @@ export default {
 
 	/** Logout the current user */
 	logout() {
-		log.info("LOGOUT "+this.currentUser.email)
+		log.info("LOGOUT " + (this.currentUser ? this.currentUser.email : ""))
 		this.currentUser = undefined
 		localStorage.removeItem(JWT_ITEM_KEY)
 		apiClient.setJsonWebTokenHeader(undefined)
@@ -154,6 +154,7 @@ export default {
 		log.debug("devLogin for mobilephone ", mobilephone)
 		if (!token) return Promise.reject("ERROR: Need valid token for devLogin!")
 		var cleanMobilePhone = this.cleanMobilePhone(mobilephone)
+		this.logout()  // clear any pre-existing JWT that might be expired
 		return axios.get('/dev/getJWT', { params: { mobile: cleanMobilePhone, token: token} } )
 			.then(res =>  {
 				return this.storeJwt(res.data)

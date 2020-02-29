@@ -727,7 +727,7 @@ module.exports = {
    * @param {String} voterToken only return polls that have a ballot casted with this voterToken
    */
 	findPolls(status, areaURI, voterToken) {
-		log.debug("findPolls(status="+status+", areaURI="+areaURI+", voterToken=" + voterToken ? "<yes>" : "<none>" + ")")
+		log.debug("findPolls(status="+status+", areaURI="+areaURI+", voterToken=" + (voterToken ? "<yes>" : "<none>") + ")")
 		return axios.get("/polls/search/find", { params: {
 			status: status,
 			area: areaURI,
@@ -774,21 +774,26 @@ module.exports = {
     })
   },
 
+  /**
+	 * A proposal wants to join an already existing poll.
+	 * The poll must be in ELABORATION!
+	 * @param {object} proposal the proposal (or its URI)
+	 * @param {object} poll to join. Must have an ID
+	 * @returns the joined poll
+	 */
   joinPoll(proposal, poll) {
     log.debug("joinPoll()", proposal, poll)
-    //TODO: make some basic checks about proposal and poll
+		if (!poll || !poll.id) return Promise.reject({msg:"Need poll with id to join!", err: {}})
+		if (!proposal) return Promise.reject({msg:"Need proposal with URI that wants to join poll", err:{}})
     var proposalURI = this.getURI(proposal)
-    var pollURI = this.getURI(poll)
     return axios({
         method: 'POST',
-        url: '/joinPoll',
+        url: '/polls/'+poll.id+"/join",
         headers: { 'Content-Type' : 'application/json' },
         data: {
-          proposal: proposalURI,
-          poll: pollURI
+          proposal: proposalURI
         }
       })
-      .then( res => { return "" })  // returns HTTP status 201
       .catch(err => { return Promise.reject({msg: "LiquidoApiClient: Cannot joinPoll()", err: err}) })
   },
 

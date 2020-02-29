@@ -37,8 +37,6 @@
             <p>A voter token is the digital representation of your right to vote. With this token your ballot can be casted <b>anonymously.</b>
               This token is <b>confidential!</b> Do not share it!</p>
 
-            <!--input type="text" class="form-control" name="tokenSecret" id="tokenSecretInput" v-model="tokenSecret" placeholder="tokenSecret"></input -->
-
             <div class="well well-sm monspaceFont" id="voterToken">{{voterToken || '&nbsp;'}}</div>
 
             <button type="button" id="fetchVoterTokenButton" class="btn btn-primary" @click="fetchVoterToken" :disabled="disableFetchVoterTokenButton">

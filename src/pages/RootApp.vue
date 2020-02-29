@@ -2,7 +2,7 @@
   <div>
     <div class="navbar navbar-default navbar-fixed-top">
 			<div class="under-construction">
-				LIQUIDO is currently in its public BETA phase. This DB is automatically reset every night!
+				LIQUIDO is currently in public BETA. All data is automatically reset every night!
 			</div>
       <div class="container">
         <div class="navbar-header">
@@ -300,13 +300,14 @@ export default {
 		font-size: 16px;
 		text-align: center;
 		text-shadow: 1px 1px 3px #000;
+		border: 2px solid darkred;
 		background: repeating-linear-gradient(
 		  50deg,
-		  #440,
-		  #440 9px,
+		  #220,
+		  #220 9px,
 		  #880 11px,
 		  #880 20px,
-			#440 21px
+			#220 21px
 		);
 	}
 

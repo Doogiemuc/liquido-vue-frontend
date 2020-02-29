@@ -2,54 +2,45 @@
 	<div class="container" id="LoginPage">
 		<div class="row topRow">
 
-			<div class="col-md-8">
+			<div class="col-md-5">
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						<h3 class="panel-title">Login via Authy App (or SMS)</h3>
+						<h3 class="panel-title">Login with Authy App</h3>
 					</div>
-					<div class="panel-body">
-						<div class="row">
-							<div class="col-sm-8">
-
-								<form accept-charset="UTF-8" role="form" class="phoneForm form-inline">
-									<fieldset>
-										<div class="form-group">
-											<input class="form-control" id="phoneInput" placeholder="your mobile phone no." name="mobilephone" type="text" v-model="mobilephone">
-										</div>
-										<button type="submit" id="requestAuthyTokenButton" @click.prevent="requestAuthyToken()" class="btn btn-primary" :disabled="disableRequestTokenButton">Request token</button>
-									</fieldset>
-								</form>
-								<form class="form-inline">
-									<fieldset :disabled="!tokenRequested">
-										<div class="form-group">
-											<p>Request a token for your mobile phone number, then enter the 6-digit one time token from the Authy app:</p>
-											<div class="digit-group" id="tokenInputs">
-												<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
-												<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
-												<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
-												<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
-												<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
-												<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
-											</div>
-										</div>
-									</fieldset>
-								</form>
-								<div class="alert alert-danger" id="tokenAlert" v-if="tokenErrorMsg">
-									<button type="button" class="close" aria-label="Close" @click="tokenErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
-									<span v-html="tokenErrorMsg"></span>
+					<div class="panel-body text-center">
+						<form accept-charset="UTF-8" role="form" class="phoneForm">
+							<fieldset>
+								<div class="form-group">
+									<input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
 								</div>
-
+								<button type="submit" id="requestAuthyTokenButton" @click.prevent="requestAuthyToken()" class="btn btn-primary" :disabled="disableRequestTokenButton">Request token</button>
+							</fieldset>
+						</form>
+						<form class="form-inline">
+							<div class="form-group">
+								<p>Enter the 6-digit LIQUIDO token that is shown in the authy app (or that you have received via SMS):</p>
+								<div class="digit-group" id="authyTokenInputs">
+									<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
+									<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
+									<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
+									<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
+									<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
+									<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
+								</div>
 							</div>
-							<div class="col-sm-4 hidden-xs">
-								<img src="/static/img/Authy Screenshot with Phone.jpg" width="120px" class="pull-right" />
-							</div>
+						</form>
+						<p></p>
+						<div class="alert alert-danger" v-if="tokenErrorMsg">
+							<button type="button" class="close" aria-label="Close" @click="tokenErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
+							<span v-html="tokenErrorMsg"></span>
 						</div>
-
 					</div>
 				</div>
 			</div>
 
-			<div class="col-md-4">
+			<div class="col-md-2">&nbsp;</div>
+
+			<div class="col-md-5">
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						<h3 class="panel-title">Login via email</h3>
@@ -58,7 +49,7 @@
 						<form accept-charset="UTF-8" role="form" class="loginLinkForm">
 							<fieldset>
 								<div class="form-group">
-									<input class="form-control" id="emailInput" placeholder="your email" name="email" type="text" v-model="email">
+									<input class="form-control" id="emailInput" placeholder="email" name="email" type="text" v-model="email">
 								</div>
 								<p>An email with a login link will be sent to your email account.</p>
 								<button type="submit" id="loginLinkButton" @click.prevent="requestLoginEmail()" class="btn btn-primary" :disabled="!isEmailValid">Send login link</button>
@@ -150,7 +141,7 @@ export default {
 				if ($(evt.target).nextAll("input").length > 0) {
 					$(evt.target).nextAll("input")[0].focus()  // focus next input
 				}
-				if (digitNo == 5) {     // when the sixth digit is entered, then immidiately validate the entered sms token.
+				if (digitNo == 5) {     // when the sixth digit is entered, then immidiately validate the entered token.
 					this.loginWithAuthyToken()
 				}
 			}
