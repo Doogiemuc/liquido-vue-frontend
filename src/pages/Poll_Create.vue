@@ -13,7 +13,7 @@
 				There <a href="#" @click="gotoPolls()">{{pollsInElaboration.length == 1 ? 'is one poll' : 'are '+pollsInElaboration.length+' polls'}} in this area</a> that you can join.
 			</p>
 			<ul>
-				<li v-for="poll in pollsInElaboration" v-key="poll.id">
+				<li v-for="poll in pollsInElaboration" :key="poll.id">
 					<a :href="'/polls'+poll.id"><i class="fas fa-poll"></i> {{poll.title}}</a>
 				</li>
 			</ul>

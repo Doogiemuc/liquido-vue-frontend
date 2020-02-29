@@ -759,7 +759,7 @@ module.exports = {
     log.debug("POST createNewPoll: "+JSON.stringify(poll))
     return axios({
       method: 'POST',
-      url: '/polls/add',
+      url: '/polls',
       headers: { 'Content-Type' : 'application/json' },
       data: poll
 	})

@@ -55,7 +55,7 @@ describe('Liquido Happy Case Test', function() {
 		console.log("===================================================")
 	})
 
-	it('check for one area', function() {
+	it('at least one area', function() {
 		cy.login(fix.adminMobilephone, fix.adminSmsToken)
 			.then(api.getAllCategories)
 			.then(areas => {
@@ -336,7 +336,7 @@ describe('Liquido Happy Case Test', function() {
 		cy.get('button.confirm').click()
 		cy.get('#checksum').then(checksumElems => {
 			let checksum = checksumElems[0].textContent
-			expect(checksum).not.to.be.empty
+			expect(checksum).to.be.a('string').that.is.not.empty
 			Cypress.env('checksum', checksum)
 		})
 
@@ -380,8 +380,8 @@ describe('Liquido Happy Case Test', function() {
 
 	it("ballot's checksum is valid", function() {
 		// GIVEN a finished poll and a ballot's checksum
-		expect(Cypress.env('poll')).toBeNonEmptyObject
-		expect(Cypress.env('checksum')).toBeNonEmptyString
+		expect(Cypress.env('poll')).to.have.property('id')
+		expect(Cypress.env('checksum')).to.be.a('string').that.is.not.empty
 
 		// WHEN validating the checksum on the poll's page
 		cy.login(Cypress.env('randMobilephone'), fix.adminSmsToken)
