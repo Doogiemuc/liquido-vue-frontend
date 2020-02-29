@@ -1,6 +1,45 @@
 <template>
 	<div class="container" id="LoginPage">
 		<div class="row topRow">
+
+			<div class="col-md-5">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Login with Authy App or SMS</h3>
+					</div>
+					<div class="panel-body text-center">
+						<form accept-charset="UTF-8" role="form" class="phoneForm">
+							<fieldset>
+								<div class="form-group">
+									<input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
+								</div>
+								<button type="submit" id="sendSmsLoginTokenButton" @click.prevent="requestSmsToken()" class="btn btn-primary" :disabled="disableSendSmsTokenButton">Request token</button>
+							</fieldset>
+						</form>
+						<form class="form-inline">
+							<div class="form-group">
+								<p>Enter the 6-digit LIQUIDO token that is shown in the authy app (or that you have received via SMS):</p>
+								<div class="digit-group" id="smsTokenInputs">
+									<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
+									<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
+									<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
+									<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
+									<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
+									<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
+								</div>
+							</div>
+						</form>
+						<p></p>
+						<div class="alert alert-danger" v-if="smsErrorMsg">
+							<button type="button" class="close" aria-label="Close" @click="smsErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
+							<span v-html="smsErrorMsg"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-2">&nbsp;</div>
+
 			<div class="col-md-5">
 				<div class="panel panel-default">
 					<div class="panel-heading">
@@ -28,44 +67,6 @@
 				</div>
 			</div>
 
-			<div class="col-md-2">&nbsp;</div>
-
-			<div class="col-md-5">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">Login via Authy/SMS</h3>
-					</div>
-					<div class="panel-body text-center">
-						<form accept-charset="UTF-8" role="form" class="phoneForm">
-							<fieldset>
-								<div class="form-group">
-									<input class="form-control" id="phoneInput" placeholder="mobile phone number" name="mobilephone" type="text" v-model="mobilephone">
-								</div>
-								<p>If you have the authy app installed enter the Liquido token form the app. Otherwise a one time token will be sent to you via SMS.</p>
-								<button type="submit" id="sendSmsLoginTokenButton" @click.prevent="requestSmsToken()" class="btn btn-primary" :disabled="disableSendSmsTokenButton">Request token</button>
-							</fieldset>
-						</form>
-						<form class="form-inline" v-if="smsTokenSent">
-							<div class="form-group">
-								<p>Enter the 6-digit token that you have received via SMS:</p>
-								<div class="digit-group" id="smsTokenInputs">
-									<input type="text" class="form-control digit" id="digit0" tabindex="1" v-model="digits[0]" v-on:keypress.prevent="keypressDigit(0, $event)">
-									<input type="text" class="form-control digit" id="digit1" tabindex="2" v-model="digits[1]" v-on:keypress.prevent="keypressDigit(1, $event)">
-									<input type="text" class="form-control digit" id="digit2" tabindex="3" v-model="digits[2]" v-on:keypress.prevent="keypressDigit(2, $event)">
-									<input type="text" class="form-control digit" id="digit3" tabindex="3" v-model="digits[3]" v-on:keypress.prevent="keypressDigit(3, $event)">
-									<input type="text" class="form-control digit" id="digit4" tabindex="3" v-model="digits[4]" v-on:keypress.prevent="keypressDigit(4, $event)">
-									<input type="text" class="form-control digit" id="digit5" tabindex="3" v-model="digits[5]" v-on:keypress.prevent="keypressDigit(5, $event)">
-								</div>
-							</div>
-						</form>
-						<p></p>
-						<div class="alert alert-danger" v-if="smsErrorMsg">
-							<button type="button" class="close" aria-label="Close" @click="smsErrorMsg = ''"><span aria-hidden="true">&times;</span></button>
-							<span v-html="smsErrorMsg"></span>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<div class="row lastRow">
@@ -180,7 +181,7 @@ export default {
 					})
 					this.$router.push('/userHome')
 				}).catch(err => {
-					this.smsErrorMsg = "SMS token not valid."
+					this.smsErrorMsg = "This token is invalid."
 					this.smsTokenSent = false
 					log.error("Error in loginWithSmsToken", err)
 				})

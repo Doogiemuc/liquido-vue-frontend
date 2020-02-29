@@ -8,16 +8,25 @@
 			Create new poll
 		</h1>
 
+		<div v-if="pollsInElaboration.length > 0" class="alert alert-info" role="alert">
+			<p>Before you start a new poll, you should consider joining an already existing poll.
+				There <a href="#" @click="gotoPolls()">{{pollsInElaboration.length == 1 ? 'is one poll' : 'are '+pollsInElaboration.length+' polls'}} in this area</a> that you can join.
+			</p>
+			<ul>
+				<li v-for="poll in pollsInElaboration" v-key="poll.id">
+					<a :href="'/polls'+poll.id"><i class="fas fa-poll"></i> {{poll.title}}</a>
+				</li>
+			</ul>
+		</div>
+
 		<div class="panel panel-default">
 			<div class="panel-body ballot-body">
-				<p v-if="pollsInElaboration.length > 0">Before you start a new poll, you should consider joining an already existing poll. 
-					There <a href="#" @click="gotoProposalsInElaboration()">{{pollsInElaboration.length == 1 ? 'is one poll' : 'are '+pollsInElaboration.length+' polls'}} in this area</a> that you can join.
-				</p>
+
 				<p>
 					<input type="text" class="form-control" name="pollTitle" id="pollTitleInput" v-model="pollTitle" placeholder="Poll title" >
 					<small>The poll's title can be edited by anyone who has a proposal in this poll. Please choose a short umbrella term that describes the general topic.</small>
 				</p>
-				
+
 				<p><button type="button" class="btn btn-primary pull-right" id="createNewPollButton" v-bind:disabled="disableSaveButton" @click="createNewPoll()">Create new poll</button></p>
 			</div>
 		</div>
@@ -27,10 +36,10 @@
 				<law-panel v-if="proposal" :law="proposal"></law-panel>
 			</div>
 			<div class="col-sm-6">
-				<p v-if="proposalsToInvite.length > 0">There are <a href="#" @click="gotoProposalsToInvite()">{{proposalsToInvite.length}} other proposals in this area</a> that are not yet part of a poll. 
+				<p v-if="proposalsToInvite.length > 0">There are <a href="#" @click="gotoProposalsToInvite()">{{proposalsToInvite.length}} other proposals in this area</a> that are not yet part of a poll.
 				If one of them might be an alternative proposal for this poll, then you can invite its creator to join this poll.</p>
 			</div>
-		</div>		
+		</div>
 
 	</div>
 </template>
@@ -69,7 +78,7 @@ export default {
 		if (!this.proposal) {
 			log.warn("Cannot create new poll without a proposal.")
 			this.$router.push('/polls')
-		} 
+		}
 		this.loadPollsInElaboration()
 		this.loadProposalsToInvite()
 	},
@@ -90,8 +99,13 @@ export default {
 			}})
 		},
 
-		/** 
-		 * Load proposals that could be invited into this new poll.  
+		/** show all proposals that are already part of a poll in elaboration */
+		gotoPolls() {
+			this.$router.push("/polls")
+		},
+
+		/**
+		 * Load proposals that could be invited into this new poll.
 		 * ie. proposals that did not yet join another poll and of course are not created by current user.
 		 */
 		loadProposalsToInvite() {
@@ -100,7 +114,7 @@ export default {
 				areaId: this.proposal.area.id
 				//NOT created by currentUser => filterd below
 			}
-			this.$root.api.findByQuery(query).then(res => { 
+			this.$root.api.findByQuery(query).then(res => {
 				this.proposalsToInvite = res._embedded.laws.filter(prop => prop.createdBy.id !== this.$root.currentUser.id )
 			})
 		},
@@ -128,7 +142,7 @@ export default {
 				this.$router.push('/polls/'+poll.id)
 			})
 			.catch(err => {
-				log.warn("Cannot create new poll", err)
+				log.error("Cannot create new poll", err)
 			})
 		}
 	}
@@ -137,4 +151,3 @@ export default {
 
 <style scoped>
 </style>
-
