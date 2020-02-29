@@ -191,6 +191,7 @@ export default {
 			this.$root.auth.register(newUser).then(res => {
 				this.registerSuccess = true
 				this.$refs.alertPanel.clearAlert()
+				//TODO: forward to login now
 			}).catch(err => {
 				log.error("Cannot register", err)
 				if (err.data && err.data.liquidoErrorName === "USER_EXISTS") {

@@ -17,6 +17,7 @@ import RootApp from './pages/RootApp'
 import LiquidoHome from './pages/LiquidoHome'
 import AccountRegister from './pages/Account_Register'
 import LoginPage from './pages/LoginPage'
+import LoginPageEmail from './pages/LoginPageEmail'
 import LogoutPage from './pages/LogoutPage'
 import PageNotFound from './pages/PageNotFound'
 
@@ -41,11 +42,19 @@ const routes = [
     name: 'login',
     component: LoginPage,
     meta: { requiresAuth: false },
-    props: (route) => ({ 					 // pass vue route parameters or alternatively URL query parameter "email" and "token" as prop to LoginPage component
-		initEmail: route.query.email || route.params.initEmail,
-		initMobilePhone: route.params.initMobilePhone,
-		token: route.query.token
-	})
+    props: (route) => ({ 					 // pass vue route parameters OR alternatively URL query parameter "initMobile" and "token" as prop to LoginPage component
+      initMobilePhone: route.params.initMobilePhone,
+      token: route.query.token
+    })
+  },
+  { path: '/login-email',
+    name: 'login-email',
+    component: LoginPageEmail,
+    meta: { requiresAuth: false },
+    props: (route) => ({
+      initEmail: route.query.email || route.params.initEmail,
+      token: route.query.token
+    })
   },
   { path: '/logout',
     component: LogoutPage,
